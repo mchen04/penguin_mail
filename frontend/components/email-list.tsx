@@ -1,0 +1,126 @@
+"use client"
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Menu, ArrowLeft, MoreVertical, Trash2 } from "lucide-react"
+import type { Email } from "@/lib/mock-data"
+import { formatDistanceToNow } from "date-fns"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
+interface EmailListProps {
+  emails: Email[]
+  selectedEmail: Email | null
+  onEmailClick: (email: Email) => void
+  onToggleRead: (emailId: string) => void
+  onDelete: (emailId: string) => void
+  currentFolder: string
+  onMenuClick: () => void
+  onBackToFolders: () => void
+}
+
+export function EmailList({
+  emails,
+  selectedEmail,
+  onEmailClick,
+  onToggleRead,
+  onDelete,
+  currentFolder,
+  onMenuClick,
+  onBackToFolders,
+}: EmailListProps) {
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase()
+  }
+
+  return (
+    <div className="flex flex-col h-full w-full bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-2 p-4 border-b border-border">
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={onBackToFolders}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h2 className="text-xl font-semibold capitalize flex-1">{currentFolder}</h2>
+      </div>
+
+      {/* Email List */}
+      <div className="flex-1 overflow-y-auto">
+        {emails.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-muted-foreground">
+              <p className="text-lg font-medium">No emails</p>
+              <p className="text-sm mt-1">This folder is empty</p>
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {emails.map((email) => (
+              <div
+                key={email.id}
+                onClick={() => onEmailClick(email)}
+                className={`p-4 cursor-pointer transition-colors hover:bg-accent/50 ${
+                  selectedEmail?.id === email.id ? "bg-accent" : ""
+                } ${!email.isRead ? "bg-muted/30" : ""}`}
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    <AvatarFallback className="text-xs">{getInitials(email.from)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-sm truncate ${!email.isRead ? "font-semibold" : "font-medium"}`}>
+                          {email.from}
+                        </span>
+                        {!email.isRead && <Badge variant="default" className="h-2 w-2 p-0 rounded-full" />}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatDistanceToNow(email.timestamp, { addSuffix: true })}
+                        </span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onToggleRead(email.id)
+                              }}
+                            >
+                              Mark as {email.isRead ? "unread" : "read"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onDelete(email.id)
+                              }}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                    <p className={`text-sm mb-1 truncate ${!email.isRead ? "font-medium" : "text-muted-foreground"}`}>
+                      {email.subject}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">{email.preview}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
