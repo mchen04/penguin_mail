@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Inbox, Send, Trash2, PenSquare } from "lucide-react"
 
 interface EmailSidebarProps {
@@ -23,28 +24,51 @@ export function EmailSidebar({ currentFolder, onFolderChange, onCompose, emailCo
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="p-4 border-b border-border">
-        <Button onClick={onCompose} className="w-full" size="lg">
-          <PenSquare className="mr-2 h-4 w-4" />
+      {/* Header with Compose & Theme Toggle */}
+      <div className="flex items-center gap-2 p-4 border-b border-border">
+        <Button onClick={onCompose} className="flex-1" size="lg">
+          <PenSquare />
           Compose
         </Button>
+        <ThemeToggle />
       </div>
-      <nav className="flex-1 p-2">
+
+      {/* Folder Navigation */}
+      <nav className="flex-1 p-2 space-y-1">
         {folders.map((folder) => {
           const Icon = folder.icon
+          const isActive = currentFolder === folder.id
+
           return (
             <button
               key={folder.id}
               onClick={() => onFolderChange(folder.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors ${
-                currentFolder === folder.id ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 text-foreground"
-              }`}
+              className={`
+                w-full flex items-center justify-between
+                px-4 py-3 rounded-lg text-left
+                transition-colors duration-[var(--transition-base)]
+                ${
+                  isActive
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "hover:bg-accent/50 text-foreground"
+                }
+              `}
+              aria-current={isActive ? "page" : undefined}
             >
               <div className="flex items-center gap-3">
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 flex-shrink-0" />
                 <span className="font-medium">{folder.label}</span>
               </div>
-              <span className="text-sm text-muted-foreground">{folder.count}</span>
+              {folder.count > 0 && (
+                <span
+                  className={`
+                    text-sm tabular-nums
+                    ${isActive ? "text-accent-foreground/70" : "text-muted-foreground"}
+                  `}
+                >
+                  {folder.count}
+                </span>
+              )}
             </button>
           )
         })}
