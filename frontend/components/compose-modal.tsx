@@ -348,32 +348,29 @@ export function ComposeModal({ isOpen, onClose, onSend }: ComposeModalProps) {
                 variant="ghost"
                 size="sm"
                 type="button"
-                className="gap-2 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 title="Attach files (coming soon)"
               >
                 <Paperclip className="h-4 w-4" />
-                <span className="hidden sm:inline">Attach</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 type="button"
                 onClick={handleSaveDraft}
-                className="gap-2 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 title="Save as draft"
               >
                 <Save className="h-4 w-4" />
-                <span className="hidden sm:inline">Save Draft</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 type="button"
-                className="gap-2 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 title="Schedule send (coming soon)"
               >
                 <Clock className="h-4 w-4" />
-                <span className="hidden sm:inline">Schedule</span>
               </Button>
             </div>
 
