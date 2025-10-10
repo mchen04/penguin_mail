@@ -110,6 +110,7 @@ export function EmailList({
                           <time
                             className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap"
                             dateTime={email.timestamp.toISOString()}
+                            suppressHydrationWarning
                           >
                             {formatDistanceToNow(email.timestamp, { addSuffix: true })}
                           </time>
