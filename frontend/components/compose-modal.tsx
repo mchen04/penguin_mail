@@ -1,30 +1,14 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Send,
-  Paperclip,
-  Save,
-  Clock,
-  ChevronDown,
-  ChevronUp,
-  Bold,
-  Italic,
-  Underline,
-  Link as LinkIcon,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  X
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Send, Paperclip, Save, Clock, X } from "lucide-react"
+import { ComposeToolbar } from "@/components/compose-toolbar"
+import { ComposeRecipients } from "@/components/compose-recipients"
 
 interface ComposeModalProps {
   isOpen: boolean
@@ -50,6 +34,28 @@ export function ComposeModal({ isOpen, onClose, onSend }: ComposeModalProps) {
     setWordCount(words)
   }, [message])
 
+  const resetForm = useCallback(() => {
+    setTo("")
+    setCc("")
+    setBcc("")
+    setSubject("")
+    setMessage("")
+    setShowCcBcc(false)
+    setWordCount(0)
+  }, [])
+
+  const handleSend = useCallback(() => {
+    if (isFormValid) {
+      onSend({ to: to.trim(), subject: subject.trim(), message: message.trim() })
+      resetForm()
+    }
+  }, [isFormValid, to, subject, message, onSend, resetForm])
+
+  const handleClose = useCallback(() => {
+    resetForm()
+    onClose()
+  }, [resetForm, onClose])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -68,33 +74,11 @@ export function ComposeModal({ isOpen, onClose, onSend }: ComposeModalProps) {
       window.addEventListener("keydown", handleKeyDown)
       return () => window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [isOpen, isFormValid, to, subject, message])
-
-  const handleSend = () => {
-    if (isFormValid) {
-      onSend({ to: to.trim(), subject: subject.trim(), message: message.trim() })
-      resetForm()
-    }
-  }
-
-  const resetForm = () => {
-    setTo("")
-    setCc("")
-    setBcc("")
-    setSubject("")
-    setMessage("")
-    setShowCcBcc(false)
-    setWordCount(0)
-  }
-
-  const handleClose = () => {
-    resetForm()
-    onClose()
-  }
+  }, [isOpen, isFormValid, handleClose, handleSend])
 
   const handleSaveDraft = () => {
     // TODO: Implement draft saving
-    console.log("Save draft:", { to, cc, bcc, subject, message })
+    // Draft data: { to, cc, bcc, subject, message }
   }
 
   const insertFormatting = (before: string, after: string = "") => {
@@ -147,84 +131,20 @@ export function ComposeModal({ isOpen, onClose, onSend }: ComposeModalProps) {
               handleSend()
             }}
           >
-            {/* To Field */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="to" className="text-sm font-medium">
-                  To
-                </Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCcBcc(!showCcBcc)}
-                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {showCcBcc ? (
-                    <>
-                      <ChevronUp className="h-3 w-3 mr-1" />
-                      Hide Cc/Bcc
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-3 w-3 mr-1" />
-                      Add Cc/Bcc
-                    </>
-                  )}
-                </Button>
-              </div>
-              <Input
-                id="to"
-                type="email"
-                placeholder="recipient@example.com"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-                required
-                autoComplete="email"
-                className="transition-all"
-              />
-            </div>
-
-            {/* CC/BCC Fields - Collapsible */}
-            {showCcBcc && (
-              <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                <div className="space-y-2">
-                  <Label htmlFor="cc" className="text-sm font-medium">
-                    Cc
-                  </Label>
-                  <Input
-                    id="cc"
-                    type="email"
-                    placeholder="cc@example.com"
-                    value={cc}
-                    onChange={(e) => setCc(e.target.value)}
-                    autoComplete="email"
-                    className="transition-all"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bcc" className="text-sm font-medium">
-                    Bcc
-                  </Label>
-                  <Input
-                    id="bcc"
-                    type="email"
-                    placeholder="bcc@example.com"
-                    value={bcc}
-                    onChange={(e) => setBcc(e.target.value)}
-                    autoComplete="email"
-                    className="transition-all"
-                  />
-                </div>
-              </div>
-            )}
+            <ComposeRecipients
+              to={to}
+              setTo={setTo}
+              cc={cc}
+              setCc={setCc}
+              bcc={bcc}
+              setBcc={setBcc}
+              showCcBcc={showCcBcc}
+              setShowCcBcc={setShowCcBcc}
+            />
 
             {/* Subject Field */}
-            <div className="space-y-2">
-              <Label htmlFor="subject" className="text-sm font-medium">
-                Subject
-              </Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="subject">Subject</Label>
               <Input
                 id="subject"
                 type="text"
@@ -232,173 +152,67 @@ export function ComposeModal({ isOpen, onClose, onSend }: ComposeModalProps) {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 required
-                className="transition-all"
+                className="bg-background"
               />
             </div>
 
-            {/* Rich Text Toolbar */}
-            <div className="space-y-2">
-              <Label htmlFor="message" className="text-sm font-medium">
-                Message
-              </Label>
-
-              {/* Formatting Toolbar */}
-              <div className="flex flex-wrap items-center gap-1 p-2 border border-border rounded-md bg-muted/30 dark:bg-muted/10">
-                <div className="flex items-center gap-0.5 pr-2 border-r border-border">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("**", "**")}
-                    className="h-7 w-7"
-                    title="Bold (Ctrl+B)"
-                  >
-                    <Bold className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("*", "*")}
-                    className="h-7 w-7"
-                    title="Italic (Ctrl+I)"
-                  >
-                    <Italic className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("__", "__")}
-                    className="h-7 w-7"
-                    title="Underline (Ctrl+U)"
-                  >
-                    <Underline className="h-3.5 w-3.5" />
-                  </Button>
+            {/* Message Field with Toolbar */}
+            <div className="space-y-1.5">
+              <Label htmlFor="message">Message</Label>
+              <div className="border rounded-lg overflow-hidden bg-background">
+                <ComposeToolbar onInsertFormatting={insertFormatting} />
+                <Textarea
+                  ref={textareaRef}
+                  id="message"
+                  placeholder="Type your message here..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                  className="min-h-[300px] border-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <div className="px-3 py-2 border-t text-xs text-muted-foreground">
+                  {wordCount} {wordCount === 1 ? 'word' : 'words'}
                 </div>
-
-                <div className="flex items-center gap-0.5 pr-2 border-r border-border">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("- ")}
-                    className="h-7 w-7"
-                    title="Bulleted List"
-                  >
-                    <List className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("1. ")}
-                    className="h-7 w-7"
-                    title="Numbered List"
-                  >
-                    <ListOrdered className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-0.5">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => insertFormatting("[", "](url)")}
-                    className="h-7 w-7"
-                    title="Insert Link"
-                  >
-                    <LinkIcon className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-
-                <div className="flex-1" />
-
-                {/* Word Count */}
-                <span className="text-xs text-muted-foreground px-2">
-                  {wordCount} {wordCount === 1 ? "word" : "words"}
-                </span>
               </div>
-
-              {/* Message Textarea */}
-              <Textarea
-                ref={textareaRef}
-                id="message"
-                placeholder="Write your message here..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={20}
-                className={cn(
-                  "resize-none transition-all min-h-[400px] font-sans",
-                  "focus-visible:ring-2"
-                )}
-                required
-              />
             </div>
           </form>
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 py-4 border-t border-border bg-muted/20 dark:bg-muted/5">
-          <div className="flex items-center justify-between w-full gap-3">
-            {/* Left side - Secondary actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                title="Attach files (coming soon)"
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                onClick={handleSaveDraft}
-                className="text-muted-foreground hover:text-foreground"
-                title="Save as draft"
-              >
-                <Save className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                title="Schedule send (coming soon)"
-              >
-                <Clock className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Right side - Primary actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                type="button"
-                size="default"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={!isFormValid}
-                type="submit"
-                size="default"
-                className="gap-2 min-w-[100px]"
-              >
-                <Send className="h-4 w-4" />
-                Send
-                <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 ml-1">
-                  <span className="text-xs">⌘</span>↵
-                </kbd>
-              </Button>
-            </div>
-          </div>
+        <DialogFooter className="px-6 py-4 border-t border-border flex-row items-center gap-2">
+          <Button
+            onClick={handleSend}
+            disabled={!isFormValid}
+            className="gap-2"
+          >
+            <Send className="h-4 w-4" />
+            Send
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleSaveDraft}
+            aria-label="Save draft"
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Schedule send"
+          >
+            <Clock className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Attach file"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
