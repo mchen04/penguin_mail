@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Density Tokens
+
+   Gmail-style density modes that control row heights, padding, and spacing
+   throughout the application. Default is "default" which is a middle ground.
+   Users can switch between compact, default, and comfortable.
+   ========================================================================== */
+
+:root {
+  /* --------------------------------------------------------------------------
+     Default Density (Middle ground)
+
+     Balanced spacing for typical desktop usage.
+     -------------------------------------------------------------------------- */
+  --density-row-height: 40px;
+  --density-padding-y: var(--space-2);      /* 8px */
+  --density-padding-x: var(--space-3);      /* 12px */
+  --density-gap: var(--space-2);            /* 8px */
+  --density-icon-size: 20px;
+  --density-checkbox-size: 18px;
+  --density-avatar-size: 32px;
+}
+
+/* --------------------------------------------------------------------------
+   Compact Density
+
+   Maximum information density. Minimal padding, tight spacing.
+   Best for power users who want to see as many emails as possible.
+   -------------------------------------------------------------------------- */
+[data-density="compact"] {
+  --density-row-height: 28px;
+  --density-padding-y: var(--space-1);      /* 4px */
+  --density-padding-x: var(--space-2);      /* 8px */
+  --density-gap: var(--space-1);            /* 4px */
+  --density-icon-size: 18px;
+  --density-checkbox-size: 16px;
+  --density-avatar-size: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   Comfortable Density
+
+   More breathing room. Larger touch targets.
+   Best for touch devices or users who prefer more whitespace.
+   -------------------------------------------------------------------------- */
+[data-density="comfortable"] {
+  --density-row-height: 52px;
+  --density-padding-y: var(--space-3);      /* 12px */
+  --density-padding-x: var(--space-4);      /* 16px */
+  --density-gap: var(--space-3);            /* 12px */
+  --density-icon-size: 24px;
+  --density-checkbox-size: 20px;
+  --density-avatar-size: 40px;
+}
+
+/* --------------------------------------------------------------------------
+   Density-Responsive Component Variables
+
+   These can be used in components that need density-aware sizing.
+   -------------------------------------------------------------------------- */
+:root,
+[data-density="compact"],
+[data-density="comfortable"] {
+  /* Compose window adjustments */
+  --compose-padding: var(--density-padding-x);
+
+  /* Button sizing */
+  --button-height: var(--density-row-height);
+  --button-padding-x: var(--density-padding-x);
+
+  /* Input sizing */
+  --input-height: var(--density-row-height);
+  --input-padding-x: var(--density-padding-x);
+}

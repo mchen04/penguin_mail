@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Typography Tokens
+
+   Fluid typography system using CSS clamp() for smooth scaling between
+   viewport sizes. Based on a desktop-first approach with Gmail-like
+   compact density.
+   ========================================================================== */
+
+:root {
+  /* --------------------------------------------------------------------------
+     Font Families
+
+     System font stack for performance and native feel.
+     -------------------------------------------------------------------------- */
+  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+  --font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  /* --------------------------------------------------------------------------
+     Fluid Font Sizes
+
+     Using clamp(min, preferred, max) for smooth scaling.
+     Formula: clamp(minSize, calc(minSize + (maxSize - minSize) * vw-factor), maxSize)
+
+     These scale between 320px and 1200px viewport widths.
+     -------------------------------------------------------------------------- */
+
+  /* Extra Small - timestamps, metadata */
+  --font-size-xs: clamp(0.625rem, 0.6rem + 0.125vw, 0.75rem);     /* 10px - 12px */
+
+  /* Small - secondary text, labels */
+  --font-size-sm: clamp(0.75rem, 0.725rem + 0.125vw, 0.875rem);   /* 12px - 14px */
+
+  /* Base - body text, email content */
+  --font-size-base: clamp(0.8125rem, 0.8rem + 0.0625vw, 0.875rem); /* 13px - 14px */
+
+  /* Medium - emphasized text */
+  --font-size-md: clamp(0.875rem, 0.85rem + 0.125vw, 1rem);       /* 14px - 16px */
+
+  /* Large - section headers */
+  --font-size-lg: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);         /* 16px - 20px */
+
+  /* Extra Large - page titles */
+  --font-size-xl: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);     /* 18px - 24px */
+
+  /* 2XL - major headings */
+  --font-size-2xl: clamp(1.25rem, 1.1rem + 0.75vw, 2rem);         /* 20px - 32px */
+
+  /* --------------------------------------------------------------------------
+     Font Weights
+     -------------------------------------------------------------------------- */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --------------------------------------------------------------------------
+     Line Heights
+
+     Tighter line heights for compact UI, relaxed for reading content.
+     -------------------------------------------------------------------------- */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* --------------------------------------------------------------------------
+     Letter Spacing
+     -------------------------------------------------------------------------- */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+}

@@ -1,0 +1,12 @@
+/* ==========================================================================
+   Base Styles Index
+
+   Import order matters:
+   1. Reset - clears browser defaults
+   2. Global - establishes base styles
+   3. Utilities - helper classes
+   ========================================================================== */
+
+@import './reset.css';
+@import './global.css';
+@import './utilities.css';

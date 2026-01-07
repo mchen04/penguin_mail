@@ -1,0 +1,12 @@
+/* ==========================================================================
+   Penguin Mail - Main Stylesheet
+
+   Import order:
+   1. Design tokens (CSS custom properties)
+   2. Base styles (reset, global, utilities)
+   3. Themes (dark mode overrides)
+   ========================================================================== */
+
+@import './tokens/index.css';
+@import './base/index.css';
+@import './themes/index.css';
