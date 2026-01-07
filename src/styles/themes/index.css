@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Themes Index
+
+   Light theme is the default (defined in tokens/colors.css).
+   Import dark theme overrides here.
+   ========================================================================== */
+
+@import './dark.css';
+
+/* --------------------------------------------------------------------------
+   System Preference Support (Optional)
+
+   Automatically switch to dark mode based on system preference.
+   This can be overridden by explicitly setting data-theme="light" or "dark".
+   -------------------------------------------------------------------------- */
+
+/* Uncomment to enable automatic dark mode based on system preference:
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: var(--gray-950);
+    --color-bg-elevated: var(--gray-900);
+    --color-surface: var(--gray-900);
+    --color-surface-hover: var(--gray-800);
+    --color-surface-active: var(--gray-700);
+    --color-surface-selected: #1e3a5f;
+    --color-text: var(--gray-50);
+    --color-text-secondary: var(--gray-400);
+    --color-text-tertiary: var(--gray-500);
+    --color-text-disabled: var(--gray-600);
+    --color-text-inverse: var(--gray-900);
+    --color-border: var(--gray-800);
+    --color-border-light: var(--gray-900);
+    --color-border-strong: var(--gray-700);
+    --color-primary: #8ab4f8;
+    --color-primary-hover: #aecbfa;
+    --color-primary-active: #c2d9fb;
+    --color-primary-light: #1e3a5f;
+    --color-error: #f28b82;
+    --color-error-hover: #f5a09a;
+    --color-error-light: #5c2828;
+    --color-warning: #fdd663;
+    --color-warning-light: #5c4a1a;
+    --color-success: #81c995;
+    --color-success-light: #1e4620;
+    --color-star: #fdd663;
+    --color-star-hover: #fde293;
+    --color-unread: var(--gray-50);
+    --color-read: var(--gray-500);
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-shadow-strong: rgba(0, 0, 0, 0.5);
+    --color-overlay: rgba(0, 0, 0, 0.7);
+  }
+}
+
+*/

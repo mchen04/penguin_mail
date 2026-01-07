@@ -1,0 +1,99 @@
+/* ==========================================================================
+   Color Tokens
+
+   Penguin Mail color system based on Gmail's approach with custom accent colors
+   for multi-account color coding.
+   ========================================================================== */
+
+:root {
+  /* --------------------------------------------------------------------------
+     Gray Scale (Neutral palette)
+     -------------------------------------------------------------------------- */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  /* --------------------------------------------------------------------------
+     Account Colors (for multi-account color coding)
+
+     These are used to visually distinguish emails from different accounts
+     in the unified inbox view.
+     -------------------------------------------------------------------------- */
+  --account-blue: #3b82f6;
+  --account-green: #10b981;
+  --account-purple: #8b5cf6;
+  --account-orange: #f59e0b;
+  --account-pink: #ec4899;
+  --account-teal: #14b8a6;
+  --account-red: #ef4444;
+  --account-indigo: #6366f1;
+
+  /* --------------------------------------------------------------------------
+     Semantic Colors (Light Theme - Default)
+
+     These are the colors used throughout the application. They reference
+     the primitive colors above and can be overridden for dark theme.
+     -------------------------------------------------------------------------- */
+
+  /* Backgrounds */
+  --color-bg: var(--gray-50);
+  --color-bg-elevated: white;
+  --color-surface: white;
+  --color-surface-hover: var(--gray-100);
+  --color-surface-active: var(--gray-200);
+  --color-surface-selected: #e8f0fe;
+
+  /* Text */
+  --color-text: var(--gray-900);
+  --color-text-secondary: var(--gray-600);
+  --color-text-tertiary: var(--gray-500);
+  --color-text-disabled: var(--gray-400);
+  --color-text-inverse: white;
+
+  /* Borders */
+  --color-border: var(--gray-200);
+  --color-border-light: var(--gray-100);
+  --color-border-strong: var(--gray-300);
+
+  /* Primary (Gmail blue) */
+  --color-primary: #1a73e8;
+  --color-primary-hover: #1557b0;
+  --color-primary-active: #174ea6;
+  --color-primary-light: #e8f0fe;
+
+  /* Destructive/Error */
+  --color-error: #d93025;
+  --color-error-hover: #c5221f;
+  --color-error-light: #fce8e6;
+
+  /* Warning */
+  --color-warning: #f9ab00;
+  --color-warning-light: #fef7e0;
+
+  /* Success */
+  --color-success: #1e8e3e;
+  --color-success-light: #e6f4ea;
+
+  /* Star (Gmail's starred yellow) */
+  --color-star: #f4b400;
+  --color-star-hover: #f29900;
+
+  /* Unread indicator */
+  --color-unread: var(--gray-900);
+  --color-read: var(--gray-500);
+
+  /* Shadows */
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-strong: rgba(0, 0, 0, 0.15);
+
+  /* Overlay */
+  --color-overlay: rgba(0, 0, 0, 0.5);
+}

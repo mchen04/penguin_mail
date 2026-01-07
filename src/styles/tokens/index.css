@@ -1,0 +1,11 @@
+/* ==========================================================================
+   Design Tokens Index
+
+   Central import file for all design tokens. Import this single file
+   to get access to all CSS custom properties.
+   ========================================================================== */
+
+@import './colors.css';
+@import './typography.css';
+@import './spacing.css';
+@import './density.css';
