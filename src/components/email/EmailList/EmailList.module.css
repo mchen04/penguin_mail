@@ -1,0 +1,21 @@
+/* ==========================================================================
+   EmailList - Container for email rows
+   ========================================================================== */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.emptyText {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-md);
+}

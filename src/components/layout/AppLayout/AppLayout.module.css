@@ -1,0 +1,27 @@
+/* ==========================================================================
+   AppLayout - Main application layout
+   ========================================================================== */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
+  background: var(--color-bg);
+  transition: grid-template-columns 0.2s ease;
+}
+
+/* Collapsed sidebar state */
+.layout[data-sidebar-collapsed='true'] {
+  grid-template-columns: 0 1fr;
+}
+
+/* Mobile: sidebar as overlay */
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .layout[data-sidebar-collapsed='true'] {
+    grid-template-columns: 1fr;
+  }
+}

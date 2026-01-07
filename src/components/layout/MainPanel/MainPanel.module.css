@@ -1,0 +1,27 @@
+/* ==========================================================================
+   MainPanel - Main content area (toolbar + content)
+   ========================================================================== */
+
+.mainPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Content area - scrollable */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+/* Placeholder styles for development */
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-lg);
+}

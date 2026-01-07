@@ -1,0 +1,62 @@
+/* ==========================================================================
+   FolderItem - Individual folder in sidebar
+   ========================================================================== */
+
+.folder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  margin: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.folder:hover {
+  background: var(--color-surface-hover);
+}
+
+.folder:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.folder[data-selected='true'] {
+  background: var(--color-surface-active);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Folder icon */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-secondary);
+}
+
+.folder[data-selected='true'] .icon {
+  color: var(--color-primary);
+}
+
+/* Folder name */
+.name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+/* Unread count badge */
+.count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  min-width: 18px;
+  text-align: right;
+}
+
+.count[data-has-count='true'] {
+  color: var(--color-text);
+}

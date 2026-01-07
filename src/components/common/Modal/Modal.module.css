@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Modal - Generic modal dialog
+   ========================================================================== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal);
+  padding: var(--space-4);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--space-8));
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Size variants */
+.modal.small {
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal.medium {
+  width: 100%;
+  max-width: 600px;
+}
+
+.modal.large {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   Responsive: Mobile
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    width: 100%;
+    max-width: none;
+    max-height: 90vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}

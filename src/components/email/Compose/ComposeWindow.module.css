@@ -1,0 +1,152 @@
+/* ==========================================================================
+   ComposeWindow - Floating compose email window
+   ========================================================================== */
+
+.composeWindow {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  width: var(--compose-width);
+  max-height: var(--compose-max-height);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-compose);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Draggable positioning via CSS custom properties */
+  transform: translate(var(--compose-x, 0), var(--compose-y, 0));
+}
+
+/* Dragging state */
+.composeWindow.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* Minimized state */
+.composeWindow.minimized {
+  width: 280px;
+  max-height: none;
+  height: auto;
+}
+
+/* Maximized state - uses inset positioning, disable dragging transform */
+.composeWindow.maximized {
+  top: var(--space-4);
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: auto;
+  max-height: none;
+  transform: none;
+}
+
+/* Content area */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Recipients section */
+.recipients {
+  position: relative;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.addCcButton {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-3);
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.addCcButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+/* Subject field */
+.subjectField {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.subjectInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  outline: none;
+}
+
+.subjectInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Body textarea */
+.body {
+  flex: 1;
+  min-height: 200px;
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  font-family: inherit;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  resize: none;
+  overflow-y: auto;
+  outline: none;
+}
+
+.body::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Responsive: Mobile - Full screen compose
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .composeWindow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: none;
+    border-radius: 0;
+    transform: none;
+  }
+
+  .composeWindow.minimized {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .body {
+    min-height: 0;
+  }
+}

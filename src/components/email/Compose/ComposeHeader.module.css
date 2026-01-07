@@ -1,0 +1,37 @@
+/* ==========================================================================
+   ComposeHeader - Draggable header with window controls
+   ========================================================================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  user-select: none;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Override icon button styles for white on primary */
+.controls button {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.controls button:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}

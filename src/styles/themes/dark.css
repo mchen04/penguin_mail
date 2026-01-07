@@ -39,6 +39,8 @@
   --color-primary-hover: #aecbfa;
   --color-primary-active: #c2d9fb;
   --color-primary-light: #1e3a5f;
+  --color-primary-bg: rgba(138, 180, 248, 0.12);
+  --color-primary-bg-hover: rgba(138, 180, 248, 0.18);
 
   /* --------------------------------------------------------------------------
      Destructive/Error

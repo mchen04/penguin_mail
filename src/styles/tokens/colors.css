@@ -68,6 +68,8 @@
   --color-primary-hover: #1557b0;
   --color-primary-active: #174ea6;
   --color-primary-light: #e8f0fe;
+  --color-primary-bg: rgba(26, 115, 232, 0.08);
+  --color-primary-bg-hover: rgba(26, 115, 232, 0.12);
 
   /* Destructive/Error */
   --color-error: #d93025;
