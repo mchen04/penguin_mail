@@ -1,0 +1,15 @@
+/* ==========================================================================
+   BulkActions - Action buttons for selected emails
+   ========================================================================== */
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Disabled state when nothing selected */
+.bulkActions[data-disabled='true'] {
+  opacity: 0.5;
+  pointer-events: none;
+}

@@ -1,0 +1,137 @@
+/* ==========================================================================
+   EmailHeader - Header section of email view
+   ========================================================================== */
+
+.header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Top row with back, subject, actions */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.subject {
+  flex: 1;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Sender row */
+.senderRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.colorIndicator {
+  flex-shrink: 0;
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: white;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.senderInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.senderName {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.senderEmail {
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.recipients {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+.dateAndReply {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.replyActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* ==========================================================================
+   Responsive: Mobile
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .header {
+    padding: var(--space-3);
+  }
+
+  .subject {
+    font-size: var(--font-size-lg);
+  }
+
+  .senderRow {
+    flex-wrap: wrap;
+  }
+
+  .dateAndReply {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-2);
+    padding-left: calc(40px + var(--space-3) + 4px + var(--space-3)); /* avatar + gap + indicator + gap */
+  }
+
+  .actions {
+    gap: 0;
+  }
+}

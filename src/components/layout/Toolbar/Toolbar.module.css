@@ -1,0 +1,70 @@
+/* ==========================================================================
+   Toolbar - Main action bar above email list
+   ========================================================================== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--toolbar-height);
+  padding: 0 var(--toolbar-padding-x);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Left section: hamburger (mobile), compose button */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Center section: search bar */
+.centerSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Right section: bulk actions, settings */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Mobile hamburger */
+.mobileHamburger {
+  display: none;
+}
+
+/* Divider between groups */
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border);
+  margin: 0 var(--space-1);
+}
+
+/* Mobile adaptations */
+@media (max-width: 767px) {
+  .toolbar {
+    padding: 0 var(--space-2);
+  }
+
+  .mobileHamburger {
+    display: flex;
+  }
+
+  .centerSection {
+    flex: 1;
+    max-width: none;
+  }
+
+  /* Hide bulk actions on mobile */
+  .bulkActions {
+    display: none;
+  }
+}

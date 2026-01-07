@@ -1,0 +1,176 @@
+/* ==========================================================================
+   EmailRow - Single email row in the list
+   ========================================================================== */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--density-gap);
+  height: var(--density-row-height);
+  padding: 0 var(--density-padding-x);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
+.row:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Unread state */
+.row.unread {
+  background: var(--color-bg);
+  font-weight: var(--font-weight-medium);
+}
+
+.row.unread:hover {
+  background: var(--color-surface-hover);
+}
+
+/* Selected state */
+.row.selected {
+  background: var(--color-primary-bg);
+}
+
+.row.selected:hover {
+  background: var(--color-primary-bg-hover);
+}
+
+/* Checkbox */
+.checkbox {
+  flex-shrink: 0;
+}
+
+/* Star button */
+.star {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-tertiary);
+  transition: color 0.15s ease;
+}
+
+.star:hover {
+  color: var(--color-warning);
+}
+
+.star.starred {
+  color: var(--color-warning);
+}
+
+/* Account color indicator */
+.colorIndicator {
+  flex-shrink: 0;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+/* Sender name */
+.sender {
+  flex-shrink: 0;
+  width: 180px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Subject + Preview combined */
+.content {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subject {
+  color: var(--color-text);
+}
+
+.preview {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
+}
+
+/* Attachment icon */
+.attachment {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+}
+
+/* Date */
+.date {
+  flex-shrink: 0;
+  width: 70px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+/* Quick actions (hover) */
+.quickActions {
+  display: none;
+  flex-shrink: 0;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
+}
+
+.row:hover .quickActions {
+  display: flex;
+}
+
+.row:hover .date {
+  display: none;
+}
+
+/* ==========================================================================
+   Responsive: Mobile
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .row {
+    padding: var(--space-2) var(--space-3);
+    height: auto;
+    min-height: var(--density-row-height);
+  }
+
+  /* Hide preview on mobile */
+  .preview {
+    display: none;
+  }
+
+  /* Smaller sender width */
+  .sender {
+    width: 100px;
+  }
+
+  /* Hide quick actions on mobile (use swipe actions instead in real app) */
+  .quickActions {
+    display: none !important;
+  }
+
+  .row:hover .date {
+    display: block;
+  }
+
+  /* Hide attachment icon on mobile */
+  .attachment {
+    display: none;
+  }
+}
