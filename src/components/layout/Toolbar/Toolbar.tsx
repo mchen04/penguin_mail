@@ -45,7 +45,7 @@ export function Toolbar({
         {/* Compose button */}
         <Button variant="primary" onClick={openCompose}>
           <Icon name="plus" size={18} />
-          Compose
+          <span className={styles.composeText}>Compose</span>
         </Button>
       </div>
 
@@ -57,22 +57,26 @@ export function Toolbar({
       {/* Right section */}
       <div className={styles.rightSection}>
         {/* Select all checkbox */}
-        <Checkbox
-          checked={allSelected}
-          onChange={(e) => onSelectAll?.(e.target.checked)}
-          label="Select all"
-          disabled={totalCount === 0}
-        />
+        <div className={styles.selectAll}>
+          <Checkbox
+            checked={allSelected}
+            onChange={(e) => onSelectAll?.(e.target.checked)}
+            label="Select all"
+            disabled={totalCount === 0}
+          />
+        </div>
 
         <span className={styles.divider} />
 
         {/* Bulk actions */}
-        <BulkActions
-          hasSelection={hasSelection}
-          onArchive={onArchive}
-          onDelete={onDelete}
-          onMarkRead={onMarkRead}
-        />
+        <div className={styles.hideMobile}>
+          <BulkActions
+            hasSelection={hasSelection}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            onMarkRead={onMarkRead}
+          />
+        </div>
 
         <span className={styles.divider} />
 
