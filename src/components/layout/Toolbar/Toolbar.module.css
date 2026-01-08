@@ -52,6 +52,7 @@
 @media (max-width: 767px) {
   .toolbar {
     padding: 0 var(--space-2);
+    gap: var(--space-1);
   }
 
   .mobileHamburger {
@@ -61,10 +62,30 @@
   .centerSection {
     flex: 1;
     max-width: none;
+    min-width: 0;
+  }
+
+  .rightSection {
+    gap: 0;
+  }
+
+  /* Hide dividers on mobile */
+  .divider {
+    display: none;
+  }
+
+  /* Hide compose text on mobile */
+  .composeText {
+    display: none;
+  }
+
+  /* Hide checkbox on mobile */
+  .selectAll {
+    display: none;
   }
 
   /* Hide bulk actions on mobile */
-  .bulkActions {
+  .hideMobile {
     display: none;
   }
 }
