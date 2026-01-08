@@ -13,6 +13,15 @@
   user-select: none;
 }
 
+/* Drag handle for react-rnd */
+.dragHandle {
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
 .title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);

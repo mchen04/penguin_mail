@@ -12,7 +12,8 @@
   "dependencies": {
     "dompurify": "^3.3.1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-rnd": "^10.5.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

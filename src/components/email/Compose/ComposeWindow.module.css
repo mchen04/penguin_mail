@@ -3,44 +3,43 @@
    ========================================================================== */
 
 .composeWindow {
-  position: fixed;
-  bottom: var(--space-4);
-  right: var(--space-4);
-  width: var(--compose-width);
-  max-height: var(--compose-max-height);
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  z-index: var(--z-compose);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* Draggable positioning via CSS custom properties */
-  transform: translate(var(--compose-x, 0), var(--compose-y, 0));
+  /* Height fills container for flex layout */
+  height: 100%;
 }
 
-/* Dragging state */
-.composeWindow.dragging {
-  cursor: grabbing;
-  user-select: none;
+/* Open state - used with react-rnd, so no positioning needed here */
+.composeWindow.open {
+  /* react-rnd handles positioning */
 }
 
-/* Minimized state */
+/* Minimized state - fixed positioning */
 .composeWindow.minimized {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
   width: 280px;
   max-height: none;
   height: auto;
+  z-index: var(--z-compose);
 }
 
-/* Maximized state - uses inset positioning, disable dragging transform */
+/* Maximized state - uses inset positioning */
 .composeWindow.maximized {
+  position: fixed;
   top: var(--space-4);
   left: var(--space-4);
   right: var(--space-4);
   bottom: var(--space-4);
   width: auto;
+  height: auto;
   max-height: none;
-  transform: none;
+  z-index: var(--z-compose);
 }
 
 /* Content area */
@@ -135,7 +134,7 @@
     width: 100%;
     max-height: none;
     border-radius: 0;
-    transform: none;
+    z-index: var(--z-compose);
   }
 
   .composeWindow.minimized {

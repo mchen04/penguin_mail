@@ -5,6 +5,8 @@
 export const STORAGE_KEYS = {
   THEME: 'theme',
   DENSITY: 'density',
+  COMPOSE_SIZE: 'compose-size',
+  COMPOSE_POSITION: 'compose-position',
 } as const;
 
 export const DATA_ATTRIBUTES = {
