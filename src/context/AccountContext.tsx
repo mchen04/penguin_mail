@@ -7,16 +7,16 @@ import type { Account, FolderType } from '@/types/account'
 
 const MOCK_ACCOUNTS: Account[] = [
   {
-    id: 'work',
-    email: 'me@work.com',
-    name: 'Work Account',
+    id: 'ucr',
+    email: 'mchen023@ucr.edu',
+    name: 'UCR',
     color: 'blue',
-    folderCounts: { inbox: 4, drafts: 1, sent: 2, spam: 0, trash: 0 },
+    folderCounts: { inbox: 4, drafts: 1, sent: 1, spam: 0, trash: 0 },
   },
   {
     id: 'personal',
-    email: 'me@personal.com',
-    name: 'Personal Account',
+    email: 'm.chen.dev@gmail.com',
+    name: 'Personal',
     color: 'green',
     folderCounts: { inbox: 5, drafts: 0, sent: 1, spam: 1, trash: 0 },
   },
@@ -53,7 +53,7 @@ interface AccountContextValue extends AccountState {
 
 const initialState: AccountState = {
   accounts: MOCK_ACCOUNTS,
-  expandedAccountIds: new Set(['work']), // First account expanded by default
+  expandedAccountIds: new Set(['ucr']), // First account expanded by default
   selectedAccountId: null, // "All accounts" selected by default
   selectedFolder: 'inbox',
 }
