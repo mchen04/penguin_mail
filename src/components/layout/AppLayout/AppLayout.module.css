@@ -10,9 +10,9 @@
   transition: grid-template-columns 0.2s ease;
 }
 
-/* Collapsed sidebar state */
+/* Collapsed sidebar state - rail with hamburger */
 .layout[data-sidebar-collapsed='true'] {
-  grid-template-columns: 0 1fr;
+  grid-template-columns: var(--sidebar-width-collapsed) 1fr;
 }
 
 /* Mobile: sidebar as overlay */

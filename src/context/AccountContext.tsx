@@ -53,7 +53,7 @@ interface AccountContextValue extends AccountState {
 
 const initialState: AccountState = {
   accounts: MOCK_ACCOUNTS,
-  expandedAccountIds: new Set(['ucr']), // First account expanded by default
+  expandedAccountIds: new Set(['all-accounts', 'ucr']), // "All accounts" and first account expanded by default
   selectedAccountId: null, // "All accounts" selected by default
   selectedFolder: 'inbox',
 }

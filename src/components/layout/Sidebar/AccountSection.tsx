@@ -11,6 +11,8 @@ interface AccountSectionProps {
 
 const FOLDERS: FolderType[] = ['inbox', 'drafts', 'sent', 'spam', 'trash']
 
+const ALL_ACCOUNTS_ID = 'all-accounts'
+
 export const AccountSection = memo(function AccountSection({ account, isAllAccounts = false }: AccountSectionProps) {
   const {
     expandedAccountIds,
@@ -21,12 +23,13 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     getTotalUnread,
   } = useAccounts()
 
-  const isExpanded = isAllAccounts ? true : (account && expandedAccountIds.has(account.id))
+  const sectionId = isAllAccounts ? ALL_ACCOUNTS_ID : account?.id
+  const isExpanded = sectionId ? expandedAccountIds.has(sectionId) : false
   const accountId = isAllAccounts ? null : account?.id ?? null
 
   const handleHeaderClick = () => {
-    if (!isAllAccounts && account) {
-      toggleAccountExpanded(account.id)
+    if (sectionId) {
+      toggleAccountExpanded(sectionId)
     }
   }
 
@@ -49,17 +52,22 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     <div className={styles.section}>
       {/* Header */}
       <div className={styles.header} onClick={handleHeaderClick}>
-        {/* Chevron - only show for individual accounts */}
-        {!isAllAccounts && (
-          <span className={styles.chevron} data-expanded={isExpanded}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 18l6-6-6-6" />
+        {/* Chevron */}
+        <span className={styles.chevron} data-expanded={isExpanded}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </span>
+
+        {/* Indicator - color dot for accounts, stacked icon for "All accounts" */}
+        {isAllAccounts ? (
+          <span className={styles.allAccountsIcon} aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="5" />
+              <path d="M3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2" />
             </svg>
           </span>
-        )}
-
-        {/* Color indicator - only for individual accounts */}
-        {!isAllAccounts && account && (
+        ) : account && (
           <span
             className={styles.colorIndicator}
             style={{ background: ACCOUNT_COLOR_VAR[account.color] }}
@@ -69,7 +77,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
         )}
 
         {/* Account name/email */}
-        <span className={`${styles.accountName} ${isAllAccounts ? styles.allAccountsLabel : ''}`}>
+        <span className={styles.accountName}>
           {isAllAccounts ? 'All accounts' : account?.email}
         </span>
       </div>
