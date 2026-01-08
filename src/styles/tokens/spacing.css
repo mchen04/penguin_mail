@@ -42,7 +42,7 @@
 
   /* Sidebar */
   --sidebar-width: 256px;
-  --sidebar-width-collapsed: 0px;
+  --sidebar-width-collapsed: var(--space-14);  /* 56px - rail with hamburger */
   --sidebar-padding: var(--space-2);
 
   /* Toolbar */

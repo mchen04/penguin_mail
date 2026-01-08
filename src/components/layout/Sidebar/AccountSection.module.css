@@ -31,8 +31,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--space-4);   /* 16px */
+  height: var(--space-4);  /* 16px */
   color: var(--color-text-tertiary);
   transition: transform 0.15s ease;
 }
@@ -43,9 +43,18 @@
 
 /* Color indicator for individual accounts */
 .colorIndicator {
-  width: 8px;
-  height: 8px;
+  width: var(--space-2);   /* 8px */
+  height: var(--space-2);  /* 8px */
   border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Icon for "All accounts" section */
+.allAccountsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
@@ -60,15 +69,9 @@
   white-space: nowrap;
 }
 
-/* "All accounts" label styling */
-.allAccountsLabel {
-  font-weight: var(--font-weight-semibold);
-}
-
 /* Folder list (expandable content) */
 .folders {
   display: none;
-  padding-left: var(--space-6);
 }
 
 .folders[data-expanded='true'] {

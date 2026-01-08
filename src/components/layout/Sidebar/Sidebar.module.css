@@ -5,25 +5,31 @@
 .sidebar {
   display: flex;
   flex-direction: column;
+  width: var(--sidebar-width);
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   overflow: hidden;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: width 0.2s ease;
 }
 
-/* Collapsed state - hidden on desktop */
+/* Collapsed state - rail with hamburger only */
 .sidebar[data-collapsed='true'] {
-  transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
+  width: var(--sidebar-width-collapsed);
 }
+
+.sidebar[data-collapsed='true'] .logo,
+.sidebar[data-collapsed='true'] .content,
+.sidebar[data-collapsed='true'] .footer {
+  display: none;
+}
+
 
 /* Header section */
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--color-border);
   min-height: var(--toolbar-height);
 }
@@ -32,8 +38,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: var(--space-10);   /* 40px */
+  height: var(--space-10);  /* 40px */
+  flex-shrink: 0;
   border-radius: var(--radius-full);
   color: var(--color-text-secondary);
   transition: background 0.15s ease, color 0.15s ease;
@@ -45,8 +52,16 @@
 }
 
 .logo {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.logoSvg {
+  height: var(--space-7);  /* 28px */
+  width: auto;
   color: var(--color-text);
 }
 

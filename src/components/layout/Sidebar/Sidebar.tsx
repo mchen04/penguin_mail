@@ -29,7 +29,45 @@ export function Sidebar() {
               <path d="M3 12h18M3 6h18M3 18h18" />
             </svg>
           </button>
-          <span className={styles.logo}>Penguin Mail</span>
+          <div className={styles.logo}>
+            <svg
+              className={styles.logoSvg}
+              viewBox="0 0 140 28"
+              fill="none"
+              aria-label="Penguin Mail"
+              role="img"
+            >
+              {/* Penguin icon */}
+              <g transform="translate(0, 2)">
+                {/* Body */}
+                <ellipse cx="12" cy="14" rx="10" ry="12" fill="currentColor" opacity="0.9" />
+                {/* Belly */}
+                <ellipse cx="12" cy="16" rx="6" ry="8" fill="var(--color-surface)" />
+                {/* Left eye */}
+                <circle cx="9" cy="9" r="2" fill="var(--color-surface)" />
+                <circle cx="9.5" cy="9" r="1" fill="currentColor" />
+                {/* Right eye */}
+                <circle cx="15" cy="9" r="2" fill="var(--color-surface)" />
+                <circle cx="14.5" cy="9" r="1" fill="currentColor" />
+                {/* Beak */}
+                <path d="M12 11 L14 13 L12 14 L10 13 Z" fill="var(--color-warning, #f59e0b)" />
+                {/* Feet */}
+                <ellipse cx="9" cy="25" rx="3" ry="1.5" fill="var(--color-warning, #f59e0b)" />
+                <ellipse cx="15" cy="25" rx="3" ry="1.5" fill="var(--color-warning, #f59e0b)" />
+              </g>
+              {/* "Penguin Mail" text */}
+              <text
+                x="28"
+                y="19"
+                fill="currentColor"
+                fontFamily="var(--font-family-sans)"
+                fontSize="16"
+                fontWeight="600"
+              >
+                Penguin Mail
+              </text>
+            </svg>
+          </div>
         </div>
 
         {/* Sidebar content - account sections */}
