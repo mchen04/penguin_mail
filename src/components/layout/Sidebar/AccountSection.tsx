@@ -2,16 +2,13 @@ import { memo } from 'react'
 import { useAccounts } from '@/context/AccountContext'
 import { FolderItem } from './FolderItem'
 import { ACCOUNT_COLOR_VAR, type Account, type FolderType } from '@/types/account'
+import { STANDARD_FOLDERS, ALL_ACCOUNTS_ID, LABELS } from '@/constants'
 import styles from './AccountSection.module.css'
 
 interface AccountSectionProps {
   account?: Account // undefined = "All accounts"
   isAllAccounts?: boolean
 }
-
-const FOLDERS: FolderType[] = ['inbox', 'drafts', 'sent', 'spam', 'trash']
-
-const ALL_ACCOUNTS_ID = 'all-accounts'
 
 export const AccountSection = memo(function AccountSection({ account, isAllAccounts = false }: AccountSectionProps) {
   const {
@@ -78,7 +75,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
 
         {/* Account name/email */}
         <span className={styles.accountName}>
-          {isAllAccounts ? 'All accounts' : account?.email}
+          {isAllAccounts ? LABELS.ALL_ACCOUNTS : account?.email}
         </span>
       </div>
 
@@ -94,7 +91,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
           />
         ) : (
           // Individual accounts show all folders
-          FOLDERS.map((folder) => (
+          STANDARD_FOLDERS.map((folder) => (
             <FolderItem
               key={folder}
               folder={folder}

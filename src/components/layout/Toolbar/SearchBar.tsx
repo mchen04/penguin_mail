@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from 'react'
 import { Icon } from '@/components/common/Icon/Icon'
+import { PLACEHOLDERS } from '@/constants'
 import styles from './SearchBar.module.css'
 
 interface SearchBarProps {
@@ -11,7 +12,7 @@ interface SearchBarProps {
 export function SearchBar({
   value: controlledValue,
   onChange,
-  placeholder = 'Search mail',
+  placeholder = PLACEHOLDERS.SEARCH,
 }: SearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const isControlled = controlledValue !== undefined

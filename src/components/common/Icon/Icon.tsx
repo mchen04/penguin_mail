@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ICON_SIZE } from '@/constants'
 
 export type IconName =
   | 'hamburger'
@@ -129,7 +130,7 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
   ),
 }
 
-export function Icon({ name, size = 20, className }: IconProps) {
+export function Icon({ name, size = ICON_SIZE.LARGE, className }: IconProps) {
   return (
     <svg
       width={size}

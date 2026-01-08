@@ -8,11 +8,12 @@ import {
 } from 'react'
 import type { Email, FolderType } from '@/types/email'
 import { mockEmails } from '@/data/mockEmails'
+import { ALL_ACCOUNTS_ID } from '@/constants'
 
 interface EmailState {
   emails: Email[]
   currentFolder: FolderType
-  currentAccountId: string // 'all' or specific account id
+  currentAccountId: string // ALL_ACCOUNTS_ID or specific account id
   selectedEmailId: string | null
   selectedIds: Set<string>
 }
@@ -32,7 +33,7 @@ type EmailAction =
 const initialState: EmailState = {
   emails: mockEmails,
   currentFolder: 'inbox',
-  currentAccountId: 'all',
+  currentAccountId: ALL_ACCOUNTS_ID,
   selectedEmailId: null,
   selectedIds: new Set(),
 }
@@ -156,7 +157,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       state.emails.filter((email) => {
         const folderMatch = email.folder === state.currentFolder
         const accountMatch =
-          state.currentAccountId === 'all' || email.accountId === state.currentAccountId
+          state.currentAccountId === ALL_ACCOUNTS_ID || email.accountId === state.currentAccountId
         return folderMatch && accountMatch
       }),
     [state.emails, state.currentFolder, state.currentAccountId]

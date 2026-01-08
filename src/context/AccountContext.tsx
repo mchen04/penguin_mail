@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, type ReactNode } from 'react'
 import type { Account, FolderType } from '@/types/account'
+import { ALL_ACCOUNTS_ID } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Mock Data
@@ -53,7 +54,7 @@ interface AccountContextValue extends AccountState {
 
 const initialState: AccountState = {
   accounts: MOCK_ACCOUNTS,
-  expandedAccountIds: new Set(['all-accounts', 'ucr']), // "All accounts" and first account expanded by default
+  expandedAccountIds: new Set([ALL_ACCOUNTS_ID, 'ucr']), // "All accounts" and first account expanded by default
   selectedAccountId: null, // "All accounts" selected by default
   selectedFolder: 'inbox',
 }
