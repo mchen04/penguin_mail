@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import type { Theme, Density } from '@/types/settings'
+import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Types
@@ -64,8 +65,8 @@ function isValidDensity(value: unknown): value is Density {
 // --------------------------------------------------------------------------
 
 function getInitialState(): AppState {
-  const savedTheme = localStorage.getItem('theme')
-  const savedDensity = localStorage.getItem('density')
+  const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME)
+  const savedDensity = localStorage.getItem(STORAGE_KEYS.DENSITY)
 
   return {
     sidebarCollapsed: false,
@@ -120,14 +121,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Sync theme to document
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', state.theme)
-    localStorage.setItem('theme', state.theme)
+    document.documentElement.setAttribute(DATA_ATTRIBUTES.THEME, state.theme)
+    localStorage.setItem(STORAGE_KEYS.THEME, state.theme)
   }, [state.theme])
 
   // Sync density to document
   useEffect(() => {
-    document.documentElement.setAttribute('data-density', state.density)
-    localStorage.setItem('density', state.density)
+    document.documentElement.setAttribute(DATA_ATTRIBUTES.DENSITY, state.density)
+    localStorage.setItem(STORAGE_KEYS.DENSITY, state.density)
   }, [state.density])
 
   // Memoized action creators

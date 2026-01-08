@@ -6,7 +6,6 @@ interface BulkActionsProps {
   onArchive?: () => void
   onDelete?: () => void
   onMarkRead?: () => void
-  onMarkUnread?: () => void
 }
 
 export function BulkActions({

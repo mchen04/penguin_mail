@@ -1,14 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-
-// Window boundary constants for drag constraints
-const BOUNDARY_PADDING = {
-  /** Minimum visible width on right edge */
-  right: 100,
-  /** Minimum visible height on bottom edge */
-  bottom: 50,
-  /** Maximum left overflow before element is pulled back */
-  leftOverflow: 200,
-} as const
+import { DRAGGABLE_BOUNDS } from '@/constants'
 
 interface Position {
   x: number
@@ -57,9 +48,9 @@ export function useDraggable({
 
     if (boundToWindow) {
       // Keep within viewport bounds
-      const maxX = window.innerWidth - BOUNDARY_PADDING.right
-      const maxY = window.innerHeight - BOUNDARY_PADDING.bottom
-      const minX = -window.innerWidth + BOUNDARY_PADDING.leftOverflow
+      const maxX = window.innerWidth - DRAGGABLE_BOUNDS.MIN_VISIBLE_WIDTH
+      const maxY = window.innerHeight - DRAGGABLE_BOUNDS.MIN_VISIBLE_HEIGHT
+      const minX = -window.innerWidth + DRAGGABLE_BOUNDS.MAX_LEFT_OVERFLOW
       newX = Math.max(minX, Math.min(maxX, newX))
       newY = Math.max(0, Math.min(maxY, newY))
     }

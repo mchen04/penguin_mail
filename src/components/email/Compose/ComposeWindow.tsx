@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button/Button'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
+import { PLACEHOLDERS, LABELS } from '@/constants'
 import { cn } from '@/utils/cn'
 import styles from './ComposeWindow.module.css'
 
@@ -99,7 +100,7 @@ export function ComposeWindow() {
                 className={styles.addCcButton}
                 onClick={() => setShowCc(true)}
               >
-                Cc
+                {LABELS.CC}
               </button>
             )}
             {showCc && (
@@ -116,7 +117,7 @@ export function ComposeWindow() {
             <input
               type="text"
               className={styles.subjectInput}
-              placeholder="Subject"
+              placeholder={PLACEHOLDERS.SUBJECT}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
             />
@@ -125,7 +126,7 @@ export function ComposeWindow() {
           {/* Body */}
           <textarea
             className={styles.body}
-            placeholder="Compose your message..."
+            placeholder={PLACEHOLDERS.COMPOSE_BODY}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
