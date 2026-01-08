@@ -1,4 +1,5 @@
 import { IconButton } from '@/components/common/IconButton/IconButton'
+import { cn } from '@/utils/cn'
 import styles from './ComposeHeader.module.css'
 
 type ComposeState = 'open' | 'minimized' | 'maximized'
@@ -10,8 +11,11 @@ interface ComposeHeaderProps {
   onMaximize: () => void
   onClose: () => void
   onMouseDown?: (e: React.MouseEvent) => void
-  isDragging?: boolean
+  isDraggable?: boolean
 }
+
+// Export the drag handle class name for react-rnd
+export const DRAG_HANDLE_CLASS = styles.dragHandle
 
 export function ComposeHeader({
   title,
@@ -20,13 +24,12 @@ export function ComposeHeader({
   onMaximize,
   onClose,
   onMouseDown,
-  isDragging,
+  isDraggable = false,
 }: ComposeHeaderProps) {
   return (
     <div
-      className={styles.header}
+      className={cn(styles.header, isDraggable && styles.dragHandle)}
       onMouseDown={onMouseDown}
-      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       <span className={styles.title}>{title}</span>
       <div className={styles.controls}>

@@ -55,8 +55,11 @@
 
   /* Compose Window */
   --compose-min-width: 320px;
-  --compose-default-width: 500px;
+  --compose-default-width: 600px;
+  --compose-default-height: 500px;
   --compose-min-height: 400px;
+  --compose-max-width: 90vw;
+  --compose-max-height: 90vh;
 
   /* --------------------------------------------------------------------------
      Border Radius
