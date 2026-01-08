@@ -25,16 +25,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 className={`${styles.option} ${theme === 'light' ? styles.active : ''}`}
                 onClick={() => setTheme('light')}
               >
-                <span className={styles.optionIcon}>☀️</span>
-                <span>Light</span>
+                Light
               </button>
               <button
                 type="button"
                 className={`${styles.option} ${theme === 'dark' ? styles.active : ''}`}
                 onClick={() => setTheme('dark')}
               >
-                <span className={styles.optionIcon}>🌙</span>
-                <span>Dark</span>
+                Dark
               </button>
             </div>
           </div>
