@@ -1,14 +1,44 @@
 /* ==========================================================================
-   Checkbox - Styled checkbox component
+   Checkbox - Styled checkbox component with Gmail-style circular hitbox
    ========================================================================== */
 
 .wrapper {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Fixed hitbox size for touch accessibility (44x44px minimum) */
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* Circular hitbox background - appears on hover */
+.wrapper::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+
+.wrapper:hover::before {
+  background: var(--color-surface-hover);
+}
+
+.wrapper:active::before {
+  background: var(--color-primary-bg);
 }
 
 .checkbox {
+  position: relative;
+  z-index: 1;
   width: var(--density-checkbox-size);
   height: var(--density-checkbox-size);
   cursor: pointer;
@@ -24,4 +54,9 @@
 .checkbox:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* Hide hover effect when checkbox is disabled */
+.wrapper:has(.checkbox:disabled)::before {
+  display: none;
 }

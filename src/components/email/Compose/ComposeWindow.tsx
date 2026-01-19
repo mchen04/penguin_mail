@@ -26,7 +26,7 @@ export function ComposeWindow() {
   const { accounts } = useAccounts()
   const { sendEmail, saveDraft, deleteEmails } = useEmail()
   const { signatures } = useSettings()
-  const { size, position, setSize, setPosition } = useComposeWindowState()
+  const { size, setSize } = useComposeWindowState()
 
   // Get the default signature (or first signature if none is default)
   const defaultSignature = useMemo(() => {
@@ -579,22 +579,37 @@ export function ComposeWindow() {
     ? window.innerHeight * COMPOSE_WINDOW.MAX_HEIGHT_PERCENT
     : COMPOSE_WINDOW.DEFAULT_HEIGHT
 
+  // Calculate position to anchor at bottom-right
+  const anchoredPosition = {
+    x: typeof window !== 'undefined' ? window.innerWidth - size.width - COMPOSE_WINDOW.DEFAULT_RIGHT : 0,
+    y: typeof window !== 'undefined' ? window.innerHeight - size.height - COMPOSE_WINDOW.DEFAULT_BOTTOM : 0,
+  }
+
   return (
     <Rnd
       size={{ width: size.width, height: size.height }}
-      position={{ x: position.x, y: position.y }}
+      position={anchoredPosition}
       minWidth={COMPOSE_WINDOW.MIN_WIDTH}
       minHeight={COMPOSE_WINDOW.MIN_HEIGHT}
       maxWidth={maxWidth}
       maxHeight={maxHeight}
       bounds="window"
       disableDragging={true}
-      onResizeStop={(_e, _direction, ref, _delta, pos) => {
+      enableResizing={{
+        top: true,
+        left: true,
+        topLeft: true,
+        bottom: false,
+        right: false,
+        bottomRight: false,
+        bottomLeft: false,
+        topRight: false,
+      }}
+      onResizeStop={(_e, _direction, ref) => {
         setSize({
           width: parseInt(ref.style.width, 10),
           height: parseInt(ref.style.height, 10),
         })
-        setPosition(pos)
       }}
       className={cn(styles.composeWindow, styles.open)}
       style={{ zIndex: 'var(--z-compose)' }}

@@ -83,6 +83,15 @@ let threadId = 1
 const generateId = () => String(emailId++)
 const generateThreadId = () => `thread-${threadId++}`
 
+// Named thread IDs for reply chains (top 5 emails will have replies)
+const THREAD_IDS = {
+  CS171_PROJECT: 'thread-cs171-project',
+  CS153_OFFICE: 'thread-cs153-office',
+  CAREER_FAIR: 'thread-career-fair',
+  GITHUB_PR: 'thread-github-pr',
+  LEETCODE: 'thread-leetcode',
+}
+
 // Create UCR account emails
 const ucrEmails: Email[] = [
   // Inbox emails
@@ -107,7 +116,7 @@ const ucrEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: THREAD_IDS.CS171_PROJECT,
     isDraft: false,
   },
   {
@@ -130,7 +139,7 @@ const ucrEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: THREAD_IDS.CS153_OFFICE,
     isDraft: false,
   },
   {
@@ -168,7 +177,7 @@ const ucrEmails: Email[] = [
     attachments: [createAttachment('Career_Fair_Companies.pdf', 245000, 'application/pdf')],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: THREAD_IDS.CAREER_FAIR,
     isDraft: false,
   },
   {
@@ -396,7 +405,7 @@ const personalEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: THREAD_IDS.GITHUB_PR,
     isDraft: false,
   },
   {
@@ -423,7 +432,7 @@ const personalEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: THREAD_IDS.LEETCODE,
     isDraft: false,
   },
   {
@@ -1507,11 +1516,12 @@ const generateBulkEmails = (): Email[] => {
     { subject: 'Your receipt', preview: 'Thank you for your purchase. Here\'s your receipt...', sender: 'uber' },
   ]
 
-  // Generate 50 additional emails spread across different days
-  for (let i = 0; i < 50; i++) {
+  // Generate 80 additional emails (40 per account) to ensure 50+ conversations per account
+  for (let i = 0; i < 80; i++) {
     const template = emailTemplates[i % emailTemplates.length]
-    const isPersonal = i % 3 === 0
-    const daysOffset = Math.floor(i / 3) + 1
+    // Alternate evenly between accounts - 50% each
+    const isPersonal = i % 2 === 0
+    const daysOffset = Math.floor(i / 4) + 1
     const hoursOffset = (i % 24)
 
     bulkEmails.push({
@@ -1684,6 +1694,252 @@ const additionalInboxEmails: Email[] = [
   },
 ]
 
+// Reply chain emails - additional messages in the top 5 threads to create visible reply chains
+const replyChainEmails: Email[] = [
+  // CS 171 Project thread - 3 previous messages
+  {
+    id: generateId(),
+    accountId: 'ucr',
+    accountColor: colors.blue,
+    from: senders.canvas,
+    to: [ucrRecipient],
+    subject: 'CS 171 Final Project - Initial Submission Open',
+    preview: 'The submission portal for the CS 171 Final Project is now open...',
+    body: `<p>Hi Michael,</p>
+<p>The submission portal for your CS 171 Final Project is now open.</p>
+<p><strong>Due:</strong> Friday, January 10 at 11:59 PM PST</p>
+<p>You may submit multiple times - only your latest submission will be graded.</p>`,
+    date: daysAgo(5),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.CS171_PROJECT,
+    isDraft: false,
+  },
+  {
+    id: generateId(),
+    accountId: 'ucr',
+    accountColor: colors.blue,
+    from: senders.canvas,
+    to: [ucrRecipient],
+    subject: 'RE: CS 171 Final Project - Clarification on Requirements',
+    preview: 'Hi class, several students have asked about the model architecture requirements...',
+    body: `<p>Hi class,</p>
+<p>Several students have asked about the model architecture requirements. To clarify:</p>
+<ul>
+<li>You may use any CNN architecture (ResNet, VGG, custom)</li>
+<li>Minimum accuracy requirement: 85% on test set</li>
+<li>Include training curves in your report</li>
+</ul>`,
+    date: daysAgo(3),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.CS171_PROJECT,
+    isDraft: false,
+  },
+  // CS 153 Office Hours thread - 2 previous messages
+  {
+    id: generateId(),
+    accountId: 'ucr',
+    accountColor: colors.blue,
+    from: senders.salloum,
+    to: [{ name: 'CS 153 Students', email: 'cs153-w25@ucr.edu' }],
+    subject: 'CS 153 - Office Hours Schedule for Week 2',
+    preview: 'Office hours for this week will be held Tuesday and Thursday 2-4 PM...',
+    body: `<p>Hi everyone,</p>
+<p>Office hours for this week:</p>
+<ul>
+<li>Tuesday 2-4 PM in WCH 217</li>
+<li>Thursday 2-4 PM in WCH 217</li>
+</ul>
+<p>Best,<br/>Dr. Salloum</p>`,
+    date: daysAgo(7),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.CS153_OFFICE,
+    isDraft: false,
+  },
+  // Career Fair thread - 2 previous messages
+  {
+    id: generateId(),
+    accountId: 'ucr',
+    accountColor: colors.blue,
+    from: senders.careercenter,
+    to: [{ name: 'Engineering Students', email: 'bcoe-students@ucr.edu' }],
+    subject: 'Save the Date: Winter Career Fair - January 9th',
+    preview: 'Mark your calendars! The BCOE Winter Career Fair is coming up...',
+    body: `<p>Dear Engineering Students,</p>
+<p>Mark your calendars! The <strong>Bourns College of Engineering Winter Career Fair</strong> is scheduled for:</p>
+<p><strong>Date:</strong> Thursday, January 9th</p>
+<p><strong>Time:</strong> 10 AM - 3 PM</p>
+<p><strong>Location:</strong> SRC Arena</p>
+<p>More details coming soon!</p>`,
+    date: daysAgo(14),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.CAREER_FAIR,
+    isDraft: false,
+  },
+  {
+    id: generateId(),
+    accountId: 'ucr',
+    accountColor: colors.blue,
+    from: senders.careercenter,
+    to: [{ name: 'Engineering Students', email: 'bcoe-students@ucr.edu' }],
+    subject: 'RE: Winter Career Fair - Company List Preview',
+    preview: 'Excited to share a preview of companies attending the career fair...',
+    body: `<p>Dear Engineering Students,</p>
+<p>Here's an early preview of some confirmed companies:</p>
+<ul>
+<li>Google</li>
+<li>Amazon</li>
+<li>Meta</li>
+<li>Qualcomm</li>
+</ul>
+<p>Full list coming next week!</p>`,
+    date: daysAgo(7),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.CAREER_FAIR,
+    isDraft: false,
+  },
+  // GitHub PR thread - 3 previous messages
+  {
+    id: generateId(),
+    accountId: 'personal',
+    accountColor: colors.green,
+    from: senders.github,
+    to: [personalRecipient],
+    subject: '[react-pdf-viewer] PR #847 opened: Add dark mode support',
+    preview: '@nicholasyang opened a new pull request. This PR adds dark mode support to the PDF viewer...',
+    body: `<p><strong>@nicholasyang</strong> opened this pull request:</p>
+<h3>Add dark mode support to PDF viewer component</h3>
+<p>This is the initial implementation of dark mode. Looking for feedback on the color choices.</p>`,
+    date: daysAgo(3),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.GITHUB_PR,
+    isDraft: false,
+  },
+  {
+    id: generateId(),
+    accountId: 'personal',
+    accountColor: colors.green,
+    from: senders.github,
+    to: [personalRecipient],
+    subject: '[react-pdf-viewer] PR #847: @mchen commented',
+    preview: '@mchen left a comment: "Looks good! A few suggestions on the color palette..."',
+    body: `<p><strong>@mchen</strong> commented:</p>
+<blockquote>
+<p>Looks good! A few suggestions:</p>
+<ul>
+<li>Consider using CSS custom properties for easier theming</li>
+<li>The contrast ratio might need adjustment for accessibility</li>
+</ul>
+</blockquote>`,
+    date: daysAgo(2),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.GITHUB_PR,
+    isDraft: false,
+  },
+  {
+    id: generateId(),
+    accountId: 'personal',
+    accountColor: colors.green,
+    from: senders.github,
+    to: [personalRecipient],
+    subject: '[react-pdf-viewer] PR #847: @nicholasyang pushed new commits',
+    preview: '@nicholasyang pushed 2 new commits addressing review feedback...',
+    body: `<p><strong>@nicholasyang</strong> pushed 2 commits:</p>
+<ul>
+<li>fix: Update color contrast ratios for WCAG compliance</li>
+<li>refactor: Use CSS custom properties for theming</li>
+</ul>`,
+    date: daysAgo(1),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.GITHUB_PR,
+    isDraft: false,
+  },
+  // LeetCode thread - 2 previous messages
+  {
+    id: generateId(),
+    accountId: 'personal',
+    accountColor: colors.green,
+    from: senders.leetcode,
+    to: [personalRecipient],
+    subject: "40-day streak! You're on a roll!",
+    preview: "Amazing! You've hit a 40-day streak. Keep the momentum going...",
+    body: `<p>Hey Michael,</p>
+<p>You're on a <strong>40-day streak</strong>! That's incredible dedication!</p>
+<p>Today's challenge: <strong>LRU Cache</strong> (Medium)</p>
+<p><a href="#">Solve Now</a></p>`,
+    date: daysAgo(5),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.LEETCODE,
+    isDraft: false,
+  },
+  {
+    id: generateId(),
+    accountId: 'personal',
+    accountColor: colors.green,
+    from: senders.leetcode,
+    to: [personalRecipient],
+    subject: "Congrats! You're in the Top 10% of problem solvers",
+    preview: "You've solved 200+ problems and earned a spot in the Top 10%...",
+    body: `<p>Hey Michael,</p>
+<p>Congratulations! You've solved over <strong>200 problems</strong> and are now in the <strong>Top 10%</strong> of LeetCode problem solvers!</p>
+<p>Current rating: <strong>1825</strong></p>
+<p>Keep pushing to reach Knight rank!</p>`,
+    date: daysAgo(10),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'inbox',
+    labels: [],
+    threadId: THREAD_IDS.LEETCODE,
+    isDraft: false,
+  },
+]
+
 // Combine all emails
 export const mockEmails: Email[] = [
   ...ucrEmails,
@@ -1697,6 +1953,7 @@ export const mockEmails: Email[] = [
   ...trashEmails,
   ...archiveEmails,
   ...additionalInboxEmails,
+  ...replyChainEmails,
 ]
 
 // Export email count for verification

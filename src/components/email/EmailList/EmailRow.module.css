@@ -42,9 +42,12 @@
   background: var(--color-primary-bg-hover);
 }
 
-/* Checkbox */
+/* Checkbox - uses negative margin to extend hitbox beyond row padding */
 .checkbox {
   flex-shrink: 0;
+  /* Negative margin to allow the 40px hitbox to extend into padding area */
+  margin-left: calc(-1 * var(--space-2));
+  margin-right: calc(-1 * var(--space-1));
 }
 
 /* Star button */
