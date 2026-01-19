@@ -46,9 +46,9 @@
   --sidebar-padding: var(--space-2);
 
   /* Toolbar */
-  --toolbar-height: 48px;
-  --toolbar-padding-x: var(--space-4);
-  --toolbar-padding-y: var(--space-2);
+  --toolbar-height: 72px;
+  --toolbar-padding-x: var(--space-8);
+  --toolbar-padding-y: var(--space-5);
 
   /* Email List */
   --email-row-gap: var(--space-2);
