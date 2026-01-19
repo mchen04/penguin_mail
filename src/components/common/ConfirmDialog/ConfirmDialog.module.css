@@ -1,51 +1,95 @@
 /* ==========================================================================
-   ConfirmDialog - Confirmation dialog for destructive actions
+   ConfirmDialog - Confirmation modal styles
    ========================================================================== */
 
-.content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) 0;
-  text-align: center;
-}
-
-.iconWrapper {
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: var(--z-modal);
+  animation: fadeIn var(--transition-fast);
+}
+
+.dialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: scaleIn var(--transition-fast);
+  box-shadow: var(--shadow-xl);
+}
+
+.iconWrapper {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
 }
 
 .iconWrapper.danger {
-  background: var(--color-error-bg, rgba(234, 67, 53, 0.1));
-  color: var(--color-error);
+  background: var(--color-error-light, #fee2e2);
+  color: var(--color-error, #dc2626);
 }
 
 .iconWrapper.warning {
-  background: var(--color-warning-bg, rgba(251, 188, 4, 0.15));
-  color: var(--color-warning, #f9ab00);
+  background: var(--color-warning-light, #fef3c7);
+  color: var(--color-warning, #d97706);
 }
 
 .iconWrapper.info {
-  background: var(--color-primary-bg, rgba(66, 133, 244, 0.1));
-  color: var(--color-primary);
+  background: var(--color-info-light, #dbeafe);
+  color: var(--color-info, #2563eb);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
 }
 
 .message {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
   line-height: 1.5;
-  max-width: 320px;
 }
 
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.actions button {
+  flex: 1;
+  max-width: 140px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

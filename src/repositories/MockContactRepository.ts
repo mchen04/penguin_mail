@@ -115,7 +115,6 @@ export class MockContactRepository implements IContactRepository {
       return { data: newContact, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Contact,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create contact',
       }
@@ -128,7 +127,7 @@ export class MockContactRepository implements IContactRepository {
       const index = contacts.findIndex((c) => c.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as Contact, success: false, error: 'Contact not found' }
+        return { success: false, error: 'Contact not found' }
       }
 
       const updated: Contact = {
@@ -142,7 +141,6 @@ export class MockContactRepository implements IContactRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Contact,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update contact',
       }
@@ -170,7 +168,7 @@ export class MockContactRepository implements IContactRepository {
       const index = contacts.findIndex((c) => c.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as Contact, success: false, error: 'Contact not found' }
+        return { success: false, error: 'Contact not found' }
       }
 
       const updated: Contact = {
@@ -184,7 +182,6 @@ export class MockContactRepository implements IContactRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Contact,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to toggle favorite',
       }
@@ -285,7 +282,6 @@ export class MockContactGroupRepository implements IContactGroupRepository {
       return { data: newGroup, success: true }
     } catch (error) {
       return {
-        data: null as unknown as ContactGroup,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create contact group',
       }
@@ -298,7 +294,7 @@ export class MockContactGroupRepository implements IContactGroupRepository {
       const index = groups.findIndex((g) => g.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as ContactGroup, success: false, error: 'Group not found' }
+        return { success: false, error: 'Group not found' }
       }
 
       const updated: ContactGroup = {
@@ -312,7 +308,6 @@ export class MockContactGroupRepository implements IContactGroupRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as ContactGroup,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update contact group',
       }

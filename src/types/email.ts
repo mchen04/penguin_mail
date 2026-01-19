@@ -122,6 +122,41 @@ export interface EmailSearchQuery {
   accountId?: string
 }
 
+/**
+ * Input type for composing and sending emails
+ * Used by the compose window and sendEmail action
+ */
+export interface ComposeEmailInput {
+  /** Existing email ID if editing a draft */
+  id?: string
+  /** Account to send from */
+  accountId: string
+  /** Sender information (typically set from account) */
+  from?: EmailAddress
+  /** Recipients */
+  to: EmailAddress[]
+  /** CC recipients */
+  cc?: EmailAddress[]
+  /** BCC recipients */
+  bcc?: EmailAddress[]
+  /** Email subject */
+  subject: string
+  /** Email body (HTML) */
+  body: string
+  /** Attachments */
+  attachments?: Attachment[]
+  /** Thread context */
+  threadId?: string
+  /** Original email ID if replying */
+  replyToId?: string
+  /** Original email ID if forwarding */
+  forwardedFromId?: string
+  /** True if this is an existing draft being sent */
+  isDraft?: boolean
+  /** Account color for display */
+  accountColor?: AccountColor
+}
+
 // System folder definitions
 export const SYSTEM_FOLDERS: SystemFolderType[] = [
   'inbox',

@@ -1,5 +1,10 @@
+import { useMemo } from 'react'
 import type { Email } from '@/types/email'
+import { useLabels } from '@/context/OrganizationContext'
+import { useEmail } from '@/context/EmailContext'
+import { useContacts } from '@/context/ContactsContext'
 import { IconButton } from '@/components/common/IconButton/IconButton'
+import { LabelPicker } from '../LabelPicker'
 import { formatFullDate } from '@/utils/formatDate'
 import { ACCOUNT_COLOR_VAR } from '@/types/account'
 import styles from './EmailHeader.module.css'
@@ -27,6 +32,28 @@ export function EmailHeader({
   onToggleStar,
   onPrint,
 }: EmailHeaderProps) {
+  const { getLabelById } = useLabels()
+  const { addLabels, removeLabels } = useEmail()
+  const { getContactByEmail } = useContacts()
+
+  // Get label objects for this email
+  const emailLabels = email.labels
+    .map((id) => getLabelById(id))
+    .filter((l): l is NonNullable<typeof l> => l !== undefined)
+
+  // Get contact info for sender to display avatar
+  const senderContact = useMemo(
+    () => getContactByEmail(email.from.email),
+    [getContactByEmail, email.from.email]
+  )
+
+  const handleToggleLabel = (labelId: string) => {
+    if (email.labels.includes(labelId)) {
+      removeLabels([email.id], [labelId])
+    } else {
+      addLabels([email.id], [labelId])
+    }
+  }
   const accountColorVar = ACCOUNT_COLOR_VAR[email.accountColor]
 
   return (
@@ -41,7 +68,26 @@ export function EmailHeader({
 
         <h1 className={styles.subject}>{email.subject}</h1>
 
+        {/* Display current labels */}
+        {emailLabels.length > 0 && (
+          <div className={styles.labelChips}>
+            {emailLabels.map((label) => (
+              <span
+                key={label.id}
+                className={styles.labelChip}
+                style={{ backgroundColor: label.color }}
+              >
+                {label.name}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className={styles.actions}>
+          <LabelPicker
+            selectedLabelIds={email.labels}
+            onToggleLabel={handleToggleLabel}
+          />
           <IconButton
             icon="archive"
             label="Archive"
@@ -79,10 +125,18 @@ export function EmailHeader({
           style={{ backgroundColor: accountColorVar }}
         />
 
-        {/* Sender avatar placeholder */}
-        <div className={styles.avatar}>
-          {email.from.name.charAt(0).toUpperCase()}
-        </div>
+        {/* Sender avatar - show contact avatar if available */}
+        {senderContact?.avatar ? (
+          <img
+            src={senderContact.avatar}
+            alt={`${email.from.name}'s avatar`}
+            className={styles.avatarImage}
+          />
+        ) : (
+          <div className={styles.avatar}>
+            {email.from.name.charAt(0).toUpperCase()}
+          </div>
+        )}
 
         <div className={styles.senderInfo}>
           <div className={styles.senderName}>

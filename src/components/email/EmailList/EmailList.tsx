@@ -1,7 +1,11 @@
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useEmail } from '@/context/EmailContext'
 import { useAccounts } from '@/context/AccountContext'
+import { useSettings } from '@/context/SettingsContext'
 import { EmailRow } from './EmailRow'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
+import { EMAIL_LIST } from '@/constants'
+import type { Email } from '@/types/email'
 import styles from './EmailList.module.css'
 
 interface EmailListProps {
@@ -51,11 +55,18 @@ const EMPTY_STATES: Record<string, { icon: IconName; title: string; description:
   },
 }
 
+// Helper to get thread count for an email
+interface EmailWithThreadInfo extends Email {
+  threadCount: number
+}
+
 export function EmailList({ onOpenEmail }: EmailListProps) {
   const { selectedFolder } = useAccounts()
+  const { conversationView } = useSettings()
   const {
     filteredEmails,
     searchQuery,
+    currentFolder,
     selectEmail,
     toggleStar,
     markRead,
@@ -67,6 +78,94 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
     isLoading,
   } = useEmail()
 
+  // Pagination state - resets when folder or search changes
+  const [displayCount, setDisplayCount] = useState<number>(EMAIL_LIST.PAGE_SIZE)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  // Group emails by thread when conversation view is enabled
+  // Shows only the most recent email per thread with thread count
+  const displayEmails = useMemo((): EmailWithThreadInfo[] => {
+    if (!conversationView) {
+      // No grouping - show all emails individually with thread count of 1
+      return filteredEmails.map(email => ({ ...email, threadCount: 1 }))
+    }
+
+    // Group by threadId, keep the most recent (first since already sorted by date desc)
+    const threadMap = new Map<string, { email: Email; count: number }>()
+
+    for (const email of filteredEmails) {
+      const existing = threadMap.get(email.threadId)
+      if (existing) {
+        existing.count++
+        // Keep the more recent email (filteredEmails is sorted by date desc)
+        // So the first one we encounter is the most recent
+      } else {
+        threadMap.set(email.threadId, { email, count: 1 })
+      }
+    }
+
+    return Array.from(threadMap.values()).map(({ email, count }) => ({
+      ...email,
+      threadCount: count,
+    }))
+  }, [filteredEmails, conversationView])
+
+  // Reset pagination when folder or search changes - this is a valid pattern
+  // for resetting local state when dependencies from context change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDisplayCount(EMAIL_LIST.PAGE_SIZE)
+  }, [currentFolder, searchQuery])
+
+  // Paginated emails
+  const paginatedEmails = useMemo(
+    () => displayEmails.slice(0, displayCount),
+    [displayEmails, displayCount]
+  )
+
+  const hasMore = displayCount < displayEmails.length
+  const totalCount = displayEmails.length
+
+  // Infinite scroll sentinel ref
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const handleLoadMore = useCallback(() => {
+    if (isLoadingMore) return // Prevent multiple loads
+
+    setIsLoadingMore(true)
+    // Simulate network delay for realistic UX
+    setTimeout(() => {
+      setDisplayCount((prev) => Math.min(prev + EMAIL_LIST.PAGE_SIZE, displayEmails.length))
+      setIsLoadingMore(false)
+    }, EMAIL_LIST.LOAD_MORE_DELAY)
+  }, [displayEmails.length, isLoadingMore])
+
+  // Infinite scroll using IntersectionObserver
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && !isLoadingMore) {
+          handleLoadMore()
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: EMAIL_LIST.INFINITE_SCROLL_ROOT_MARGIN, // load before reaching the bottom
+        threshold: 0,
+      }
+    )
+
+    observer.observe(sentinel)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [hasMore, isLoadingMore, handleLoadMore])
+
   // Use custom open handler if provided, otherwise use selectEmail
   const handleOpenEmail = onOpenEmail ?? selectEmail
 
@@ -74,7 +173,7 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
   if (isLoading) {
     return (
       <div className={styles.list} role="grid" aria-label="Loading emails">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: EMAIL_LIST.SKELETON_COUNT }).map((_, i) => (
           <div key={i} className={styles.skeleton}>
             <div className={styles.skeletonCheckbox} />
             <div className={styles.skeletonAvatar} />
@@ -116,11 +215,12 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
 
   return (
     <div className={styles.list} role="grid" aria-label="Email list">
-      {filteredEmails.map((email) => (
+      {paginatedEmails.map((email) => (
         <EmailRow
           key={email.id}
           email={email}
           isSelected={isSelected(email.id)}
+          threadCount={email.threadCount}
           onSelect={(shiftKey) => toggleSelection(email.id, shiftKey)}
           onOpen={() => handleOpenEmail(email.id)}
           onToggleStar={() => toggleStar(email.id)}
@@ -131,6 +231,25 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
           }
         />
       ))}
+
+      {/* Infinite scroll sentinel and loading indicator */}
+      {hasMore && (
+        <div ref={sentinelRef} className={styles.sentinel}>
+          {isLoadingMore && (
+            <div className={styles.loadingIndicator}>
+              <span className={styles.loadMoreSpinner} />
+              <span>Loading more...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pagination info */}
+      {totalCount > EMAIL_LIST.PAGE_SIZE && (
+        <div className={styles.paginationInfo}>
+          Showing {paginatedEmails.length} of {totalCount} {conversationView ? 'conversations' : 'emails'}
+        </div>
+      )}
     </div>
   )
 }

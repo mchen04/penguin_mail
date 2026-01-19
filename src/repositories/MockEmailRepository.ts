@@ -18,6 +18,7 @@ import type {
   PaginatedResponse,
 } from './types'
 import { storage, STORAGE_KEYS, generateId } from '@/services/storage'
+import { simulateNetworkDelay } from '@/utils'
 
 export class MockEmailRepository implements IEmailRepository {
   private async getEmails(): Promise<Email[]> {
@@ -95,6 +96,7 @@ export class MockEmailRepository implements IEmailRepository {
     query: EmailSearchQuery,
     pagination?: PaginationOptions
   ): Promise<PaginatedResponse<Email>> {
+    await simulateNetworkDelay()
     const emails = await this.getEmails()
 
     const filtered = emails.filter((email) => {
@@ -204,6 +206,7 @@ export class MockEmailRepository implements IEmailRepository {
   }
 
   async create(input: EmailCreateInput): Promise<RepositoryResponse<Email>> {
+    await simulateNetworkDelay()
     try {
       const emails = await this.getEmails()
       const accounts = await storage.get<{ id: string; color: string }[]>(STORAGE_KEYS.ACCOUNTS) ?? []
@@ -247,7 +250,6 @@ export class MockEmailRepository implements IEmailRepository {
       return { data: newEmail, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Email,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create email',
       }
@@ -255,12 +257,13 @@ export class MockEmailRepository implements IEmailRepository {
   }
 
   async update(id: string, input: EmailUpdateInput): Promise<RepositoryResponse<Email>> {
+    await simulateNetworkDelay()
     try {
       const emails = await this.getEmails()
       const index = emails.findIndex((e) => e.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as Email, success: false, error: 'Email not found' }
+        return { success: false, error: 'Email not found' }
       }
 
       const updated = { ...emails[index], ...input }
@@ -270,7 +273,6 @@ export class MockEmailRepository implements IEmailRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Email,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update email',
       }
@@ -294,7 +296,6 @@ export class MockEmailRepository implements IEmailRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: [],
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update emails',
       }
@@ -406,7 +407,6 @@ export class MockEmailRepository implements IEmailRepository {
       return { data: draft, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Email,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to save draft',
       }
@@ -414,12 +414,18 @@ export class MockEmailRepository implements IEmailRepository {
   }
 
   async markAsRead(ids: string[]): Promise<RepositoryResponse<void>> {
-    await this.updateMany(ids, { isRead: true })
+    const result = await this.updateMany(ids, { isRead: true })
+    if (!result.success) {
+      return { success: false, error: result.error }
+    }
     return { data: undefined, success: true }
   }
 
   async markAsUnread(ids: string[]): Promise<RepositoryResponse<void>> {
-    await this.updateMany(ids, { isRead: false })
+    const result = await this.updateMany(ids, { isRead: false })
+    if (!result.success) {
+      return { success: false, error: result.error }
+    }
     return { data: undefined, success: true }
   }
 

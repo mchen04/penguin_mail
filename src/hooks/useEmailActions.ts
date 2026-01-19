@@ -2,15 +2,21 @@
  * useEmailActions - Hook that wraps email operations with toast notifications and undo support
  */
 
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { useEmail } from '@/context/EmailContext'
 import { useToast } from '@/context/ToastContext'
+import { useUndoStack } from './useUndoStack'
 import type { FolderType } from '@/types/email'
 
-interface UndoState {
-  type: 'delete' | 'archive' | 'move' | 'spam'
-  ids: string[]
-  previousFolder: FolderType
+/** Folder display names for toast messages */
+const FOLDER_NAMES: Record<string, string> = {
+  inbox: 'Inbox',
+  sent: 'Sent',
+  drafts: 'Drafts',
+  trash: 'Trash',
+  spam: 'Spam',
+  archive: 'Archive',
+  starred: 'Starred',
 }
 
 export function useEmailActions() {
@@ -32,21 +38,15 @@ export function useEmailActions() {
   } = useEmail()
 
   const toast = useToast()
-  const undoStateRef = useRef<UndoState | null>(null)
+  const undoStack = useUndoStack({ expireTime: 10000 })
 
   const handleDelete = useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return
 
-      // Store state for undo
+      // Get previous folders for undo
       const emailsToDelete = emails.filter((e) => ids.includes(e.id))
-      if (emailsToDelete.length > 0) {
-        undoStateRef.current = {
-          type: 'delete',
-          ids,
-          previousFolder: emailsToDelete[0].folder,
-        }
-      }
+      const previousFolders = new Map(emailsToDelete.map((e) => [e.id, e.folder]))
 
       deleteEmails(ids)
       clearSelection()
@@ -55,32 +55,32 @@ export function useEmailActions() {
         ? 'Email moved to trash'
         : `${ids.length} emails moved to trash`
 
+      const undoAction = undoStack.push(
+        'delete',
+        message,
+        () => {
+          // Restore each email to its original folder
+          previousFolders.forEach((folder, id) => {
+            moveToFolder([id], folder)
+          })
+        },
+        { ids, previousFolders }
+      )
+
       toast.info(message, {
         label: 'Undo',
-        onClick: () => {
-          if (undoStateRef.current?.type === 'delete') {
-            moveToFolder(undoStateRef.current.ids, undoStateRef.current.previousFolder)
-            undoStateRef.current = null
-          }
-        },
+        onClick: () => undoStack.undoById(undoAction.id),
       })
     },
-    [emails, deleteEmails, moveToFolder, clearSelection, toast]
+    [emails, deleteEmails, moveToFolder, clearSelection, toast, undoStack]
   )
 
   const handleArchive = useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return
 
-      // Store state for undo
       const emailsToArchive = emails.filter((e) => ids.includes(e.id))
-      if (emailsToArchive.length > 0) {
-        undoStateRef.current = {
-          type: 'archive',
-          ids,
-          previousFolder: emailsToArchive[0].folder,
-        }
-      }
+      const previousFolders = new Map(emailsToArchive.map((e) => [e.id, e.folder]))
 
       archiveEmails(ids)
       clearSelection()
@@ -89,17 +89,23 @@ export function useEmailActions() {
         ? 'Email archived'
         : `${ids.length} emails archived`
 
+      const undoAction = undoStack.push(
+        'archive',
+        message,
+        () => {
+          previousFolders.forEach((folder, id) => {
+            moveToFolder([id], folder)
+          })
+        },
+        { ids, previousFolders }
+      )
+
       toast.info(message, {
         label: 'Undo',
-        onClick: () => {
-          if (undoStateRef.current?.type === 'archive') {
-            moveToFolder(undoStateRef.current.ids, undoStateRef.current.previousFolder)
-            undoStateRef.current = null
-          }
-        },
+        onClick: () => undoStack.undoById(undoAction.id),
       })
     },
-    [emails, archiveEmails, moveToFolder, clearSelection, toast]
+    [emails, archiveEmails, moveToFolder, clearSelection, toast, undoStack]
   )
 
   const handleMarkRead = useCallback(
@@ -150,42 +156,33 @@ export function useEmailActions() {
       if (ids.length === 0) return
 
       const emailsToMove = emails.filter((e) => ids.includes(e.id))
-      if (emailsToMove.length > 0) {
-        undoStateRef.current = {
-          type: 'move',
-          ids,
-          previousFolder: emailsToMove[0].folder,
-        }
-      }
+      const previousFolders = new Map(emailsToMove.map((e) => [e.id, e.folder]))
 
       moveToFolder(ids, folder)
       clearSelection()
 
-      const folderNames: Record<FolderType, string> = {
-        inbox: 'Inbox',
-        sent: 'Sent',
-        drafts: 'Drafts',
-        trash: 'Trash',
-        spam: 'Spam',
-        archive: 'Archive',
-        starred: 'Starred',
-      }
-
+      const folderName = FOLDER_NAMES[folder] ?? folder
       const message = ids.length === 1
-        ? `Moved to ${folderNames[folder]}`
-        : `${ids.length} emails moved to ${folderNames[folder]}`
+        ? `Moved to ${folderName}`
+        : `${ids.length} emails moved to ${folderName}`
+
+      const undoAction = undoStack.push(
+        'move',
+        message,
+        () => {
+          previousFolders.forEach((prevFolder, id) => {
+            moveToFolder([id], prevFolder)
+          })
+        },
+        { ids, folder, previousFolders }
+      )
 
       toast.info(message, {
         label: 'Undo',
-        onClick: () => {
-          if (undoStateRef.current?.type === 'move') {
-            moveToFolder(undoStateRef.current.ids, undoStateRef.current.previousFolder)
-            undoStateRef.current = null
-          }
-        },
+        onClick: () => undoStack.undoById(undoAction.id),
       })
     },
-    [emails, moveToFolder, clearSelection, toast]
+    [emails, moveToFolder, clearSelection, toast, undoStack]
   )
 
   const handleDeletePermanently = useCallback(
@@ -216,13 +213,7 @@ export function useEmailActions() {
       if (ids.length === 0) return
 
       const emailsToMark = emails.filter((e) => ids.includes(e.id))
-      if (emailsToMark.length > 0) {
-        undoStateRef.current = {
-          type: 'spam',
-          ids,
-          previousFolder: emailsToMark[0].folder,
-        }
-      }
+      const previousFolders = new Map(emailsToMark.map((e) => [e.id, e.folder]))
 
       markAsSpam(ids)
       clearSelection()
@@ -231,17 +222,23 @@ export function useEmailActions() {
         ? 'Marked as spam'
         : `${ids.length} emails marked as spam`
 
+      const undoAction = undoStack.push(
+        'spam',
+        message,
+        () => {
+          previousFolders.forEach((folder, id) => {
+            moveToFolder([id], folder)
+          })
+        },
+        { ids, previousFolders }
+      )
+
       toast.info(message, {
         label: 'Undo',
-        onClick: () => {
-          if (undoStateRef.current?.type === 'spam') {
-            moveToFolder(undoStateRef.current.ids, undoStateRef.current.previousFolder)
-            undoStateRef.current = null
-          }
-        },
+        onClick: () => undoStack.undoById(undoAction.id),
       })
     },
-    [emails, markAsSpam, moveToFolder, clearSelection, toast]
+    [emails, markAsSpam, moveToFolder, clearSelection, toast, undoStack]
   )
 
   const handleMarkNotSpam = useCallback(
@@ -271,5 +268,7 @@ export function useEmailActions() {
     moveToFolder: handleMoveToFolder,
     markAsSpam: handleMarkAsSpam,
     markNotSpam: handleMarkNotSpam,
+    // Expose undo stack for advanced usage
+    undoStack,
   }
 }

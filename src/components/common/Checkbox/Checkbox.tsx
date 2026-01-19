@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react'
+import { memo, type InputHTMLAttributes } from 'react'
 import { cn } from '@/utils/cn'
 import styles from './Checkbox.module.css'
 
@@ -6,7 +6,7 @@ interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'typ
   label?: string
 }
 
-export function Checkbox({ className, label, id, ...props }: CheckboxProps) {
+export const Checkbox = memo(function Checkbox({ className, label, id, ...props }: CheckboxProps) {
   return (
     <span className={styles.wrapper}>
       <input
@@ -18,4 +18,4 @@ export function Checkbox({ className, label, id, ...props }: CheckboxProps) {
       />
     </span>
   )
-}
+})

@@ -5,14 +5,39 @@ import {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react'
-import type { Email, FolderType } from '@/types/email'
+import type { Email, FolderType, ComposeEmailInput } from '@/types/email'
 import { useRepositories } from './RepositoryContext'
-import { ALL_ACCOUNTS_ID } from '@/constants'
+import { ALL_ACCOUNTS_ID, DATE_RANGE_MS, REPOSITORY } from '@/constants'
 
 export type SortField = 'date' | 'sender' | 'subject'
 export type SortDirection = 'asc' | 'desc'
+
+export interface SearchFilters {
+  text: string
+  from: string
+  to: string
+  subject: string
+  hasAttachment: boolean | null
+  isUnread: boolean | null
+  isStarred: boolean | null
+  dateRange: 'any' | 'today' | 'week' | 'month' | 'year' | 'custom'
+  dateFrom?: Date
+  dateTo?: Date
+}
+
+const defaultSearchFilters: SearchFilters = {
+  text: '',
+  from: '',
+  to: '',
+  subject: '',
+  hasAttachment: null,
+  isUnread: null,
+  isStarred: null,
+  dateRange: 'any',
+}
 
 interface EmailState {
   emails: Email[]
@@ -22,6 +47,7 @@ interface EmailState {
   selectedIds: Set<string>
   lastSelectedId: string | null // For shift-click range selection
   searchQuery: string
+  searchFilters: SearchFilters
   sortField: SortField
   sortDirection: SortDirection
   isLoading: boolean
@@ -45,6 +71,7 @@ type EmailAction =
   | { type: 'TOGGLE_SELECTION'; id: string }
   | { type: 'TOGGLE_SELECTION_RANGE'; id: string; filteredIds: string[] }
   | { type: 'SET_SEARCH'; query: string }
+  | { type: 'SET_SEARCH_FILTERS'; filters: SearchFilters }
   | { type: 'SET_SORT'; field: SortField; direction: SortDirection }
   | { type: 'SET_LOADING'; loading: boolean }
   | { type: 'ADD_EMAIL'; email: Email }
@@ -58,6 +85,7 @@ const initialState: EmailState = {
   selectedIds: new Set(),
   lastSelectedId: null,
   searchQuery: '',
+  searchFilters: { ...defaultSearchFilters },
   sortField: 'date',
   sortDirection: 'desc',
   isLoading: true,
@@ -276,6 +304,15 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         lastSelectedId: null,
       }
 
+    case 'SET_SEARCH_FILTERS':
+      return {
+        ...state,
+        searchFilters: action.filters,
+        searchQuery: action.filters.text, // Sync simple search with filters text
+        selectedIds: new Set(),
+        lastSelectedId: null,
+      }
+
     case 'SET_SORT':
       return {
         ...state,
@@ -324,6 +361,7 @@ interface EmailContextValue extends Omit<EmailState, 'isLoading'> {
   isSelected: (id: string) => boolean
   selectAll: () => void
   setSearch: (query: string) => void
+  setSearchFilters: (filters: SearchFilters) => void
   setSort: (field: SortField, direction: SortDirection) => void
   toggleSortDirection: () => void
   // Dynamic folder counts computed from actual email data
@@ -331,8 +369,11 @@ interface EmailContextValue extends Omit<EmailState, 'isLoading'> {
   getFolderCount: (folder: FolderType, accountId?: string | null) => number
   getTotalUnreadCount: () => number
   // New methods for compose
-  sendEmail: (email: Partial<Email>) => Promise<void>
-  saveDraft: (email: Partial<Email>) => Promise<void>
+  sendEmail: (email: ComposeEmailInput) => Promise<void>
+  saveDraft: (email: Partial<ComposeEmailInput>) => Promise<void>
+  // Label management
+  addLabels: (ids: string[], labelIds: string[]) => void
+  removeLabels: (ids: string[], labelIds: string[]) => void
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null)
@@ -341,26 +382,81 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(emailReducer, initialState)
   const { emails: emailRepository } = useRepositories()
 
+  // Track mounted state to prevent state updates after unmount
+  const isMountedRef = useRef(true)
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
   // Load emails from repository on mount
   useEffect(() => {
+    let cancelled = false
+
     async function loadEmails() {
       try {
         // Load all emails - use search with no filters to get everything
-        const allEmails = await emailRepository.search({}, { page: 1, pageSize: 10000 })
-        dispatch({ type: 'SET_EMAILS', emails: allEmails.data })
+        const allEmails = await emailRepository.search({}, { page: 1, pageSize: REPOSITORY.LOAD_ALL_PAGE_SIZE })
+        // Check if still mounted before updating state
+        if (!cancelled && isMountedRef.current) {
+          dispatch({ type: 'SET_EMAILS', emails: allEmails.data })
+        }
       } catch {
-        dispatch({ type: 'SET_LOADING', loading: false })
+        if (!cancelled && isMountedRef.current) {
+          dispatch({ type: 'SET_LOADING', loading: false })
+        }
       }
     }
     loadEmails()
+
+    return () => {
+      cancelled = true
+    }
   }, [emailRepository])
 
   // Sync operations through repository - the repository handles persistence
   // State updates trigger re-renders, repository methods persist changes
 
+  // Helper function to check if email date matches the date range filter
+  const matchesDateRange = useCallback((emailDate: Date, dateRange: SearchFilters['dateRange'], dateFrom?: Date, dateTo?: Date) => {
+    if (dateRange === 'any') return true
+
+    const now = new Date()
+    const emailTime = new Date(emailDate).getTime()
+
+    if (dateRange === 'custom') {
+      if (dateFrom && emailTime < dateFrom.getTime()) return false
+      if (dateTo && emailTime > dateTo.getTime()) return false
+      return true
+    }
+
+    // Calculate date range boundaries
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayTime = today.getTime()
+
+    switch (dateRange) {
+      case 'today':
+        return emailTime >= todayTime
+      case 'week':
+        return emailTime >= todayTime - DATE_RANGE_MS.WEEK
+      case 'month':
+        return emailTime >= todayTime - DATE_RANGE_MS.MONTH
+      case 'year':
+        return emailTime >= todayTime - DATE_RANGE_MS.YEAR
+      default:
+        return true
+    }
+  }, [])
+
   // Filter emails from state (not static mock data) to reflect mutations
   const filteredEmails = useMemo(() => {
-    const query = state.searchQuery.toLowerCase().trim()
+    const { text, from, to, subject, hasAttachment, isUnread, isStarred, dateRange, dateFrom, dateTo } = state.searchFilters
+    const query = text.toLowerCase().trim()
+    const fromFilter = from.toLowerCase().trim()
+    const toFilter = to.toLowerCase().trim()
+    const subjectFilter = subject.toLowerCase().trim()
 
     return state.emails.filter((email) => {
       // Handle starred as a virtual folder
@@ -375,17 +471,43 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       const accountMatch =
         state.currentAccountId === ALL_ACCOUNTS_ID || email.accountId === state.currentAccountId
 
-      // Search filter - match subject, from name/email, or preview
+      // Basic text search filter - match subject, from name/email, or preview
       const searchMatch =
         !query ||
         email.subject.toLowerCase().includes(query) ||
         email.from.name.toLowerCase().includes(query) ||
         email.from.email.toLowerCase().includes(query) ||
-        email.preview.toLowerCase().includes(query)
+        email.preview.toLowerCase().includes(query) ||
+        email.body.toLowerCase().includes(query)
 
-      return accountMatch && searchMatch
+      // From filter
+      const fromMatch = !fromFilter ||
+        email.from.email.toLowerCase().includes(fromFilter) ||
+        email.from.name.toLowerCase().includes(fromFilter)
+
+      // To filter
+      const toMatch = !toFilter ||
+        email.to.some(r => r.email.toLowerCase().includes(toFilter) || r.name.toLowerCase().includes(toFilter))
+
+      // Subject filter
+      const subjectMatch = !subjectFilter || email.subject.toLowerCase().includes(subjectFilter)
+
+      // Has attachment filter
+      const attachmentMatch = hasAttachment === null || email.hasAttachment === hasAttachment
+
+      // Unread filter
+      const unreadMatch = isUnread === null || !email.isRead === isUnread
+
+      // Starred filter
+      const starredMatch = isStarred === null || email.isStarred === isStarred
+
+      // Date range filter
+      const dateMatch = matchesDateRange(email.date, dateRange, dateFrom, dateTo)
+
+      return accountMatch && searchMatch && fromMatch && toMatch && subjectMatch &&
+             attachmentMatch && unreadMatch && starredMatch && dateMatch
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }, [state.emails, state.currentFolder, state.currentAccountId, state.searchQuery])
+  }, [state.emails, state.currentFolder, state.currentAccountId, state.searchFilters, matchesDateRange])
 
   // Memoized action creators
   const setFolder = useCallback(
@@ -483,6 +605,10 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     (query: string) => dispatch({ type: 'SET_SEARCH', query }),
     []
   )
+  const setSearchFilters = useCallback(
+    (filters: SearchFilters) => dispatch({ type: 'SET_SEARCH_FILTERS', filters }),
+    []
+  )
   const setSort = useCallback(
     (field: SortField, direction: SortDirection) =>
       dispatch({ type: 'SET_SORT', field, direction }),
@@ -553,18 +679,18 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   }, [state.emails])
 
   // Send email (move from drafts to sent or create new sent email)
-  const sendEmail = useCallback(async (email: Partial<Email>) => {
+  const sendEmail = useCallback(async (email: ComposeEmailInput) => {
     const newEmail: Email = {
       id: email.id ?? `email-${Date.now()}`,
-      accountId: email.accountId ?? 'personal',
+      accountId: email.accountId,
       accountColor: email.accountColor ?? 'green',
-      from: email.from ?? { name: 'Michael Chen', email: 'm.chen.dev@gmail.com' },
-      to: email.to ?? [],
+      from: email.from ?? { name: 'User', email: 'user@example.com' },
+      to: email.to,
       cc: email.cc,
       bcc: email.bcc,
-      subject: email.subject ?? '',
-      preview: (email.body ?? '').replace(/<[^>]*>/g, '').substring(0, 100),
-      body: email.body ?? '',
+      subject: email.subject,
+      preview: email.body.replace(/<[^>]*>/g, '').substring(0, 100),
+      body: email.body,
       date: new Date(),
       isRead: true,
       isStarred: false,
@@ -600,9 +726,10 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   }, [emailRepository])
 
   // Save draft
-  const saveDraft = useCallback(async (email: Partial<Email>) => {
+  const saveDraft = useCallback(async (email: Partial<ComposeEmailInput>) => {
     const result = await emailRepository.saveDraft(email)
-    if (result.success) {
+    // Check if still mounted before updating state
+    if (result.success && isMountedRef.current) {
       if (email.id) {
         dispatch({ type: 'UPDATE_EMAIL', id: email.id, updates: result.data })
       } else {
@@ -610,6 +737,36 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [emailRepository])
+
+  // Add labels to emails
+  const addLabels = useCallback(
+    (ids: string[], labelIds: string[]) => {
+      for (const id of ids) {
+        const email = state.emails.find((e) => e.id === id)
+        if (email) {
+          const newLabels = [...new Set([...email.labels, ...labelIds])]
+          dispatch({ type: 'UPDATE_EMAIL', id, updates: { labels: newLabels } })
+        }
+      }
+      emailRepository.addLabels(ids, labelIds)
+    },
+    [state.emails, emailRepository]
+  )
+
+  // Remove labels from emails
+  const removeLabels = useCallback(
+    (ids: string[], labelIds: string[]) => {
+      for (const id of ids) {
+        const email = state.emails.find((e) => e.id === id)
+        if (email) {
+          const newLabels = email.labels.filter((l) => !labelIds.includes(l))
+          dispatch({ type: 'UPDATE_EMAIL', id, updates: { labels: newLabels } })
+        }
+      }
+      emailRepository.removeLabels(ids, labelIds)
+    },
+    [state.emails, emailRepository]
+  )
 
   // Memoized context value
   const value = useMemo<EmailContextValue>(
@@ -635,6 +792,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       isSelected,
       selectAll,
       setSearch,
+      setSearchFilters,
       setSort,
       toggleSortDirection,
       getUnreadCount,
@@ -642,6 +800,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       getTotalUnreadCount,
       sendEmail,
       saveDraft,
+      addLabels,
+      removeLabels,
     }),
     [
       state,
@@ -665,6 +825,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       isSelected,
       selectAll,
       setSearch,
+      setSearchFilters,
       setSort,
       toggleSortDirection,
       getUnreadCount,
@@ -672,6 +833,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       getTotalUnreadCount,
       sendEmail,
       saveDraft,
+      addLabels,
+      removeLabels,
     ]
   )
 

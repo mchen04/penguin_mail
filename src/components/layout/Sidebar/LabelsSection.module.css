@@ -98,7 +98,7 @@
 }
 
 .editButton {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: var(--space-6);
@@ -106,10 +106,13 @@
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   transition: background 0.15s ease, color 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .labelItem:hover .editButton {
-  display: flex;
+  opacity: 1;
+  visibility: visible;
 }
 
 .editButton:hover {

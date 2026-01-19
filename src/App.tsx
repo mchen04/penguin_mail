@@ -5,33 +5,33 @@ import { SettingsProvider } from '@/context/SettingsContext'
 import { ContactsProvider } from '@/context/ContactsContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { RepositoryProvider } from '@/context/RepositoryContext'
-import { LabelsProvider } from '@/context/LabelsContext'
-import { FoldersProvider } from '@/context/FoldersContext'
+import { OrganizationProvider } from '@/context/OrganizationContext'
 import { AppLayout } from '@/components/layout/AppLayout/AppLayout'
 import { ToastContainer } from '@/components/common/Toast/ToastContainer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 function App() {
   return (
-    <ToastProvider>
-      <RepositoryProvider>
-        <SettingsProvider>
-          <AppProvider>
-            <AccountProvider>
-              <ContactsProvider>
-                <LabelsProvider>
-                  <FoldersProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <RepositoryProvider>
+          <SettingsProvider>
+            <AppProvider>
+              <AccountProvider>
+                <ContactsProvider>
+                  <OrganizationProvider>
                     <EmailProvider>
                       <AppLayout />
                       <ToastContainer />
                     </EmailProvider>
-                  </FoldersProvider>
-                </LabelsProvider>
-              </ContactsProvider>
-            </AccountProvider>
-          </AppProvider>
-        </SettingsProvider>
-      </RepositoryProvider>
-    </ToastProvider>
+                  </OrganizationProvider>
+                </ContactsProvider>
+              </AccountProvider>
+            </AppProvider>
+          </SettingsProvider>
+        </RepositoryProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   )
 }
 

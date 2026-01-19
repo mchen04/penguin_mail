@@ -27,6 +27,23 @@
   text-overflow: ellipsis;
 }
 
+/* Label chips */
+.labelChips {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.labelChip {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: white;
+  white-space: nowrap;
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -60,6 +77,14 @@
   color: white;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
+}
+
+.avatarImage {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
 }
 
 .senderInfo {

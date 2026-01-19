@@ -1,16 +1,19 @@
 import { memo } from 'react'
 import type { Email } from '@/types/email'
 import { ACCOUNT_COLOR_VAR } from '@/types/account'
+import { useLabels } from '@/context/OrganizationContext'
 import { Checkbox } from '@/components/common/Checkbox/Checkbox'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Icon } from '@/components/common/Icon/Icon'
 import { formatDate } from '@/utils/formatDate'
 import { cn } from '@/utils/cn'
+import { EMAIL_LIST } from '@/constants'
 import styles from './EmailRow.module.css'
 
 interface EmailRowProps {
   email: Email
   isSelected: boolean
+  threadCount?: number
   onSelect: (shiftKey: boolean) => void
   onOpen: () => void
   onToggleStar: () => void
@@ -22,6 +25,7 @@ interface EmailRowProps {
 export const EmailRow = memo(function EmailRow({
   email,
   isSelected,
+  threadCount,
   onSelect,
   onOpen,
   onToggleStar,
@@ -29,6 +33,14 @@ export const EmailRow = memo(function EmailRow({
   onDelete,
   onMarkRead,
 }: EmailRowProps) {
+  const { getLabelById } = useLabels()
+
+  // Get label objects for this email
+  const emailLabels = email.labels
+    .map((id) => getLabelById(id))
+    .filter((l): l is NonNullable<typeof l> => l !== undefined)
+    .slice(0, EMAIL_LIST.MAX_LABELS_DISPLAY) // Show limited labels in list view
+
   const handleRowClick = (e: React.MouseEvent) => {
     // Don't open if clicking on interactive elements
     if ((e.target as HTMLElement).closest('button, input, label')) {
@@ -91,13 +103,33 @@ export const EmailRow = memo(function EmailRow({
       />
 
       {/* Sender */}
-      <span className={styles.sender}>{email.from.name}</span>
+      <span className={styles.sender}>
+        {email.from.name}
+        {threadCount && threadCount > 1 && (
+          <span className={styles.threadCount}>{threadCount}</span>
+        )}
+      </span>
 
       {/* Subject + Preview */}
       <span className={styles.content}>
         <span className={styles.subject}>{email.subject}</span>
         <span className={styles.preview}> — {email.preview}</span>
       </span>
+
+      {/* Labels */}
+      {emailLabels.length > 0 && (
+        <div className={styles.labels}>
+          {emailLabels.map((label) => (
+            <span
+              key={label.id}
+              className={styles.labelChip}
+              style={{ backgroundColor: label.color }}
+            >
+              {label.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Attachment icon */}
       {email.hasAttachment && (

@@ -30,7 +30,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update settings',
       }
@@ -44,7 +43,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return { data: defaultSettings, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to reset settings',
       }
@@ -118,7 +116,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ signatures })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to add signature',
       }
@@ -150,7 +147,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ signatures })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update signature',
       }
@@ -170,7 +166,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ signatures })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to delete signature',
       }
@@ -195,7 +190,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ filters })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to add filter',
       }
@@ -219,7 +213,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ filters })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update filter',
       }
@@ -233,7 +226,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ filters })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to delete filter',
       }
@@ -261,7 +253,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ blockedAddresses })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to block address',
       }
@@ -277,7 +268,6 @@ export class MockSettingsRepository implements ISettingsRepository {
       return this.update({ blockedAddresses })
     } catch (error) {
       return {
-        data: null as unknown as Settings,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to unblock address',
       }

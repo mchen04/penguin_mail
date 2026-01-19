@@ -23,11 +23,24 @@ import type {
 
 /**
  * Common response wrapper for async operations
+ * Uses discriminated union for type-safe success/error handling
  */
-export interface RepositoryResponse<T> {
-  data: T
-  success: boolean
-  error?: string
+export type RepositoryResponse<T> =
+  | { success: true; data: T; error?: undefined }
+  | { success: false; data?: undefined; error: string }
+
+/**
+ * Type guard to check if response is successful
+ */
+export function isSuccess<T>(response: RepositoryResponse<T>): response is { success: true; data: T } {
+  return response.success === true
+}
+
+/**
+ * Type guard to check if response is an error
+ */
+export function isError<T>(response: RepositoryResponse<T>): response is { success: false; error: string } {
+  return response.success === false
 }
 
 /**

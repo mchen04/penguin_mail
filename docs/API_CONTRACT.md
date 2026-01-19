@@ -95,9 +95,16 @@ Fetch emails with filtering and pagination.
 | accountId | string | Filter by account ID |
 | isRead | boolean | Filter by read status |
 | isStarred | boolean | Filter by starred status |
-| search | string | Search in subject, from, body |
+| hasAttachment | boolean | Filter by attachment presence |
+| search | string | Full-text search in subject, from, body |
+| from | string | Filter by sender email/name |
+| to | string | Filter by recipient email/name |
+| subject | string | Filter by subject content |
 | labelIds | string[] | Filter by label IDs |
 | threadId | string | Get emails in a thread |
+| dateRange | string | Date filter: any, today, week, month, year, custom |
+| dateFrom | ISO 8601 date | Custom date range start (with dateRange=custom) |
+| dateTo | ISO 8601 date | Custom date range end (with dateRange=custom) |
 | page | number | Page number (1-indexed) |
 | pageSize | number | Items per page (default: 50) |
 | sortField | string | Sort field (date, from, subject) |
@@ -110,7 +117,7 @@ Fetch emails with filtering and pagination.
     {
       "id": "string",
       "accountId": "string",
-      "accountColor": "blue|green|purple|orange|red",
+      "accountColor": "blue|green|purple|orange|pink|teal|red|indigo",
       "threadId": "string|null",
       "from": {
         "name": "string",
@@ -216,6 +223,34 @@ Bulk operations on multiple emails.
 }
 ```
 
+### POST /emails/:id/labels
+Add labels to an email.
+
+**Request:**
+```json
+{
+  "labelIds": ["string"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": { /* updated email object */ }
+}
+```
+
+### DELETE /emails/:id/labels
+Remove labels from an email.
+
+**Request:**
+```json
+{
+  "labelIds": ["string"]
+}
+```
+
 ---
 
 ## Account Endpoints
@@ -231,7 +266,7 @@ Fetch user's email accounts.
       "id": "string",
       "email": "string",
       "name": "string",
-      "color": "blue|green|purple|orange|red",
+      "color": "blue|green|purple|orange|pink|teal|red|indigo",
       "isActive": "boolean",
       "signature": "string|null",
       "provider": "gmail|outlook|custom",
@@ -524,17 +559,138 @@ Download attachment.
 
 ## WebSocket Events (Real-time Updates)
 
-For real-time sync, implement WebSocket connections:
+For real-time sync, implement WebSocket connections.
 
-### Events from Server:
-- `email:new` - New email received
-- `email:updated` - Email updated (read status, labels, etc.)
-- `email:deleted` - Email deleted
-- `sync:complete` - Full sync completed
+### Connection
 
-### Events from Client:
-- `subscribe:account` - Subscribe to account updates
-- `unsubscribe:account` - Unsubscribe from account updates
+```
+ws://api.example.com/ws?token=<access_token>
+```
+
+The WebSocket connection requires authentication via the access token passed as a query parameter.
+
+### Events from Server
+
+#### `email:new`
+Triggered when a new email is received.
+
+```json
+{
+  "event": "email:new",
+  "data": {
+    "email": { /* full email object */ },
+    "accountId": "string"
+  }
+}
+```
+
+#### `email:updated`
+Triggered when an email is updated (read status, labels, folder, etc.).
+
+```json
+{
+  "event": "email:updated",
+  "data": {
+    "emailId": "string",
+    "updates": {
+      "isRead": "boolean|undefined",
+      "isStarred": "boolean|undefined",
+      "folder": "string|undefined",
+      "labels": "string[]|undefined"
+    }
+  }
+}
+```
+
+#### `email:deleted`
+Triggered when an email is permanently deleted.
+
+```json
+{
+  "event": "email:deleted",
+  "data": {
+    "emailId": "string"
+  }
+}
+```
+
+#### `sync:complete`
+Triggered when initial sync or resync is complete.
+
+```json
+{
+  "event": "sync:complete",
+  "data": {
+    "accountId": "string",
+    "timestamp": "ISO 8601 datetime"
+  }
+}
+```
+
+#### `connection:error`
+Triggered when a connection error occurs.
+
+```json
+{
+  "event": "connection:error",
+  "data": {
+    "code": "string",
+    "message": "string"
+  }
+}
+```
+
+### Events from Client
+
+#### `subscribe:account`
+Subscribe to updates for a specific account.
+
+```json
+{
+  "event": "subscribe:account",
+  "data": {
+    "accountId": "string"
+  }
+}
+```
+
+#### `unsubscribe:account`
+Unsubscribe from account updates.
+
+```json
+{
+  "event": "unsubscribe:account",
+  "data": {
+    "accountId": "string"
+  }
+}
+```
+
+#### `ping`
+Keep-alive ping (server responds with `pong`).
+
+```json
+{
+  "event": "ping"
+}
+```
+
+### Connection Lifecycle
+
+1. **Connect**: Client connects with access token
+2. **Subscribe**: Client subscribes to relevant accounts
+3. **Receive**: Server pushes real-time updates
+4. **Reconnect**: On disconnect, client should reconnect with exponential backoff
+5. **Resubscribe**: After reconnect, client should resubscribe to accounts
+
+### Reconnection Strategy
+
+```typescript
+const reconnect = (attempt: number) => {
+  const delay = Math.min(1000 * Math.pow(2, attempt), 30000)
+  setTimeout(() => connect(), delay)
+}
+```
 
 ---
 

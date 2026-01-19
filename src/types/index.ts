@@ -16,6 +16,7 @@ export type {
   EmailCreateInput,
   EmailUpdateInput,
   EmailSearchQuery,
+  ComposeEmailInput,
 } from './email'
 export { SYSTEM_FOLDERS, isSystemFolder } from './email'
 

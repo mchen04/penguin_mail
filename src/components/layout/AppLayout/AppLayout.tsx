@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar'
 import { MainPanel } from '@/components/layout/MainPanel/MainPanel'
 import styles from './AppLayout.module.css'
@@ -21,11 +22,19 @@ export function AppLayout() {
 
   return (
     <div className={styles.layout} data-sidebar-collapsed={sidebarCollapsed}>
-      <Sidebar />
-      <MainPanel />
+      <ErrorBoundary inline section="Sidebar">
+        <Sidebar />
+      </ErrorBoundary>
+      <ErrorBoundary inline section="Email">
+        <MainPanel />
+      </ErrorBoundary>
       <Suspense fallback={null}>
-        <ComposeWindow />
-        <SettingsModal isOpen={settingsOpen} onClose={closeSettings} />
+        <ErrorBoundary inline section="Compose">
+          <ComposeWindow />
+        </ErrorBoundary>
+        <ErrorBoundary inline section="Settings">
+          <SettingsModal isOpen={settingsOpen} onClose={closeSettings} />
+        </ErrorBoundary>
       </Suspense>
     </div>
   )

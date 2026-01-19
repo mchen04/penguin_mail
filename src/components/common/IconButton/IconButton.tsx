@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import { memo, type ButtonHTMLAttributes } from 'react'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { cn } from '@/utils/cn'
 import styles from './IconButton.module.css'
@@ -11,7 +11,7 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string // Required for accessibility
 }
 
-export function IconButton({
+export const IconButton = memo(function IconButton({
   icon,
   size = 'default',
   label,
@@ -34,4 +34,4 @@ export function IconButton({
       <Icon name={icon} size={iconSize} />
     </button>
   )
-}
+})

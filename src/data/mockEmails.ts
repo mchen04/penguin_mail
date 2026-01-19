@@ -1004,7 +1004,7 @@ const morePersonalEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: 'thread-dinner',
     isDraft: false,
   },
   {
@@ -1032,7 +1032,7 @@ const morePersonalEmails: Email[] = [
     attachments: [],
     folder: 'inbox',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: 'thread-sideproject',
     isDraft: false,
   },
 ]
@@ -1117,7 +1117,7 @@ const sentEmails: Email[] = [
     attachments: [],
     folder: 'sent',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: 'thread-sideproject',
     isDraft: false,
   },
   {
@@ -1171,7 +1171,7 @@ const sentEmails: Email[] = [
     attachments: [],
     folder: 'sent',
     labels: [],
-    threadId: generateThreadId(),
+    threadId: 'thread-dinner',
     isDraft: false,
   },
 ]
@@ -1474,6 +1474,72 @@ const archiveEmails: Email[] = [
   },
 ]
 
+// Generate bulk emails for pagination testing
+const generateBulkEmails = (): Email[] => {
+  const bulkEmails: Email[] = []
+
+  // Various email subjects and previews for realistic variety
+  const emailTemplates = [
+    { subject: 'Weekly team sync notes', preview: 'Here are the notes from this week\'s team meeting...', sender: 'github' },
+    { subject: 'Your subscription is expiring soon', preview: 'Your premium subscription will expire in 7 days...', sender: 'netflix' },
+    { subject: 'New comment on your post', preview: 'Someone commented on your recent post about TypeScript...', sender: 'linkedin' },
+    { subject: 'Deployment failed - action required', preview: 'The latest deployment to production has failed...', sender: 'vercel' },
+    { subject: 'Your order has been delivered', preview: 'Your package was delivered today at 2:34 PM...', sender: 'amazon' },
+    { subject: 'Security alert: New sign-in detected', preview: 'We detected a new sign-in to your account from Chrome on Mac...', sender: 'google' },
+    { subject: 'Invitation to collaborate', preview: 'You\'ve been invited to collaborate on a new project...', sender: 'figma' },
+    { subject: 'Your weekly activity summary', preview: 'Here\'s your activity summary for the past week...', sender: 'leetcode' },
+    { subject: 'New assignment posted', preview: 'A new assignment has been posted in your course...', sender: 'canvas' },
+    { subject: 'Meeting reminder', preview: 'Reminder: You have a meeting scheduled for tomorrow at 10 AM...', sender: 'slack' },
+    { subject: 'Price drop alert', preview: 'An item on your wishlist is now on sale...', sender: 'amazon' },
+    { subject: 'New follower', preview: 'You have a new follower on your profile...', sender: 'github' },
+    { subject: 'Course completion certificate', preview: 'Congratulations! You\'ve completed the course...', sender: 'coursera' },
+    { subject: 'Payment received', preview: 'We\'ve received your payment of $25.00...', sender: 'venmo' },
+    { subject: 'New job recommendation', preview: 'Based on your profile, we think you\'d be a great fit for...', sender: 'linkedin' },
+    { subject: 'Build successful', preview: 'Your latest build has completed successfully...', sender: 'vercel' },
+    { subject: 'New review on your pull request', preview: 'A reviewer has left comments on your PR...', sender: 'github' },
+    { subject: 'Upcoming event reminder', preview: 'Don\'t forget about the hackathon this weekend...', sender: 'acm' },
+    { subject: 'Grade posted', preview: 'Your grade for the midterm exam has been posted...', sender: 'gradescope' },
+    { subject: 'New message from support', preview: 'Our support team has responded to your ticket...', sender: 'stripe' },
+    { subject: 'Daily digest', preview: 'Here are the top stories you might have missed...', sender: 'notion' },
+    { subject: 'Workspace activity', preview: 'There\'s been new activity in your workspace...', sender: 'slack' },
+    { subject: 'System maintenance scheduled', preview: 'We will be performing scheduled maintenance on...', sender: 'github' },
+    { subject: 'New feature announcement', preview: 'We\'re excited to announce a new feature that...', sender: 'figma' },
+    { subject: 'Your receipt', preview: 'Thank you for your purchase. Here\'s your receipt...', sender: 'uber' },
+  ]
+
+  // Generate 50 additional emails spread across different days
+  for (let i = 0; i < 50; i++) {
+    const template = emailTemplates[i % emailTemplates.length]
+    const isPersonal = i % 3 === 0
+    const daysOffset = Math.floor(i / 3) + 1
+    const hoursOffset = (i % 24)
+
+    bulkEmails.push({
+      id: generateId(),
+      accountId: isPersonal ? 'personal' : 'ucr',
+      accountColor: isPersonal ? colors.green : colors.blue,
+      from: senders[template.sender as keyof typeof senders] || senders.github,
+      to: [isPersonal ? personalRecipient : ucrRecipient],
+      subject: `${template.subject} (#${i + 1})`,
+      preview: template.preview,
+      body: `<p>${template.preview}</p><p>This is email #${i + 1} in the pagination test set.</p>`,
+      date: daysAgo(daysOffset, hoursOffset),
+      isRead: i % 2 === 0,
+      isStarred: i % 7 === 0,
+      hasAttachment: i % 5 === 0,
+      attachments: i % 5 === 0 ? [createAttachment(`document_${i + 1}.pdf`, 125000 + i * 1000, 'application/pdf')] : [],
+      folder: 'inbox',
+      labels: [],
+      threadId: generateThreadId(),
+      isDraft: false,
+    })
+  }
+
+  return bulkEmails
+}
+
+const bulkEmails = generateBulkEmails()
+
 // Additional inbox emails to reach 50+
 const additionalInboxEmails: Email[] = [
   {
@@ -1624,6 +1690,7 @@ export const mockEmails: Email[] = [
   ...personalEmails,
   ...moreUcrEmails,
   ...morePersonalEmails,
+  ...bulkEmails,
   ...sentEmails,
   ...draftEmails,
   ...spamEmails,
