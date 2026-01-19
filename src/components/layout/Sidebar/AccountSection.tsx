@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { useAccounts } from '@/context/AccountContext'
+import { useEmail } from '@/context/EmailContext'
 import { FolderItem } from './FolderItem'
 import { ACCOUNT_COLOR_VAR, type Account, type FolderType } from '@/types/account'
 import { STANDARD_FOLDERS, ALL_ACCOUNTS_ID, LABELS } from '@/constants'
@@ -17,8 +18,9 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     selectedAccountId,
     selectedFolder,
     selectFolder,
-    getTotalUnread,
   } = useAccounts()
+
+  const { getUnreadCount, getTotalUnreadCount } = useEmail()
 
   const sectionId = isAllAccounts ? ALL_ACCOUNTS_ID : account?.id
   const isExpanded = sectionId ? expandedAccountIds.has(sectionId) : false
@@ -37,12 +39,13 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
   const isSelected = (folder: FolderType) =>
     selectedAccountId === accountId && selectedFolder === folder
 
+  // Get unread count for inbox, 0 for other folders (to show badge only for unread)
   const getCount = (folder: FolderType): number => {
+    if (folder !== 'inbox') return 0
     if (isAllAccounts) {
-      // For "All accounts", sum up inbox counts only
-      return folder === 'inbox' ? getTotalUnread() : 0
+      return getTotalUnreadCount()
     }
-    return account?.folderCounts[folder] ?? 0
+    return getUnreadCount('inbox', account?.id)
   }
 
   return (

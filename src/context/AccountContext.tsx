@@ -6,20 +6,19 @@ import { ALL_ACCOUNTS_ID } from '@/constants'
 // Mock Data
 // --------------------------------------------------------------------------
 
+// Accounts without hardcoded folderCounts - counts come from EmailContext now
 const MOCK_ACCOUNTS: Account[] = [
   {
     id: 'ucr',
     email: 'mchen023@ucr.edu',
     name: 'UCR',
     color: 'blue',
-    folderCounts: { inbox: 4, drafts: 1, sent: 1, spam: 0, trash: 0 },
   },
   {
     id: 'personal',
     email: 'm.chen.dev@gmail.com',
     name: 'Personal',
     color: 'green',
-    folderCounts: { inbox: 5, drafts: 0, sent: 1, spam: 1, trash: 0 },
   },
 ]
 
@@ -44,7 +43,6 @@ interface AccountContextValue extends AccountState {
   toggleAccountExpanded: (accountId: string) => void
   selectAccount: (accountId: string | null) => void
   selectFolder: (accountId: string | null, folder: FolderType) => void
-  getTotalUnread: () => number
   getAccountById: (id: string) => Account | undefined
 }
 
@@ -112,10 +110,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SELECT_FOLDER', payload: { accountId, folder } }),
     []
   )
-  const getTotalUnread = useCallback(
-    () => state.accounts.reduce((total, account) => total + account.folderCounts.inbox, 0),
-    [state.accounts]
-  )
   const getAccountById = useCallback(
     (id: string) => state.accounts.find((a) => a.id === id),
     [state.accounts]
@@ -128,10 +122,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       toggleAccountExpanded,
       selectAccount,
       selectFolder,
-      getTotalUnread,
       getAccountById,
     }),
-    [state, toggleAccountExpanded, selectAccount, selectFolder, getTotalUnread, getAccountById]
+    [state, toggleAccountExpanded, selectAccount, selectFolder, getAccountById]
   )
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>

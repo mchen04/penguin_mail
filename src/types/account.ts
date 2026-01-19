@@ -13,21 +13,12 @@ export type AccountColor =
   | 'red'
   | 'indigo'
 
-export interface FolderCounts {
-  inbox: number
-  drafts: number
-  sent: number
-  spam: number
-  trash: number
-}
-
 export interface Account {
   id: string
   email: string
   name: string
   color: AccountColor
   signature?: string
-  folderCounts: FolderCounts
 }
 
 export const ACCOUNT_COLOR_VAR: Record<AccountColor, string> = {

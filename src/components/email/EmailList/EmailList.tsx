@@ -1,8 +1,6 @@
 import { useEmail } from '@/context/EmailContext'
-import { useSelection } from '@/hooks/useSelection'
 import { EmailRow } from './EmailRow'
 import styles from './EmailList.module.css'
-import { useEffect } from 'react'
 
 export function EmailList() {
   const {
@@ -13,22 +11,9 @@ export function EmailList() {
     markUnread,
     deleteEmails,
     archiveEmails,
-    setSelection,
-  } = useEmail()
-
-  const {
-    selectedIds,
     isSelected,
-    toggle,
-  } = useSelection({
-    items: filteredEmails,
-    getItemId: (email) => email.id,
-  })
-
-  // Sync selection state with context
-  useEffect(() => {
-    setSelection(selectedIds)
-  }, [selectedIds, setSelection])
+    toggleSelection,
+  } = useEmail()
 
   if (filteredEmails.length === 0) {
     return (
@@ -45,7 +30,7 @@ export function EmailList() {
           key={email.id}
           email={email}
           isSelected={isSelected(email.id)}
-          onSelect={(shiftKey) => toggle(email.id, shiftKey)}
+          onSelect={(shiftKey) => toggleSelection(email.id, shiftKey)}
           onOpen={() => selectEmail(email.id)}
           onToggleStar={() => toggleStar(email.id)}
           onArchive={() => archiveEmails([email.id])}

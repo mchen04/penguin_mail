@@ -344,19 +344,3 @@ export const mockEmails: Email[] = [
     folder: 'spam',
   },
 ]
-
-export function getEmailsByFolder(folder: string, accountId?: string): Email[] {
-  return mockEmails.filter((email) => {
-    const folderMatch = email.folder === folder
-    const accountMatch = !accountId || accountId === 'all' || email.accountId === accountId
-    return folderMatch && accountMatch
-  })
-}
-
-export function getUnreadCount(folder: string, accountId?: string): number {
-  return getEmailsByFolder(folder, accountId).filter((email) => !email.isRead).length
-}
-
-export function getEmailById(id: string): Email | undefined {
-  return mockEmails.find((email) => email.id === id)
-}

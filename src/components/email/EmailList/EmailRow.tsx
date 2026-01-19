@@ -85,7 +85,7 @@ export const EmailRow = memo(function EmailRow({
       {/* Account color indicator */}
       <span
         className={styles.colorIndicator}
-        style={{ backgroundColor: `var(${accountColorVar})` }}
+        style={{ backgroundColor: accountColorVar }}
         role="img"
         aria-label={`${email.accountColor} account indicator`}
       />

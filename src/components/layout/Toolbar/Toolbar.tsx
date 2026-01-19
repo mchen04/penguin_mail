@@ -1,4 +1,5 @@
 import { useApp } from '@/context/AppContext'
+import { useEmail } from '@/context/EmailContext'
 import { Button } from '@/components/common/Button/Button'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Checkbox } from '@/components/common/Checkbox/Checkbox'
@@ -27,6 +28,7 @@ export function Toolbar({
   onMarkRead,
 }: ToolbarProps) {
   const { setSidebarCollapsed, openCompose, openSettings } = useApp()
+  const { searchQuery, setSearch } = useEmail()
 
   const hasSelection = selectedCount > 0
 
@@ -51,7 +53,7 @@ export function Toolbar({
 
       {/* Center section - Search */}
       <div className={styles.centerSection}>
-        <SearchBar />
+        <SearchBar value={searchQuery} onChange={setSearch} />
       </div>
 
       {/* Right section */}
