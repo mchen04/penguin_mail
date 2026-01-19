@@ -33,6 +33,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  height: 100%;
+}
+
+/* Select all checkbox container for alignment */
+.selectAll {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 /* Mobile hamburger */

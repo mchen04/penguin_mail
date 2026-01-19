@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { FOLDER_LABELS, type SystemFolderType } from '@/types'
 import styles from './FolderItem.module.css'
 
@@ -59,7 +59,7 @@ const FOLDER_ICONS: Record<SystemFolderType, ReactNode> = {
   ),
 }
 
-export function FolderItem({ folder, count, isSelected, onClick }: FolderItemProps) {
+export const FolderItem = memo(function FolderItem({ folder, count, isSelected, onClick }: FolderItemProps) {
   const showCount = count > 0 && (folder === 'inbox' || folder === 'drafts')
 
   return (
@@ -73,4 +73,4 @@ export function FolderItem({ folder, count, isSelected, onClick }: FolderItemPro
       )}
     </button>
   )
-}
+})

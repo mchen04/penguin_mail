@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useApp } from '@/context/AppContext'
-import { useEmail } from '@/context/EmailContext'
+import { useEmail, type SearchFilters } from '@/context/EmailContext'
 import { Button } from '@/components/common/Button/Button'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Checkbox } from '@/components/common/Checkbox/Checkbox'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { SearchBar } from './SearchBar'
+import { AdvancedSearch } from './AdvancedSearch'
 import { BulkActions } from './BulkActions'
 import type { FolderType } from '@/types/email'
 import styles from './Toolbar.module.css'
@@ -43,10 +43,14 @@ export function Toolbar({
   onMoveToFolder,
 }: ToolbarProps) {
   const { setSidebarCollapsed, openCompose, openSettings } = useApp()
-  const { searchQuery, setSearch } = useEmail()
+  const { searchFilters, setSearchFilters } = useEmail()
 
   const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false)
   const [showEmptySpamConfirm, setShowEmptySpamConfirm] = useState(false)
+
+  const handleSearch = useCallback((filters: SearchFilters) => {
+    setSearchFilters(filters)
+  }, [setSearchFilters])
 
   const hasSelection = selectedCount > 0
   const isTrash = currentFolder === 'trash'
@@ -81,9 +85,9 @@ export function Toolbar({
         </Button>
       </div>
 
-      {/* Center section - Search */}
+      {/* Center section - Advanced Search */}
       <div className={styles.centerSection}>
-        <SearchBar value={searchQuery} onChange={setSearch} />
+        <AdvancedSearch onSearch={handleSearch} initialFilters={searchFilters} />
       </div>
 
       {/* Right section */}

@@ -54,7 +54,6 @@ export class MockAccountRepository implements IAccountRepository {
       return { data: newAccount, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Account,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create account',
       }
@@ -67,7 +66,7 @@ export class MockAccountRepository implements IAccountRepository {
       const index = accounts.findIndex((a) => a.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as Account, success: false, error: 'Account not found' }
+        return { success: false, error: 'Account not found' }
       }
 
       const updated: Account = {
@@ -81,7 +80,6 @@ export class MockAccountRepository implements IAccountRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Account,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update account',
       }

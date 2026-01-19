@@ -194,6 +194,119 @@
   color: var(--color-text);
 }
 
+/* Primary actions group */
+.primaryActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Auto-save status */
+.autoSaveStatus {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ==========================================================================
+   Hidden file input
+   ========================================================================== */
+
+.hiddenFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Drag and drop overlay
+   ========================================================================== */
+
+.content.draggingOver {
+  position: relative;
+}
+
+.dragOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-primary-bg, rgba(66, 133, 244, 0.1));
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  z-index: 10;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ==========================================================================
+   Attachments list
+   ========================================================================== */
+
+.attachmentsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.attachmentName {
+  color: var(--color-text);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentSize {
+  color: var(--color-text-secondary);
+}
+
+.removeAttachment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  margin-left: var(--space-1);
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.removeAttachment:hover {
+  background: var(--color-error-bg, rgba(234, 67, 53, 0.1));
+  color: var(--color-error);
+}
+
 /* ==========================================================================
    Responsive: Mobile - Full screen compose
    ========================================================================== */

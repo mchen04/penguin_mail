@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { ICON_SIZE } from '@/constants'
 
 export type IconName =
@@ -373,7 +373,7 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
   ),
 }
 
-export function Icon({ name, size = ICON_SIZE.LARGE, className, style }: IconProps) {
+export const Icon = memo(function Icon({ name, size = ICON_SIZE.LARGE, className, style }: IconProps) {
   return (
     <svg
       width={size}
@@ -390,4 +390,4 @@ export function Icon({ name, size = ICON_SIZE.LARGE, className, style }: IconPro
       {ICON_PATHS[name]}
     </svg>
   )
-}
+})

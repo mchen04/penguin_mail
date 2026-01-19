@@ -94,3 +94,80 @@
     opacity: 0.4;
   }
 }
+
+/* ==========================================================================
+   Load More / Pagination
+   ========================================================================== */
+
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.loadMoreButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.loadMoreButton:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+}
+
+.loadMoreButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loadMoreSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.paginationInfo {
+  text-align: center;
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* ==========================================================================
+   Infinite Scroll
+   ========================================================================== */
+
+.sentinel {
+  min-height: 1px;
+  /* Invisible sentinel element that triggers loading when visible */
+}
+
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}

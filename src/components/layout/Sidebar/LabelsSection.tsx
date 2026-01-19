@@ -4,21 +4,11 @@
  */
 
 import { useState, useCallback } from 'react'
-import { useLabels } from '@/context/LabelsContext'
+import { useLabels } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { Icon } from '@/components/common/Icon/Icon'
+import { LABEL_COLORS } from '@/constants'
 import styles from './LabelsSection.module.css'
-
-const LABEL_COLORS = [
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-]
 
 export function LabelsSection() {
   const { labels, addLabel, updateLabel, deleteLabel, selectLabel, selectedLabelId } = useLabels()
@@ -27,7 +17,7 @@ export function LabelsSection() {
   const [isCreating, setIsCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newLabelName, setNewLabelName] = useState('')
-  const [newLabelColor, setNewLabelColor] = useState(LABEL_COLORS[0])
+  const [newLabelColor, setNewLabelColor] = useState<string>(LABEL_COLORS[0])
 
   const handleToggleExpand = useCallback(() => {
     setIsExpanded((prev) => !prev)

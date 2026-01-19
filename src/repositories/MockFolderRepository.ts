@@ -53,7 +53,6 @@ export class MockFolderRepository implements IFolderRepository {
       return { data: newFolder, success: true }
     } catch (error) {
       return {
-        data: null as unknown as CustomFolder,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create folder',
       }
@@ -66,7 +65,7 @@ export class MockFolderRepository implements IFolderRepository {
       const index = folders.findIndex((f) => f.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as CustomFolder, success: false, error: 'Folder not found' }
+        return { success: false, error: 'Folder not found' }
       }
 
       const updated: CustomFolder = {
@@ -80,7 +79,6 @@ export class MockFolderRepository implements IFolderRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as CustomFolder,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update folder',
       }
@@ -197,7 +195,6 @@ export class MockLabelRepository implements ILabelRepository {
       return { data: newLabel, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Label,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create label',
       }
@@ -210,7 +207,7 @@ export class MockLabelRepository implements ILabelRepository {
       const index = labels.findIndex((l) => l.id === id)
 
       if (index === -1) {
-        return { data: null as unknown as Label, success: false, error: 'Label not found' }
+        return { success: false, error: 'Label not found' }
       }
 
       const updated: Label = { ...labels[index], ...data }
@@ -220,7 +217,6 @@ export class MockLabelRepository implements ILabelRepository {
       return { data: updated, success: true }
     } catch (error) {
       return {
-        data: null as unknown as Label,
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update label',
       }

@@ -223,13 +223,59 @@ Accessed via gear icon in top right.
 
 ---
 
+## Labels
+
+Labels provide a way to categorize emails beyond folders.
+
+### Features
+
+- **Create labels** - Add new labels with custom names and colors
+- **Apply labels** - Add one or more labels to any email
+- **Filter by label** - View all emails with a specific label
+- **Label picker** - Quick label assignment from email view
+
+### Display
+
+- Labels appear as colored chips in the email list
+- Maximum 3 labels shown per email in list view
+- Full label list visible in email detail view
+
+---
+
+## Custom Folders
+
+Users can create custom folders in addition to system folders.
+
+### Features
+
+- **Create folders** - Add new folders with custom names and colors
+- **Move emails** - Move emails to custom folders
+- **Nested folders** - Support for parent-child folder hierarchy
+- **Reorder** - Drag to reorder folders in sidebar
+
+---
+
+## Keyboard Shortcuts
+
+Global keyboard shortcuts for power users.
+
+### Available Shortcuts
+
+- **c** - Compose new email
+- **/** - Focus search
+- **j/k** - Navigate up/down in email list
+- **Enter** - Open selected email
+- **e** - Archive selected
+- **#** - Delete selected
+- **Escape** - Close modals/compose
+
+---
+
 ## Not Included
 
 - Category tabs (Primary, Social, Promotions, etc.)
 - Inbox sorting options (unread first, starred first, etc.)
-- Labels/custom folders
 - Snooze
 - Browser notifications
-- Keyboard shortcuts
 - Pop-out compose to separate window
 - Multiple compose drafts open simultaneously

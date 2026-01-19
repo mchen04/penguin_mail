@@ -80,11 +80,30 @@
 .sender {
   flex-shrink: 0;
   width: 180px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: var(--font-size-sm);
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Thread count badge */
+.threadCount {
+  flex-shrink: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-text-tertiary);
+  color: var(--color-surface);
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
 }
 
 /* Subject + Preview combined */
@@ -104,6 +123,28 @@
 .preview {
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-normal);
+}
+
+/* Labels */
+.labels {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-1);
+  max-width: 200px;
+  overflow: hidden;
+}
+
+.labelChip {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: white;
+  white-space: nowrap;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Attachment icon */

@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo, type ReactNode } from 'react'
+import DOMPurify from 'dompurify'
 import type { Theme, Density } from '@/types/settings'
 import type { Email, EmailAddress } from '@/types/email'
 import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
@@ -152,7 +153,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Helper to create reply body with quoted text
   const createQuotedBody = useCallback((email: Email, prefix: string) => {
     const date = new Date(email.date).toLocaleString()
-    return `<br><br>${prefix}<br><br><blockquote style="margin-left: 0.5em; padding-left: 1em; border-left: 2px solid #ccc; color: #666;">On ${date}, ${email.from.name} &lt;${email.from.email}&gt; wrote:<br><br>${email.body}</blockquote>`
+    // Sanitize the email body to prevent XSS when quoted content is rendered
+    const sanitizedBody = DOMPurify.sanitize(email.body)
+    return `<br><br>${prefix}<br><br><blockquote style="margin-left: 0.5em; padding-left: 1em; border-left: 2px solid #ccc; color: #666;">On ${date}, ${email.from.name} &lt;${email.from.email}&gt; wrote:<br><br>${sanitizedBody}</blockquote>`
   }, [])
 
   // Memoized action creators

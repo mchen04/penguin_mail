@@ -4,21 +4,11 @@
  */
 
 import { useState, useCallback } from 'react'
-import { useFolders } from '@/context/FoldersContext'
+import { useFolders } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { Icon } from '@/components/common/Icon/Icon'
+import { FOLDER_COLORS } from '@/constants'
 import styles from './CustomFoldersSection.module.css'
-
-const FOLDER_COLORS = [
-  '#64748b', // slate
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-]
 
 export function CustomFoldersSection() {
   const { folders, addFolder, updateFolder, deleteFolder, getRootFolders } = useFolders()
@@ -27,7 +17,7 @@ export function CustomFoldersSection() {
   const [isCreating, setIsCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
-  const [newFolderColor, setNewFolderColor] = useState(FOLDER_COLORS[0])
+  const [newFolderColor, setNewFolderColor] = useState<string>(FOLDER_COLORS[0])
 
   const rootFolders = getRootFolders()
 
