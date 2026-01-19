@@ -7,6 +7,7 @@ import { EmailHeader } from './EmailHeader'
 import { EmailBody } from './EmailBody'
 import { AttachmentPreview } from './AttachmentPreview'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import { formatDate } from '@/utils/formatDate'
 import { printEmail } from '@/utils/printEmail'
 import styles from './EmailView.module.css'
@@ -99,7 +100,7 @@ export function EmailView({
     <div className={styles.emailView}>
       <div className={styles.threadHeader}>
         <button type="button" className={styles.backButton} onClick={onBack}>
-          <Icon name="arrowLeft" size={20} />
+          <Icon name="arrowLeft" size={ICON_SIZE.LARGE} />
         </button>
         <div className={styles.threadInfo}>
           <h2 className={styles.threadSubject}>{email.subject}</h2>
@@ -112,7 +113,7 @@ export function EmailView({
             onClick={onToggleStar}
             title="Star"
           >
-            <Icon name={email.isStarred ? 'starFilled' : 'star'} size={18} />
+            <Icon name={email.isStarred ? 'starFilled' : 'star'} size={ICON_SIZE.DEFAULT} />
           </button>
           <button
             type="button"
@@ -120,7 +121,7 @@ export function EmailView({
             onClick={onArchive}
             title="Archive"
           >
-            <Icon name="archive" size={18} />
+            <Icon name="archive" size={ICON_SIZE.DEFAULT} />
           </button>
           <button
             type="button"
@@ -128,7 +129,7 @@ export function EmailView({
             onClick={onDelete}
             title="Delete"
           >
-            <Icon name="trash" size={18} />
+            <Icon name="trash" size={ICON_SIZE.DEFAULT} />
           </button>
         </div>
       </div>
@@ -166,7 +167,7 @@ export function EmailView({
                   {formatDate(threadEmail.date)}
                   <Icon
                     name={isExpanded ? 'chevronDown' : 'chevronRight'}
-                    size={16}
+                    size={ICON_SIZE.SMALL}
                     className={styles.expandIcon}
                   />
                 </div>
@@ -186,15 +187,15 @@ export function EmailView({
                   )}
                   <div className={styles.messageActions}>
                     <button type="button" className={styles.replyButton} onClick={() => handleReply(threadEmail)}>
-                      <Icon name="reply" size={16} />
+                      <Icon name="reply" size={ICON_SIZE.SMALL} />
                       Reply
                     </button>
                     <button type="button" className={styles.replyButton} onClick={() => handleReplyAll(threadEmail)}>
-                      <Icon name="replyAll" size={16} />
+                      <Icon name="replyAll" size={ICON_SIZE.SMALL} />
                       Reply All
                     </button>
                     <button type="button" className={styles.replyButton} onClick={() => handleForward(threadEmail)}>
-                      <Icon name="forward" size={16} />
+                      <Icon name="forward" size={ICON_SIZE.SMALL} />
                       Forward
                     </button>
                   </div>

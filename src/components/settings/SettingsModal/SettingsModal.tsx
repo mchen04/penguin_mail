@@ -3,6 +3,8 @@ import { useSettings } from '@/context/SettingsContext'
 import { Modal } from '@/components/common/Modal/Modal'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
+import { ICON_SIZE, TEXT } from '@/constants'
+import { stripHtml } from '@/utils'
 import type { Theme, Density, ReadingPanePosition, DateFormat, TimeFormat, Signature, VacationResponder, FilterRule } from '@/types/settings'
 import styles from './SettingsModal.module.css'
 
@@ -72,7 +74,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <Icon name={tab.icon} size={18} />
+              <Icon name={tab.icon} size={ICON_SIZE.DEFAULT} />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -546,7 +548,7 @@ function SignatureSettings({
                         {sig.name}
                         {sig.isDefault && <span className={styles.defaultBadge}>Default</span>}
                       </span>
-                      <p className={styles.signaturePreview}>{sig.content.replace(/<[^>]*>/g, ' ').slice(0, 50)}...</p>
+                      <p className={styles.signaturePreview}>{stripHtml(sig.content, ' ').slice(0, TEXT.SIGNATURE_PREVIEW_LENGTH)}...</p>
                     </div>
                     <div className={styles.signatureActions}>
                       {!sig.isDefault && (
@@ -578,7 +580,7 @@ function SignatureSettings({
               </div>
             )}
             <Button variant="secondary" onClick={startNew}>
-              <Icon name="plus" size={16} />
+              <Icon name="plus" size={ICON_SIZE.SMALL} />
               Add Signature
             </Button>
           </>
@@ -933,7 +935,7 @@ function FilterSettings({ filters, onAdd, onUpdate, onDelete }: FilterSettingsPr
               </div>
             )}
             <Button variant="secondary" onClick={() => setIsCreating(true)}>
-              <Icon name="plus" size={16} />
+              <Icon name="plus" size={ICON_SIZE.SMALL} />
               Create Filter
             </Button>
           </>

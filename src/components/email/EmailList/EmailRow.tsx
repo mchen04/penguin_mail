@@ -7,7 +7,7 @@ import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Icon } from '@/components/common/Icon/Icon'
 import { formatDate } from '@/utils/formatDate'
 import { cn } from '@/utils/cn'
-import { EMAIL_LIST } from '@/constants'
+import { EMAIL_LIST, ICON_SIZE } from '@/constants'
 import styles from './EmailRow.module.css'
 
 interface EmailRowProps {
@@ -91,7 +91,7 @@ export const EmailRow = memo(function EmailRow({
         aria-label={email.isStarred ? 'Unstar email' : 'Star email'}
         aria-pressed={email.isStarred}
       >
-        <Icon name={email.isStarred ? 'starFilled' : 'star'} size={18} />
+        <Icon name={email.isStarred ? 'starFilled' : 'star'} size={ICON_SIZE.DEFAULT} />
       </button>
 
       {/* Account color indicator */}
@@ -134,7 +134,7 @@ export const EmailRow = memo(function EmailRow({
       {/* Attachment icon */}
       {email.hasAttachment && (
         <span className={styles.attachment} aria-label="Has attachment">
-          <Icon name="attachment" size={16} />
+          <Icon name="attachment" size={ICON_SIZE.SMALL} />
         </span>
       )}
 

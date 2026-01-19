@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLabels } from '@/context/OrganizationContext'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import styles from './LabelPicker.module.css'
 
 interface LabelPickerProps {
@@ -41,9 +42,9 @@ export function LabelPicker({ selectedLabelIds, onToggleLabel }: LabelPickerProp
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <Icon name="filter" size={18} />
+        <Icon name="filter" size={ICON_SIZE.DEFAULT} />
         <span className={styles.triggerText}>Labels</span>
-        <Icon name="chevronDown" size={14} />
+        <Icon name="chevronDown" size={ICON_SIZE.XSMALL} />
       </button>
 
       {isOpen && (
@@ -67,7 +68,7 @@ export function LabelPicker({ selectedLabelIds, onToggleLabel }: LabelPickerProp
                   />
                   <span className={styles.labelName}>{label.name}</span>
                   {isSelected && (
-                    <Icon name="check" size={16} className={styles.checkIcon} />
+                    <Icon name="check" size={ICON_SIZE.SMALL} className={styles.checkIcon} />
                   )}
                 </button>
               )

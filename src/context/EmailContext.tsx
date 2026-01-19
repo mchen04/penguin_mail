@@ -10,7 +10,8 @@ import {
 } from 'react'
 import type { Email, FolderType, ComposeEmailInput } from '@/types/email'
 import { useRepositories } from './RepositoryContext'
-import { ALL_ACCOUNTS_ID, DATE_RANGE_MS, REPOSITORY } from '@/constants'
+import { stripHtml } from '@/utils'
+import { ALL_ACCOUNTS_ID, DATE_RANGE_MS, REPOSITORY, TEXT } from '@/constants'
 
 export type SortField = 'date' | 'sender' | 'subject'
 export type SortDirection = 'asc' | 'desc'
@@ -689,7 +690,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       cc: email.cc,
       bcc: email.bcc,
       subject: email.subject,
-      preview: email.body.replace(/<[^>]*>/g, '').substring(0, 100),
+      preview: stripHtml(email.body).substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
       body: email.body,
       date: new Date(),
       isRead: true,

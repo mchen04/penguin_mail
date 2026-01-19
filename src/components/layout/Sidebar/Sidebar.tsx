@@ -4,6 +4,7 @@ import { AccountSection } from './AccountSection'
 import { LabelsSection } from './LabelsSection'
 import { CustomFoldersSection } from './CustomFoldersSection'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import styles from './Sidebar.module.css'
 
 export function Sidebar() {
@@ -96,15 +97,15 @@ export function Sidebar() {
             className={`${styles.footerButton} ${currentView === 'contacts' ? styles.active : ''}`}
             onClick={showContacts}
           >
-            <Icon name="users" size={18} />
+            <Icon name="users" size={ICON_SIZE.DEFAULT} />
             Contacts
           </button>
           <button className={styles.footerButton}>
-            <Icon name="plus" size={18} />
+            <Icon name="plus" size={ICON_SIZE.DEFAULT} />
             Add account
           </button>
           <button className={styles.footerButton}>
-            <Icon name="help" size={18} />
+            <Icon name="help" size={ICON_SIZE.DEFAULT} />
             Help
           </button>
         </div>

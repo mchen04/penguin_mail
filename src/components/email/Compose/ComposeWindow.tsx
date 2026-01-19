@@ -10,7 +10,7 @@ import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
 import { RichTextToolbar } from './RichTextToolbar'
-import { PLACEHOLDERS, COMPOSE_WINDOW } from '@/constants'
+import { PLACEHOLDERS, COMPOSE_WINDOW, ICON_SIZE, AUTO_SAVE, RANDOM_ID } from '@/constants'
 import { cn } from '@/utils/cn'
 import { formatBytes } from '@/utils'
 import type { EmailAddress, Attachment } from '@/types/email'
@@ -167,12 +167,12 @@ export function ComposeWindow() {
           lastSavedRef.current = { to, subject, body, attachments }
           setAutoSaveStatus('saved')
           // Reset to idle after 2 seconds
-          setTimeout(() => setAutoSaveStatus('idle'), 2000)
+          setTimeout(() => setAutoSaveStatus('idle'), AUTO_SAVE.STATUS_RESET_DELAY)
         } catch {
           setAutoSaveStatus('idle')
         }
       }
-    }, 30000) // 30 seconds
+    }, AUTO_SAVE.INTERVAL)
 
     return () => {
       if (autoSaveTimerRef.current) {
@@ -209,7 +209,7 @@ export function ComposeWindow() {
     if (!files) return
 
     const newAttachments: Attachment[] = Array.from(files).map((file) => ({
-      id: `attachment-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      id: `attachment-${Date.now()}-${Math.random().toString(36).slice(RANDOM_ID.SLICE_START, RANDOM_ID.SLICE_END_SHORT)}`,
       name: file.name,
       size: file.size,
       mimeType: file.type || 'application/octet-stream',
@@ -398,7 +398,7 @@ export function ComposeWindow() {
           {/* Drag overlay */}
           {isDraggingOver && (
             <div className={styles.dragOverlay}>
-              <Icon name="attachment" size={32} />
+              <Icon name="attachment" size={ICON_SIZE.MEDIUM_XLARGE} />
               <span>Drop files to attach</span>
             </div>
           )}
@@ -489,7 +489,7 @@ export function ComposeWindow() {
             <div className={styles.attachmentsList}>
               {attachments.map((attachment) => (
                 <div key={attachment.id} className={styles.attachmentItem}>
-                  <Icon name="attachment" size={14} />
+                  <Icon name="attachment" size={ICON_SIZE.XSMALL} />
                   <span className={styles.attachmentName}>{attachment.name}</span>
                   <span className={styles.attachmentSize}>{formatBytes(attachment.size)}</span>
                   <button
@@ -499,7 +499,7 @@ export function ComposeWindow() {
                     title="Remove attachment"
                     aria-label={`Remove ${attachment.name}`}
                   >
-                    <Icon name="close" size={14} />
+                    <Icon name="close" size={ICON_SIZE.XSMALL} />
                   </button>
                 </div>
               ))}
@@ -509,7 +509,7 @@ export function ComposeWindow() {
           <div className={styles.actions}>
             <div className={styles.primaryActions}>
               <Button variant="primary" onClick={handleSend} disabled={to.length === 0 || isSending}>
-                <Icon name="send" size={16} />
+                <Icon name="send" size={ICON_SIZE.SMALL} />
                 {isSending ? 'Sending...' : 'Send'}
               </Button>
               <button
@@ -518,7 +518,7 @@ export function ComposeWindow() {
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach files"
               >
-                <Icon name="attachment" size={18} />
+                <Icon name="attachment" size={ICON_SIZE.DEFAULT} />
               </button>
             </div>
 
@@ -536,7 +536,7 @@ export function ComposeWindow() {
                 onClick={handleSaveDraft}
                 title="Save draft"
               >
-                <Icon name="archive" size={18} />
+                <Icon name="archive" size={ICON_SIZE.DEFAULT} />
               </button>
               <button
                 type="button"
@@ -544,7 +544,7 @@ export function ComposeWindow() {
                 onClick={handleDiscardDraft}
                 title="Discard"
               >
-                <Icon name="trash" size={18} />
+                <Icon name="trash" size={ICON_SIZE.DEFAULT} />
               </button>
             </div>
           </div>

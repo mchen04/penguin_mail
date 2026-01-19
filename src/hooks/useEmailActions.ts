@@ -6,6 +6,7 @@ import { useCallback } from 'react'
 import { useEmail } from '@/context/EmailContext'
 import { useToast } from '@/context/ToastContext'
 import { useUndoStack } from './useUndoStack'
+import { UNDO_STACK } from '@/constants'
 import type { FolderType } from '@/types/email'
 
 /** Folder display names for toast messages */
@@ -38,7 +39,7 @@ export function useEmailActions() {
   } = useEmail()
 
   const toast = useToast()
-  const undoStack = useUndoStack({ expireTime: 10000 })
+  const undoStack = useUndoStack({ expireTime: UNDO_STACK.DEFAULT_EXPIRE_TIME })
 
   const handleDelete = useCallback(
     (ids: string[]) => {

@@ -19,6 +19,7 @@ import type {
   ContactUpdateInput,
 } from '@/types/contact'
 import { useRepositories } from './RepositoryContext'
+import { REPOSITORY } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Types
@@ -233,7 +234,7 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     async function loadData() {
       try {
         const [contactsResult, groups] = await Promise.all([
-          contactRepository.getAll({ page: 1, pageSize: 10000 }),
+          contactRepository.getAll({ page: 1, pageSize: REPOSITORY.LOAD_ALL_PAGE_SIZE }),
           groupRepository.getAll(),
         ])
         dispatch({

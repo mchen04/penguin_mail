@@ -6,6 +6,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
+import { ICON_SIZE } from '@/constants'
 import styles from './ConfirmDialog.module.css'
 
 export type ConfirmDialogVariant = 'danger' | 'warning' | 'info'
@@ -97,7 +98,7 @@ export function ConfirmDialog({
         aria-describedby="confirm-dialog-message"
       >
         <div className={`${styles.iconWrapper} ${styles[variant]}`}>
-          <Icon name={displayIcon} size={24} />
+          <Icon name={displayIcon} size={ICON_SIZE.MEDIUM_LARGE} />
         </div>
 
         <h2 id="confirm-dialog-title" className={styles.title}>

@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Icon } from '@/components/common/Icon/Icon'
-import { PLACEHOLDERS } from '@/constants'
+import { PLACEHOLDERS, ICON_SIZE } from '@/constants'
 import styles from './AdvancedSearch.module.css'
 
 export interface SearchFilters {
@@ -88,7 +88,7 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
   return (
     <div className={styles.container} ref={dropdownRef}>
       <div className={styles.searchBar}>
-        <Icon name="search" size={18} className={styles.icon} />
+        <Icon name="search" size={ICON_SIZE.DEFAULT} className={styles.icon} />
         <input
           type="text"
           className={styles.input}
@@ -105,7 +105,7 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
           data-active={hasActiveFilters}
           title="Advanced search"
         >
-          <Icon name="settings" size={16} />
+          <Icon name="settings" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 

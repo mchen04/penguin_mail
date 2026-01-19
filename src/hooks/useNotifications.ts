@@ -5,6 +5,7 @@
 
 import { useState, useCallback } from 'react'
 import { useSettings } from '@/context/SettingsContext'
+import { NOTIFICATION } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Types
@@ -86,8 +87,8 @@ export function useNotifications(): UseNotificationsReturn {
         ...options,
       })
 
-      // Auto-close after 5 seconds
-      setTimeout(() => notification.close(), 5000)
+      // Auto-close after configured delay
+      setTimeout(() => notification.close(), NOTIFICATION.AUTO_CLOSE_DELAY)
 
       // Focus window on click
       notification.onclick = () => {

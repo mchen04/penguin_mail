@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button/Button'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Checkbox } from '@/components/common/Checkbox/Checkbox'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { AdvancedSearch } from './AdvancedSearch'
 import { BulkActions } from './BulkActions'
@@ -80,7 +81,7 @@ export function Toolbar({
 
         {/* Compose button */}
         <Button variant="primary" onClick={() => openCompose()}>
-          <Icon name="plus" size={18} />
+          <Icon name="plus" size={ICON_SIZE.DEFAULT} />
           <span className={styles.composeText}>Compose</span>
         </Button>
       </div>
@@ -124,7 +125,7 @@ export function Toolbar({
           <>
             <span className={styles.divider} />
             <Button variant="secondary" onClick={() => setShowEmptyTrashConfirm(true)}>
-              <Icon name="trash" size={16} />
+              <Icon name="trash" size={ICON_SIZE.SMALL} />
               <span className={styles.hideMobile}>Empty Trash</span>
             </Button>
           </>
@@ -133,7 +134,7 @@ export function Toolbar({
           <>
             <span className={styles.divider} />
             <Button variant="secondary" onClick={() => setShowEmptySpamConfirm(true)}>
-              <Icon name="trash" size={16} />
+              <Icon name="trash" size={ICON_SIZE.SMALL} />
               <span className={styles.hideMobile}>Empty Spam</span>
             </Button>
           </>

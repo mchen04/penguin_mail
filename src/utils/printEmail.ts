@@ -5,6 +5,7 @@
 
 import type { Email } from '@/types/email'
 import { formatFullDate } from './formatDate'
+import { formatBytes } from './formatBytes'
 
 export function printEmail(email: Email): void {
   const printWindow = window.open('', '_blank')
@@ -17,7 +18,7 @@ export function printEmail(email: Email): void {
   const attachmentList = email.attachments && email.attachments.length > 0
     ? `<div class="attachments">
         <strong>Attachments:</strong>
-        <ul>${email.attachments.map((a) => `<li>${a.name} (${formatFileSize(a.size)})</li>`).join('')}</ul>
+        <ul>${email.attachments.map((a) => `<li>${a.name} (${formatBytes(a.size)})</li>`).join('')}</ul>
       </div>`
     : ''
 
@@ -157,10 +158,4 @@ function escapeHtml(text: string): string {
   const div = document.createElement('div')
   div.textContent = text
   return div.innerHTML
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }

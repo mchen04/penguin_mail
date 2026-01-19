@@ -4,6 +4,7 @@
 
 import { useToast, type Toast, type ToastType } from '@/context/ToastContext'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import styles from './Toast.module.css'
 
 const TOAST_ICONS: Record<ToastType, IconName> = {
@@ -40,7 +41,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       aria-live="polite"
     >
       <div className={styles.iconWrapper}>
-        <Icon name={TOAST_ICONS[toast.type]} size={18} />
+        <Icon name={TOAST_ICONS[toast.type]} size={ICON_SIZE.DEFAULT} />
       </div>
       <span className={styles.message}>{toast.message}</span>
       {toast.action && (
@@ -61,7 +62,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         onClick={onDismiss}
         aria-label="Dismiss notification"
       >
-        <Icon name="close" size={16} />
+        <Icon name="close" size={ICON_SIZE.SMALL} />
       </button>
     </div>
   )

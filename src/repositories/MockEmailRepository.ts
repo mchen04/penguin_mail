@@ -18,7 +18,8 @@ import type {
   PaginatedResponse,
 } from './types'
 import { storage, STORAGE_KEYS, generateId } from '@/services/storage'
-import { simulateNetworkDelay } from '@/utils'
+import { simulateNetworkDelay, stripHtml } from '@/utils'
+import { TEXT } from '@/constants'
 
 export class MockEmailRepository implements IEmailRepository {
   private async getEmails(): Promise<Email[]> {
@@ -228,7 +229,7 @@ export class MockEmailRepository implements IEmailRepository {
         cc: input.cc,
         bcc: input.bcc,
         subject: input.subject,
-        preview: input.body.replace(/<[^>]*>/g, '').substring(0, 100),
+        preview: stripHtml(input.body).substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
         body: input.body,
         date: input.scheduledSendAt ?? new Date(),
         isRead: true,
@@ -386,7 +387,7 @@ export class MockEmailRepository implements IEmailRepository {
         cc: email.cc,
         bcc: email.bcc,
         subject: email.subject ?? '',
-        preview: (email.body ?? '').replace(/<[^>]*>/g, '').substring(0, 100),
+        preview: stripHtml(email.body ?? '').substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
         body: email.body ?? '',
         date: new Date(),
         isRead: true,

@@ -3,6 +3,8 @@
  * Provides localStorage persistence with JSON serialization and simulated delays
  */
 
+import { STORAGE_SIMULATION, RANDOM_ID } from '@/constants'
+
 const STORAGE_PREFIX = 'penguin_mail_'
 
 export interface StorageOptions {
@@ -13,8 +15,8 @@ export interface StorageOptions {
 
 const defaultOptions: StorageOptions = {
   simulateDelay: true,
-  minDelay: 50,
-  maxDelay: 200,
+  minDelay: STORAGE_SIMULATION.MIN_DELAY,
+  maxDelay: STORAGE_SIMULATION.MAX_DELAY,
 }
 
 /**
@@ -23,8 +25,8 @@ const defaultOptions: StorageOptions = {
 async function delay(options: StorageOptions = defaultOptions): Promise<void> {
   if (!options.simulateDelay) return
 
-  const min = options.minDelay ?? 50
-  const max = options.maxDelay ?? 200
+  const min = options.minDelay ?? STORAGE_SIMULATION.MIN_DELAY
+  const max = options.maxDelay ?? STORAGE_SIMULATION.MAX_DELAY
   const ms = Math.floor(Math.random() * (max - min + 1)) + min
 
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -34,7 +36,7 @@ async function delay(options: StorageOptions = defaultOptions): Promise<void> {
  * Generate a unique ID
  */
 export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+  return `${Date.now()}-${Math.random().toString(36).substring(RANDOM_ID.SLICE_START, RANDOM_ID.SLICE_END_LONG)}`
 }
 
 /**
