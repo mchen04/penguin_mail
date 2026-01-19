@@ -7,6 +7,7 @@ import { useContacts } from '@/context/ContactsContext'
 import { useToast } from '@/context/ToastContext'
 import { Icon } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
+import { ICON_SIZE } from '@/constants'
 import type { Contact, ContactCreateInput } from '@/types/contact'
 import styles from './ContactsPanel.module.css'
 
@@ -110,12 +111,12 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
         </div>
         <div className={styles.headerActions}>
           <Button variant="primary" onClick={() => { resetForm(); setIsCreating(true); setSelectedContact(null); }}>
-            <Icon name="plus" size={16} />
+            <Icon name="plus" size={ICON_SIZE.SMALL} />
             New Contact
           </Button>
           {onClose && (
             <button type="button" className={styles.closeButton} onClick={onClose}>
-              <Icon name="close" size={20} />
+              <Icon name="close" size={ICON_SIZE.LARGE} />
             </button>
           )}
         </div>
@@ -125,7 +126,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
         {/* Sidebar with groups */}
         <div className={styles.sidebar}>
           <div className={styles.searchBox}>
-            <Icon name="search" size={16} className={styles.searchIcon} />
+            <Icon name="search" size={ICON_SIZE.SMALL} className={styles.searchIcon} />
             <input
               type="text"
               className={styles.searchInput}
@@ -141,7 +142,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
               className={`${styles.groupItem} ${!selectedGroupId ? styles.active : ''}`}
               onClick={() => setSelectedGroup(null)}
             >
-              <Icon name="users" size={18} />
+              <Icon name="users" size={ICON_SIZE.DEFAULT} />
               <span>All Contacts</span>
             </button>
             <button
@@ -149,7 +150,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
               className={`${styles.groupItem} ${selectedGroupId === 'favorites' ? styles.active : ''}`}
               onClick={() => setSelectedGroup('favorites')}
             >
-              <Icon name="star" size={18} />
+              <Icon name="star" size={ICON_SIZE.DEFAULT} />
               <span>Favorites</span>
             </button>
 
@@ -181,7 +182,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
         <div className={styles.contactList}>
           {displayContacts.length === 0 ? (
             <div className={styles.emptyState}>
-              <Icon name="users" size={48} />
+              <Icon name="users" size={ICON_SIZE.XLARGE} />
               <p>No contacts found</p>
             </div>
           ) : (
@@ -213,7 +214,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
                 >
                   <Icon
                     name={contact.isFavorite ? 'starFilled' : 'star'}
-                    size={16}
+                    size={ICON_SIZE.SMALL}
                   />
                 </button>
               </button>
@@ -313,18 +314,18 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
 
               <div className={styles.detailsSection}>
                 <div className={styles.detailItem}>
-                  <Icon name="mail" size={16} />
+                  <Icon name="mail" size={ICON_SIZE.SMALL} />
                   <span>{selectedContact.email}</span>
                 </div>
                 {selectedContact.phone && (
                   <div className={styles.detailItem}>
-                    <Icon name="phone" size={16} />
+                    <Icon name="phone" size={ICON_SIZE.SMALL} />
                     <span>{selectedContact.phone}</span>
                   </div>
                 )}
                 {selectedContact.company && (
                   <div className={styles.detailItem}>
-                    <Icon name="building" size={16} />
+                    <Icon name="building" size={ICON_SIZE.SMALL} />
                     <span>{selectedContact.company}</span>
                   </div>
                 )}
@@ -359,11 +360,11 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
 
               <div className={styles.detailsActions}>
                 <Button variant="secondary" onClick={startEditing}>
-                  <Icon name="edit" size={16} />
+                  <Icon name="edit" size={ICON_SIZE.SMALL} />
                   Edit
                 </Button>
                 <Button variant="secondary" onClick={() => toggleFavorite(selectedContact.id)}>
-                  <Icon name={selectedContact.isFavorite ? 'starFilled' : 'star'} size={16} />
+                  <Icon name={selectedContact.isFavorite ? 'starFilled' : 'star'} size={ICON_SIZE.SMALL} />
                   {selectedContact.isFavorite ? 'Unfavorite' : 'Favorite'}
                 </Button>
                 <Button
@@ -374,14 +375,14 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
                     toast.success('Contact deleted')
                   }}
                 >
-                  <Icon name="trash" size={16} />
+                  <Icon name="trash" size={ICON_SIZE.SMALL} />
                   Delete
                 </Button>
               </div>
             </>
           ) : (
             <div className={styles.noSelection}>
-              <Icon name="user" size={48} />
+              <Icon name="user" size={ICON_SIZE.XLARGE} />
               <p>Select a contact to view details</p>
             </div>
           )}

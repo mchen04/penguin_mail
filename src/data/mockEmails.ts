@@ -5,6 +5,7 @@
 
 import type { Email, EmailAddress, Attachment } from '@/types/email'
 import type { AccountColor } from '@/types/account'
+import { RANDOM_ID } from '@/constants'
 
 // Helper to create dates relative to now
 const daysAgo = (days: number, hours = 0): Date => {
@@ -34,7 +35,7 @@ const colors = {
 
 // Helper to create mock attachments
 const createAttachment = (name: string, size: number, mimeType: string): Attachment => ({
-  id: `att-${Math.random().toString(36).substring(2, 11)}`,
+  id: `att-${Math.random().toString(36).substring(RANDOM_ID.SLICE_START, RANDOM_ID.SLICE_END_LONG)}`,
   name,
   size,
   mimeType,

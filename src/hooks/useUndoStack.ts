@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { UNDO_STACK, RANDOM_ID } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Types
@@ -27,7 +28,7 @@ export interface UndoableAction<T = unknown> {
 }
 
 interface UseUndoStackOptions {
-  /** Time in ms before undo expires (default: 10000) */
+  /** Time in ms before undo expires (default: UNDO_STACK.DEFAULT_EXPIRE_TIME) */
   expireTime?: number
   /** Maximum stack size (default: 10) */
   maxSize?: number
@@ -65,8 +66,8 @@ interface UseUndoStackReturn {
 
 export function useUndoStack(options: UseUndoStackOptions = {}): UseUndoStackReturn {
   const {
-    expireTime = 10000,
-    maxSize = 10,
+    expireTime = UNDO_STACK.DEFAULT_EXPIRE_TIME,
+    maxSize = UNDO_STACK.DEFAULT_MAX_SIZE,
     onExpire,
   } = options
 
@@ -114,7 +115,7 @@ export function useUndoStack(options: UseUndoStackOptions = {}): UseUndoStackRet
   ): UndoableAction<T> => {
     const now = Date.now()
     const action: UndoableAction<T> = {
-      id: `undo-${now}-${Math.random().toString(36).slice(2, 9)}`,
+      id: `undo-${now}-${Math.random().toString(36).slice(RANDOM_ID.SLICE_START, RANDOM_ID.SLICE_END_SHORT)}`,
       type,
       description,
       undo: undoFn,

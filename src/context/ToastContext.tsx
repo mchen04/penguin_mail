@@ -11,6 +11,7 @@ import {
   useMemo,
   type ReactNode,
 } from 'react'
+import { TOAST, RANDOM_ID } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Types
@@ -47,8 +48,6 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
-const DEFAULT_DURATION = 5000
-
 // --------------------------------------------------------------------------
 // Provider
 // --------------------------------------------------------------------------
@@ -62,8 +61,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const addToast = useCallback(
     (toast: Omit<Toast, 'id'>) => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-      const duration = toast.duration ?? DEFAULT_DURATION
+      const id = `toast-${Date.now()}-${Math.random().toString(36).slice(RANDOM_ID.SLICE_START, RANDOM_ID.SLICE_END_SHORT)}`
+      const duration = toast.duration ?? TOAST.DEFAULT_DURATION
 
       setToasts((prev) => [...prev, { ...toast, id }])
 
@@ -92,7 +91,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const error = useCallback(
     (message: string, action?: Toast['action']) =>
-      addToast({ type: 'error', message, action, duration: 8000 }),
+      addToast({ type: 'error', message, action, duration: TOAST.ERROR_DURATION }),
     [addToast]
   )
 

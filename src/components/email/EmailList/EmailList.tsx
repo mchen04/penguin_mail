@@ -4,7 +4,7 @@ import { useAccounts } from '@/context/AccountContext'
 import { useSettings } from '@/context/SettingsContext'
 import { EmailRow } from './EmailRow'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
-import { EMAIL_LIST } from '@/constants'
+import { EMAIL_LIST, ICON_SIZE } from '@/constants'
 import type { Email } from '@/types/email'
 import styles from './EmailList.module.css'
 
@@ -178,9 +178,9 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
             <div className={styles.skeletonCheckbox} />
             <div className={styles.skeletonAvatar} />
             <div className={styles.skeletonContent}>
-              <div className={styles.skeletonLine} style={{ width: '30%' }} />
-              <div className={styles.skeletonLine} style={{ width: '60%' }} />
-              <div className={styles.skeletonLine} style={{ width: '80%' }} />
+              {EMAIL_LIST.SKELETON_LINE_WIDTHS.map((width, index) => (
+                <div key={index} className={styles.skeletonLine} style={{ width }} />
+              ))}
             </div>
           </div>
         ))}
@@ -193,7 +193,7 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
     if (searchQuery) {
       return (
         <div className={styles.empty}>
-          <Icon name="search" size={48} className={styles.emptyIcon} />
+          <Icon name="search" size={ICON_SIZE.XLARGE} className={styles.emptyIcon} />
           <span className={styles.emptyTitle}>No results found</span>
           <span className={styles.emptyDescription}>
             No emails match &quot;{searchQuery}&quot;
@@ -206,7 +206,7 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
     const emptyState = EMPTY_STATES[selectedFolder] ?? EMPTY_STATES.default
     return (
       <div className={styles.empty}>
-        <Icon name={emptyState.icon} size={48} className={styles.emptyIcon} />
+        <Icon name={emptyState.icon} size={ICON_SIZE.XLARGE} className={styles.emptyIcon} />
         <span className={styles.emptyTitle}>{emptyState.title}</span>
         <span className={styles.emptyDescription}>{emptyState.description}</span>
       </div>

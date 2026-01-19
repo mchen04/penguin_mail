@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import type { FolderType } from '@/types/email'
 import styles from './BulkActions.module.css'
 
@@ -105,7 +106,7 @@ export function BulkActions({
                 className={styles.moveMenuItem}
                 onClick={() => handleMove(folder.id)}
               >
-                <Icon name="folder" size={16} />
+                <Icon name="folder" size={ICON_SIZE.SMALL} />
                 {folder.label}
               </button>
             ))}

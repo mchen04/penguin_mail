@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, type KeyboardEvent, type ChangeEvent } from 'react'
 import { useContacts } from '@/context/ContactsContext'
+import { RECIPIENT_FIELD } from '@/constants'
 import styles from './RecipientField.module.css'
 
 interface RecipientFieldProps {
@@ -44,7 +45,7 @@ export function RecipientField({
           contact.email.toLowerCase().includes(query)
         )
       })
-      .slice(0, 5) // Limit to 5 suggestions
+      .slice(0, RECIPIENT_FIELD.MAX_SUGGESTIONS)
   }, [contacts, inputValue, recipients])
 
   // Close suggestions when clicking outside

@@ -5,6 +5,7 @@
 
 import { useCallback } from 'react'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
 import styles from './RichTextToolbar.module.css'
 
 interface RichTextToolbarProps {
@@ -63,7 +64,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleBold}
           title="Bold (Ctrl+B)"
         >
-          <Icon name="bold" size={16} />
+          <Icon name="bold" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -71,7 +72,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleItalic}
           title="Italic (Ctrl+I)"
         >
-          <Icon name="italic" size={16} />
+          <Icon name="italic" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -79,7 +80,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleUnderline}
           title="Underline (Ctrl+U)"
         >
-          <Icon name="underline" size={16} />
+          <Icon name="underline" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -87,7 +88,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleStrikethrough}
           title="Strikethrough"
         >
-          <Icon name="strikethrough" size={16} />
+          <Icon name="strikethrough" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -100,7 +101,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleBulletList}
           title="Bullet list"
         >
-          <Icon name="list" size={16} />
+          <Icon name="list" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -108,7 +109,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleNumberedList}
           title="Numbered list"
         >
-          <Icon name="listOrdered" size={16} />
+          <Icon name="listOrdered" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -121,7 +122,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleAlignLeft}
           title="Align left"
         >
-          <Icon name="alignLeft" size={16} />
+          <Icon name="alignLeft" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -129,7 +130,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleAlignCenter}
           title="Align center"
         >
-          <Icon name="alignCenter" size={16} />
+          <Icon name="alignCenter" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -137,7 +138,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleAlignRight}
           title="Align right"
         >
-          <Icon name="alignRight" size={16} />
+          <Icon name="alignRight" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -150,7 +151,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleLink}
           title="Insert link"
         >
-          <Icon name="link" size={16} />
+          <Icon name="link" size={ICON_SIZE.SMALL} />
         </button>
         <button
           type="button"
@@ -158,7 +159,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleUnlink}
           title="Remove link"
         >
-          <Icon name="unlink" size={16} />
+          <Icon name="unlink" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -192,7 +193,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
           onClick={handleClearFormatting}
           title="Clear formatting"
         >
-          <Icon name="formatClear" size={16} />
+          <Icon name="formatClear" size={ICON_SIZE.SMALL} />
         </button>
       </div>
     </div>

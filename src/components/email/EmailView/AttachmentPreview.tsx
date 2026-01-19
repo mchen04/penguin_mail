@@ -6,6 +6,8 @@
 import { useState, useCallback } from 'react'
 import type { Attachment } from '@/types/email'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ICON_SIZE } from '@/constants'
+import { formatBytes } from '@/utils'
 import styles from './AttachmentPreview.module.css'
 
 interface AttachmentPreviewProps {
@@ -15,12 +17,6 @@ interface AttachmentPreviewProps {
 interface AttachmentItemProps {
   attachment: Attachment
   onPreview: (attachment: Attachment) => void
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function getFileIcon(mimeType: string): 'image' | 'attachment' {
@@ -66,7 +62,7 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
         </div>
       ) : (
         <div className={styles.iconWrapper}>
-          <Icon name={iconName} size={24} />
+          <Icon name={iconName} size={ICON_SIZE.MEDIUM_LARGE} />
         </div>
       )}
       <div className={styles.info}>
@@ -74,7 +70,7 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
           {attachment.name}
         </span>
         <span className={styles.size}>
-          {formatFileSize(attachment.size)}
+          {formatBytes(attachment.size)}
         </span>
       </div>
       <button
@@ -82,7 +78,7 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
         onClick={handleDownload}
         title="Download attachment"
       >
-        <Icon name="download" size={16} />
+        <Icon name="download" size={ICON_SIZE.SMALL} />
       </button>
     </div>
   )
@@ -106,7 +102,7 @@ export function AttachmentPreview({ attachments }: AttachmentPreviewProps) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Icon name="attachment" size={16} />
+        <Icon name="attachment" size={ICON_SIZE.SMALL} />
         <span className={styles.count}>
           {attachments.length} attachment{attachments.length > 1 ? 's' : ''}
         </span>
@@ -131,7 +127,7 @@ export function AttachmentPreview({ attachments }: AttachmentPreviewProps) {
               onClick={handleClosePreview}
               title="Close preview"
             >
-              <Icon name="close" size={24} />
+              <Icon name="close" size={ICON_SIZE.MEDIUM_LARGE} />
             </button>
             <img
               src={previewAttachment.url}
@@ -141,7 +137,7 @@ export function AttachmentPreview({ attachments }: AttachmentPreviewProps) {
             <div className={styles.lightboxInfo}>
               <span className={styles.lightboxName}>{previewAttachment.name}</span>
               <span className={styles.lightboxSize}>
-                {formatFileSize(previewAttachment.size)}
+                {formatBytes(previewAttachment.size)}
               </span>
             </div>
           </div>

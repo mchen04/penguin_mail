@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react'
 import { useFolders } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { Icon } from '@/components/common/Icon/Icon'
-import { FOLDER_COLORS } from '@/constants'
+import { FOLDER_COLORS, ICON_SIZE } from '@/constants'
 import styles from './CustomFoldersSection.module.css'
 
 export function CustomFoldersSection() {
@@ -94,7 +94,7 @@ export function CustomFoldersSection() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.expandButton} onClick={handleToggleExpand}>
-          <Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={16} />
+          <Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={ICON_SIZE.SMALL} />
           <span className={styles.title}>Folders</span>
         </button>
         <button
@@ -102,7 +102,7 @@ export function CustomFoldersSection() {
           onClick={handleStartCreate}
           title="Create new folder"
         >
-          <Icon name="plus" size={16} />
+          <Icon name="plus" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -203,14 +203,14 @@ export function CustomFoldersSection() {
                 </div>
               ) : (
                 <>
-                  <Icon name="folder" size={16} style={{ color: folder.color }} />
+                  <Icon name="folder" size={ICON_SIZE.SMALL} style={{ color: folder.color }} />
                   <span className={styles.folderName}>{folder.name}</span>
                   <button
                     className={styles.editButton}
                     onClick={(e) => handleStartEdit(e, folder.id)}
                     title="Edit folder"
                   >
-                    <Icon name="edit" size={14} />
+                    <Icon name="edit" size={ICON_SIZE.XSMALL} />
                   </button>
                 </>
               )}

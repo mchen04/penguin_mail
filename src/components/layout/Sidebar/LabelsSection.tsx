@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react'
 import { useLabels } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { Icon } from '@/components/common/Icon/Icon'
-import { LABEL_COLORS } from '@/constants'
+import { LABEL_COLORS, ICON_SIZE } from '@/constants'
 import styles from './LabelsSection.module.css'
 
 export function LabelsSection() {
@@ -91,7 +91,7 @@ export function LabelsSection() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.expandButton} onClick={handleToggleExpand}>
-          <Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={16} />
+          <Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={ICON_SIZE.SMALL} />
           <span className={styles.title}>Labels</span>
         </button>
         <button
@@ -99,7 +99,7 @@ export function LabelsSection() {
           onClick={handleStartCreate}
           title="Create new label"
         >
-          <Icon name="plus" size={16} />
+          <Icon name="plus" size={ICON_SIZE.SMALL} />
         </button>
       </div>
 
@@ -214,7 +214,7 @@ export function LabelsSection() {
                     onClick={(e) => handleStartEdit(e, label.id)}
                     title="Edit label"
                   >
-                    <Icon name="edit" size={14} />
+                    <Icon name="edit" size={ICON_SIZE.XSMALL} />
                   </button>
                 </>
               )}

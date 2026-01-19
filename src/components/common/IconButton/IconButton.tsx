@@ -1,6 +1,7 @@
 import { memo, type ButtonHTMLAttributes } from 'react'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { cn } from '@/utils/cn'
+import { ICON_SIZE } from '@/constants'
 import styles from './IconButton.module.css'
 
 type IconButtonSize = 'small' | 'default' | 'large'
@@ -18,7 +19,7 @@ export const IconButton = memo(function IconButton({
   className,
   ...props
 }: IconButtonProps) {
-  const iconSize = size === 'small' ? 16 : size === 'large' ? 24 : 20
+  const iconSize = size === 'small' ? ICON_SIZE.SMALL : size === 'large' ? ICON_SIZE.MEDIUM_LARGE : ICON_SIZE.LARGE
 
   return (
     <button
