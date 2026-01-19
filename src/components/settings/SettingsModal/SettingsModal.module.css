@@ -5,7 +5,10 @@
 .layout {
   display: flex;
   gap: var(--space-4);
+  /* Fixed height to prevent modal from changing size between tabs */
+  height: 520px;
   min-height: 400px;
+  max-height: calc(100vh - 200px);
 }
 
 /* Sidebar tabs */
@@ -16,6 +19,7 @@
   min-width: 160px;
   padding-right: var(--space-4);
   border-right: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .tab {
@@ -27,6 +31,7 @@
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -41,7 +46,6 @@
 .tab.active {
   background: var(--color-primary-bg);
   color: var(--color-primary);
-  font-weight: var(--font-weight-medium);
 }
 
 /* Content area */
@@ -49,6 +53,8 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  /* Ensure content scrolls within the fixed height layout */
+  max-height: 100%;
 }
 
 .settings {
@@ -611,6 +617,9 @@
 @media (max-width: 767px) {
   .layout {
     flex-direction: column;
+    /* On mobile, use auto height with max constraint */
+    height: auto;
+    max-height: calc(80vh - 100px);
   }
 
   .tabs {
@@ -621,6 +630,7 @@
     border-right: none;
     border-bottom: 1px solid var(--color-border);
     overflow-x: auto;
+    flex-shrink: 0;
   }
 
   .tab {
@@ -629,6 +639,13 @@
 
   .tab span {
     display: none;
+  }
+
+  .content {
+    /* Allow content to scroll on mobile */
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
   }
 
   .options {
