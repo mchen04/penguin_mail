@@ -16,6 +16,8 @@ interface EmailState {
   currentAccountId: string // ALL_ACCOUNTS_ID or specific account id
   selectedEmailId: string | null
   selectedIds: Set<string>
+  lastSelectedId: string | null // For shift-click range selection
+  searchQuery: string
 }
 
 type EmailAction =
@@ -29,6 +31,9 @@ type EmailAction =
   | { type: 'ARCHIVE'; ids: string[] }
   | { type: 'SET_SELECTION'; ids: Set<string> }
   | { type: 'CLEAR_SELECTION' }
+  | { type: 'TOGGLE_SELECTION'; id: string }
+  | { type: 'TOGGLE_SELECTION_RANGE'; id: string; filteredIds: string[] }
+  | { type: 'SET_SEARCH'; query: string }
 
 const initialState: EmailState = {
   emails: mockEmails,
@@ -36,6 +41,8 @@ const initialState: EmailState = {
   currentAccountId: ALL_ACCOUNTS_ID,
   selectedEmailId: null,
   selectedIds: new Set(),
+  lastSelectedId: null,
+  searchQuery: '',
 }
 
 function emailReducer(state: EmailState, action: EmailAction): EmailState {
@@ -46,6 +53,8 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         currentFolder: action.folder,
         selectedEmailId: null,
         selectedIds: new Set(),
+        lastSelectedId: null,
+        searchQuery: '', // Clear search when changing folder
       }
 
     case 'SET_ACCOUNT':
@@ -54,6 +63,8 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         currentAccountId: action.accountId,
         selectedEmailId: null,
         selectedIds: new Set(),
+        lastSelectedId: null,
+        searchQuery: '', // Clear search when changing account
       }
 
     case 'SELECT_EMAIL':
@@ -85,6 +96,7 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
           action.ids.includes(email.id) ? { ...email, isRead: true } : email
         ),
         selectedIds: new Set(),
+        lastSelectedId: null,
       }
 
     case 'MARK_UNREAD':
@@ -94,6 +106,7 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
           action.ids.includes(email.id) ? { ...email, isRead: false } : email
         ),
         selectedIds: new Set(),
+        lastSelectedId: null,
       }
 
     case 'DELETE':
@@ -103,6 +116,7 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
           action.ids.includes(email.id) ? { ...email, folder: 'trash' } : email
         ),
         selectedIds: new Set(),
+        lastSelectedId: null,
       }
 
     case 'ARCHIVE':
@@ -113,6 +127,7 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
           action.ids.includes(email.id) ? { ...email, folder: 'trash' } : email
         ),
         selectedIds: new Set(),
+        lastSelectedId: null,
       }
 
     case 'SET_SELECTION':
@@ -125,6 +140,80 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
       return {
         ...state,
         selectedIds: new Set(),
+        lastSelectedId: null,
+      }
+
+    case 'TOGGLE_SELECTION': {
+      const next = new Set(state.selectedIds)
+      if (next.has(action.id)) {
+        next.delete(action.id)
+      } else {
+        next.add(action.id)
+      }
+      return {
+        ...state,
+        selectedIds: next,
+        lastSelectedId: action.id,
+      }
+    }
+
+    case 'TOGGLE_SELECTION_RANGE': {
+      const { id, filteredIds } = action
+      const { lastSelectedId, selectedIds } = state
+
+      // If no previous selection, just toggle single item
+      if (!lastSelectedId) {
+        const next = new Set(selectedIds)
+        if (next.has(id)) {
+          next.delete(id)
+        } else {
+          next.add(id)
+        }
+        return {
+          ...state,
+          selectedIds: next,
+          lastSelectedId: id,
+        }
+      }
+
+      // Find indices for range selection
+      const startIndex = filteredIds.indexOf(lastSelectedId)
+      const endIndex = filteredIds.indexOf(id)
+
+      if (startIndex === -1 || endIndex === -1) {
+        // Fallback: just toggle single item
+        const next = new Set(selectedIds)
+        next.add(id)
+        return {
+          ...state,
+          selectedIds: next,
+          lastSelectedId: id,
+        }
+      }
+
+      // Select range
+      const [from, to] = startIndex < endIndex
+        ? [startIndex, endIndex]
+        : [endIndex, startIndex]
+
+      const next = new Set(selectedIds)
+      for (let i = from; i <= to; i++) {
+        next.add(filteredIds[i])
+      }
+
+      return {
+        ...state,
+        selectedIds: next,
+        lastSelectedId: id,
+      }
+    }
+
+    case 'SET_SEARCH':
+      return {
+        ...state,
+        searchQuery: action.query,
+        selectedIds: new Set(),
+        lastSelectedId: null,
       }
 
     default:
@@ -144,6 +233,14 @@ interface EmailContextValue extends EmailState {
   archiveEmails: (ids: string[]) => void
   setSelection: (ids: Set<string>) => void
   clearSelection: () => void
+  toggleSelection: (id: string, shiftKey?: boolean) => void
+  isSelected: (id: string) => boolean
+  selectAll: () => void
+  setSearch: (query: string) => void
+  // Dynamic folder counts computed from actual email data
+  getUnreadCount: (folder: FolderType, accountId?: string | null) => number
+  getFolderCount: (folder: FolderType, accountId?: string | null) => number
+  getTotalUnreadCount: () => number
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null)
@@ -152,16 +249,25 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(emailReducer, initialState)
 
   // Filter emails from state (not static mock data) to reflect mutations
-  const filteredEmails = useMemo(
-    () =>
-      state.emails.filter((email) => {
-        const folderMatch = email.folder === state.currentFolder
-        const accountMatch =
-          state.currentAccountId === ALL_ACCOUNTS_ID || email.accountId === state.currentAccountId
-        return folderMatch && accountMatch
-      }),
-    [state.emails, state.currentFolder, state.currentAccountId]
-  )
+  const filteredEmails = useMemo(() => {
+    const query = state.searchQuery.toLowerCase().trim()
+
+    return state.emails.filter((email) => {
+      const folderMatch = email.folder === state.currentFolder
+      const accountMatch =
+        state.currentAccountId === ALL_ACCOUNTS_ID || email.accountId === state.currentAccountId
+
+      // Search filter - match subject, from name/email, or preview
+      const searchMatch =
+        !query ||
+        email.subject.toLowerCase().includes(query) ||
+        email.from.name.toLowerCase().includes(query) ||
+        email.from.email.toLowerCase().includes(query) ||
+        email.preview.toLowerCase().includes(query)
+
+      return folderMatch && accountMatch && searchMatch
+    })
+  }, [state.emails, state.currentFolder, state.currentAccountId, state.searchQuery])
 
   // Memoized action creators
   const setFolder = useCallback(
@@ -204,6 +310,64 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     () => dispatch({ type: 'CLEAR_SELECTION' }),
     []
   )
+  const setSearch = useCallback(
+    (query: string) => dispatch({ type: 'SET_SEARCH', query }),
+    []
+  )
+
+  // Selection helpers using filteredEmails for proper scoping
+  const filteredIds = useMemo(
+    () => filteredEmails.map((e) => e.id),
+    [filteredEmails]
+  )
+
+  const toggleSelection = useCallback(
+    (id: string, shiftKey = false) => {
+      if (shiftKey) {
+        dispatch({ type: 'TOGGLE_SELECTION_RANGE', id, filteredIds })
+      } else {
+        dispatch({ type: 'TOGGLE_SELECTION', id })
+      }
+    },
+    [filteredIds]
+  )
+
+  const isSelected = useCallback(
+    (id: string) => state.selectedIds.has(id),
+    [state.selectedIds]
+  )
+
+  const selectAll = useCallback(() => {
+    const allIds = new Set(filteredIds)
+    dispatch({ type: 'SET_SELECTION', ids: allIds })
+  }, [filteredIds])
+
+  // Computed folder counts from actual email data
+  const getUnreadCount = useCallback(
+    (folder: FolderType, accountId?: string | null) => {
+      return state.emails.filter((email) => {
+        const folderMatch = email.folder === folder
+        const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || email.accountId === accountId
+        return folderMatch && accountMatch && !email.isRead
+      }).length
+    },
+    [state.emails]
+  )
+
+  const getFolderCount = useCallback(
+    (folder: FolderType, accountId?: string | null) => {
+      return state.emails.filter((email) => {
+        const folderMatch = email.folder === folder
+        const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || email.accountId === accountId
+        return folderMatch && accountMatch
+      }).length
+    },
+    [state.emails]
+  )
+
+  const getTotalUnreadCount = useCallback(() => {
+    return state.emails.filter((email) => email.folder === 'inbox' && !email.isRead).length
+  }, [state.emails])
 
   // Memoized context value
   const value = useMemo<EmailContextValue>(
@@ -220,6 +384,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       archiveEmails,
       setSelection,
       clearSelection,
+      toggleSelection,
+      isSelected,
+      selectAll,
+      setSearch,
+      getUnreadCount,
+      getFolderCount,
+      getTotalUnreadCount,
     }),
     [
       state,
@@ -234,6 +405,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       archiveEmails,
       setSelection,
       clearSelection,
+      toggleSelection,
+      isSelected,
+      selectAll,
+      setSearch,
+      getUnreadCount,
+      getFolderCount,
+      getTotalUnreadCount,
     ]
   )
 

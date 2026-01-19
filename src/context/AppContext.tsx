@@ -6,13 +6,10 @@ import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
 // Types
 // --------------------------------------------------------------------------
 
-type CurrentView = 'list' | 'email'
 type ComposeState = 'closed' | 'minimized' | 'open' | 'maximized'
 
 interface AppState {
   sidebarCollapsed: boolean
-  currentView: CurrentView
-  selectedEmailId: string | null
   composeState: ComposeState
   settingsOpen: boolean
   theme: Theme
@@ -22,8 +19,6 @@ interface AppState {
 type AppAction =
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
-  | { type: 'SET_VIEW'; payload: CurrentView }
-  | { type: 'SELECT_EMAIL'; payload: string | null }
   | { type: 'SET_COMPOSE_STATE'; payload: ComposeState }
   | { type: 'SET_SETTINGS_OPEN'; payload: boolean }
   | { type: 'SET_THEME'; payload: Theme }
@@ -32,8 +27,6 @@ type AppAction =
 interface AppContextValue extends AppState {
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
-  setView: (view: CurrentView) => void
-  selectEmail: (id: string | null) => void
   openCompose: () => void
   minimizeCompose: () => void
   maximizeCompose: () => void
@@ -70,8 +63,6 @@ function getInitialState(): AppState {
 
   return {
     sidebarCollapsed: false,
-    currentView: 'list',
-    selectedEmailId: null,
     composeState: 'closed',
     settingsOpen: false,
     theme: isValidTheme(savedTheme) ? savedTheme : 'light',
@@ -89,14 +80,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, sidebarCollapsed: !state.sidebarCollapsed }
     case 'SET_SIDEBAR_COLLAPSED':
       return { ...state, sidebarCollapsed: action.payload }
-    case 'SET_VIEW':
-      return { ...state, currentView: action.payload }
-    case 'SELECT_EMAIL':
-      return {
-        ...state,
-        selectedEmailId: action.payload,
-        currentView: action.payload ? 'email' : 'list',
-      }
     case 'SET_COMPOSE_STATE':
       return { ...state, composeState: action.payload }
     case 'SET_SETTINGS_OPEN':
@@ -137,14 +120,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (collapsed: boolean) => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: collapsed }),
     []
   )
-  const setView = useCallback(
-    (view: CurrentView) => dispatch({ type: 'SET_VIEW', payload: view }),
-    []
-  )
-  const selectEmail = useCallback(
-    (id: string | null) => dispatch({ type: 'SELECT_EMAIL', payload: id }),
-    []
-  )
   const openCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'open' }), [])
   const minimizeCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'minimized' }), [])
   const maximizeCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'maximized' }), [])
@@ -170,8 +145,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...state,
       toggleSidebar,
       setSidebarCollapsed,
-      setView,
-      selectEmail,
       openCompose,
       minimizeCompose,
       maximizeCompose,
@@ -186,8 +159,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       state,
       toggleSidebar,
       setSidebarCollapsed,
-      setView,
-      selectEmail,
       openCompose,
       minimizeCompose,
       maximizeCompose,

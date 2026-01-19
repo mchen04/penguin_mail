@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { COMPOSE_WINDOW, STORAGE_KEYS } from '@/constants'
 
 interface Size {
@@ -49,31 +49,27 @@ function loadFromStorage<T>(key: string, fallback: T): T {
   return fallback
 }
 
+// Clamp position to be within viewport bounds
+function clampPosition(pos: Position): Position {
+  if (typeof window === 'undefined') return pos
+  const maxX = window.innerWidth - COMPOSE_WINDOW.MIN_WIDTH
+  const maxY = window.innerHeight - COMPOSE_WINDOW.MIN_HEIGHT
+  return {
+    x: Math.max(0, Math.min(pos.x, maxX)),
+    y: Math.max(0, Math.min(pos.y, maxY)),
+  }
+}
+
 export function useComposeWindowState(): UseComposeWindowStateReturn {
   const [size, setSizeState] = useState<Size>(() =>
     loadFromStorage(STORAGE_KEYS.COMPOSE_SIZE, getDefaultSize())
   )
 
-  const [position, setPositionState] = useState<Position>(() =>
-    loadFromStorage(STORAGE_KEYS.COMPOSE_POSITION, getDefaultPosition())
-  )
-
-  // Ensure position is valid on mount (window may have resized)
-  useEffect(() => {
-    const defaultPos = getDefaultPosition()
-    const currentPos = loadFromStorage(STORAGE_KEYS.COMPOSE_POSITION, defaultPos)
-
-    // Clamp position to be within viewport
-    const maxX = window.innerWidth - COMPOSE_WINDOW.MIN_WIDTH
-    const maxY = window.innerHeight - COMPOSE_WINDOW.MIN_HEIGHT
-
-    const clampedX = Math.max(0, Math.min(currentPos.x, maxX))
-    const clampedY = Math.max(0, Math.min(currentPos.y, maxY))
-
-    if (clampedX !== currentPos.x || clampedY !== currentPos.y) {
-      setPositionState({ x: clampedX, y: clampedY })
-    }
-  }, [])
+  // Load and clamp position in initial state to avoid effect-based state updates
+  const [position, setPositionState] = useState<Position>(() => {
+    const savedPos = loadFromStorage(STORAGE_KEYS.COMPOSE_POSITION, getDefaultPosition())
+    return clampPosition(savedPos)
+  })
 
   const setSize = useCallback((newSize: Size) => {
     setSizeState(newSize)

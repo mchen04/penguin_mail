@@ -1,15 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useEmail } from '@/context/EmailContext'
 import { useAccounts } from '@/context/AccountContext'
 import { Toolbar } from '@/components/layout/Toolbar/Toolbar'
 import { EmailList } from '@/components/email/EmailList/EmailList'
 import { EmailView } from '@/components/email/EmailView/EmailView'
-import { getEmailById } from '@/data/mockEmails'
 import styles from './MainPanel.module.css'
 
 export function MainPanel() {
   const { selectedAccountId, selectedFolder } = useAccounts()
   const {
+    emails,
     filteredEmails,
     selectedIds,
     selectedEmailId,
@@ -20,7 +20,7 @@ export function MainPanel() {
     deleteEmails,
     archiveEmails,
     clearSelection,
-    setSelection,
+    selectAll,
     setFolder,
     setAccount,
   } = useEmail()
@@ -34,12 +34,16 @@ export function MainPanel() {
   const selectedCount = selectedIds.size
   const totalCount = filteredEmails.length
   const allSelected = totalCount > 0 && selectedCount === totalCount
-  const selectedEmail = selectedEmailId ? getEmailById(selectedEmailId) : null
+
+  // Look up selected email from state, not static mock data
+  const selectedEmail = useMemo(
+    () => (selectedEmailId ? emails.find((e) => e.id === selectedEmailId) ?? null : null),
+    [selectedEmailId, emails]
+  )
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      const allIds = new Set(filteredEmails.map(e => e.id))
-      setSelection(allIds)
+      selectAll()
     } else {
       clearSelection()
     }

@@ -67,7 +67,7 @@ export function EmailHeader({
         {/* Account color indicator */}
         <span
           className={styles.colorIndicator}
-          style={{ backgroundColor: `var(${accountColorVar})` }}
+          style={{ backgroundColor: accountColorVar }}
         />
 
         {/* Sender avatar placeholder */}
