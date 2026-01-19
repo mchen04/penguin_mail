@@ -4,13 +4,16 @@
 
 .composeWindow {
   background: var(--color-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   /* Height fills container for flex layout */
   height: 100%;
+  /* Inner padding to prevent content touching borders */
+  padding: var(--space-3);
 }
 
 /* Open state - used with react-rnd, so no positioning needed here */
@@ -21,8 +24,8 @@
 /* Minimized state - fixed positioning */
 .composeWindow.minimized {
   position: fixed;
-  bottom: var(--space-4);
-  right: var(--space-4);
+  bottom: var(--space-12);
+  right: var(--space-12);
   width: 280px;
   max-height: none;
   height: auto;
@@ -32,10 +35,10 @@
 /* Maximized state - uses inset positioning */
 .composeWindow.maximized {
   position: fixed;
-  top: var(--space-4);
-  left: var(--space-4);
-  right: var(--space-4);
-  bottom: var(--space-4);
+  top: var(--space-12);
+  left: var(--space-12);
+  right: var(--space-12);
+  bottom: var(--space-12);
   width: auto;
   height: auto;
   max-height: none;
@@ -48,6 +51,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: var(--space-5);
+  gap: var(--space-4);
 }
 
 /* From field */
@@ -55,8 +60,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .fieldLabel {
@@ -67,12 +74,12 @@
 
 .accountSelect {
   flex: 1;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   outline: none;
   cursor: pointer;
 }
@@ -84,19 +91,22 @@
 /* Recipients section */
 .recipients {
   position: relative;
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .recipientActions {
   position: absolute;
-  top: var(--space-2);
-  right: var(--space-3);
+  top: var(--space-3);
+  right: var(--space-4);
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .addFieldButton {
-  padding: 2px 8px;
+  padding: var(--space-1) var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
@@ -110,9 +120,9 @@
 
 .addCcButton {
   position: absolute;
-  top: var(--space-2);
-  right: var(--space-3);
-  padding: 2px 8px;
+  top: var(--space-3);
+  right: var(--space-4);
+  padding: var(--space-1) var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
@@ -126,8 +136,10 @@
 
 /* Subject field */
 .subjectField {
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .subjectInput {
@@ -147,16 +159,21 @@
 .body {
   flex: 1;
   min-height: 200px;
-  padding: var(--space-3);
+  padding: var(--space-4);
   font-size: var(--font-size-sm);
   line-height: 1.6;
   font-family: inherit;
   color: var(--color-text);
-  background: transparent;
-  border: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   resize: none;
   overflow-y: auto;
   outline: none;
+}
+
+.body:focus {
+  border-color: var(--color-primary);
 }
 
 .body::placeholder {
@@ -168,15 +185,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .secondaryActions {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .iconButton {
@@ -185,7 +204,7 @@
   justify-content: center;
   padding: var(--space-2);
   color: var(--color-text-secondary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -198,7 +217,7 @@
 .primaryActions {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 /* Auto-save status */
@@ -239,18 +258,18 @@
 
 .dragOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: var(--space-4);
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
   background: var(--color-primary-bg, rgba(66, 133, 244, 0.1));
   border: 2px dashed var(--color-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   z-index: 10;
   color: var(--color-primary);
   font-size: var(--font-size-sm);
@@ -265,17 +284,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .attachmentItem {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-surface-hover);
-  border-radius: var(--radius-sm);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
 }
 
@@ -295,7 +317,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: var(--space-1);
   margin-left: var(--space-1);
   color: var(--color-text-tertiary);
   border-radius: var(--radius-sm);
@@ -329,7 +351,12 @@
     bottom: 0;
     width: 100%;
     height: auto;
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .content {
+    padding: var(--space-3);
+    gap: var(--space-2);
   }
 
   .body {

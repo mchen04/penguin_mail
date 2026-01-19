@@ -1516,8 +1516,8 @@ const generateBulkEmails = (): Email[] => {
     { subject: 'Your receipt', preview: 'Thank you for your purchase. Here\'s your receipt...', sender: 'uber' },
   ]
 
-  // Generate 80 additional emails (40 per account) to ensure 50+ conversations per account
-  for (let i = 0; i < 80; i++) {
+  // Generate 120 additional emails (60 per account) to ensure 50+ conversations per account
+  for (let i = 0; i < 120; i++) {
     const template = emailTemplates[i % emailTemplates.length]
     // Alternate evenly between accounts - 50% each
     const isPersonal = i % 2 === 0
