@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useEmail } from '@/context/EmailContext'
 import { Button } from '@/components/common/Button/Button'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Checkbox } from '@/components/common/Checkbox/Checkbox'
 import { Icon } from '@/components/common/Icon/Icon'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { SearchBar } from './SearchBar'
 import { BulkActions } from './BulkActions'
+import type { FolderType } from '@/types/email'
 import styles from './Toolbar.module.css'
 
 interface ToolbarProps {
@@ -16,6 +19,12 @@ interface ToolbarProps {
   onArchive?: () => void
   onDelete?: () => void
   onMarkRead?: () => void
+  currentFolder?: FolderType
+  onEmptyTrash?: () => void
+  onEmptySpam?: () => void
+  onMarkAsSpam?: () => void
+  onMarkNotSpam?: () => void
+  onMoveToFolder?: (folder: FolderType) => void
 }
 
 export function Toolbar({
@@ -26,11 +35,32 @@ export function Toolbar({
   onArchive,
   onDelete,
   onMarkRead,
+  currentFolder = 'inbox',
+  onEmptyTrash,
+  onEmptySpam,
+  onMarkAsSpam,
+  onMarkNotSpam,
+  onMoveToFolder,
 }: ToolbarProps) {
   const { setSidebarCollapsed, openCompose, openSettings } = useApp()
   const { searchQuery, setSearch } = useEmail()
 
+  const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false)
+  const [showEmptySpamConfirm, setShowEmptySpamConfirm] = useState(false)
+
   const hasSelection = selectedCount > 0
+  const isTrash = currentFolder === 'trash'
+  const isSpam = currentFolder === 'spam'
+
+  const handleEmptyTrash = () => {
+    onEmptyTrash?.()
+    setShowEmptyTrashConfirm(false)
+  }
+
+  const handleEmptySpam = () => {
+    onEmptySpam?.()
+    setShowEmptySpamConfirm(false)
+  }
 
   return (
     <div className={styles.toolbar}>
@@ -45,7 +75,7 @@ export function Toolbar({
         />
 
         {/* Compose button */}
-        <Button variant="primary" onClick={openCompose}>
+        <Button variant="primary" onClick={() => openCompose()}>
           <Icon name="plus" size={18} />
           <span className={styles.composeText}>Compose</span>
         </Button>
@@ -77,8 +107,33 @@ export function Toolbar({
             onArchive={onArchive}
             onDelete={onDelete}
             onMarkRead={onMarkRead}
+            isTrash={isTrash}
+            isSpam={isSpam}
+            onMarkAsSpam={onMarkAsSpam}
+            onMarkNotSpam={onMarkNotSpam}
+            onMoveToFolder={onMoveToFolder}
           />
         </div>
+
+        {/* Folder-specific actions */}
+        {isTrash && totalCount > 0 && (
+          <>
+            <span className={styles.divider} />
+            <Button variant="secondary" onClick={() => setShowEmptyTrashConfirm(true)}>
+              <Icon name="trash" size={16} />
+              <span className={styles.hideMobile}>Empty Trash</span>
+            </Button>
+          </>
+        )}
+        {isSpam && totalCount > 0 && (
+          <>
+            <span className={styles.divider} />
+            <Button variant="secondary" onClick={() => setShowEmptySpamConfirm(true)}>
+              <Icon name="trash" size={16} />
+              <span className={styles.hideMobile}>Empty Spam</span>
+            </Button>
+          </>
+        )}
 
         <span className={styles.divider} />
 
@@ -89,6 +144,27 @@ export function Toolbar({
           onClick={() => openSettings()}
         />
       </div>
+
+      {/* Confirmation dialogs */}
+      <ConfirmDialog
+        isOpen={showEmptyTrashConfirm}
+        onClose={() => setShowEmptyTrashConfirm(false)}
+        onConfirm={handleEmptyTrash}
+        title="Empty Trash"
+        message={`Are you sure you want to permanently delete all ${totalCount} email${totalCount !== 1 ? 's' : ''} in the trash? This action cannot be undone.`}
+        confirmLabel="Empty Trash"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={showEmptySpamConfirm}
+        onClose={() => setShowEmptySpamConfirm(false)}
+        onConfirm={handleEmptySpam}
+        title="Empty Spam"
+        message={`Are you sure you want to permanently delete all ${totalCount} email${totalCount !== 1 ? 's' : ''} in spam? This action cannot be undone.`}
+        confirmLabel="Empty Spam"
+        variant="danger"
+      />
     </div>
   )
 }

@@ -1,25 +1,119 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { Rnd } from 'react-rnd'
 import { useApp } from '@/context/AppContext'
+import { useAccounts } from '@/context/AccountContext'
+import { useEmail } from '@/context/EmailContext'
+import { useSettings } from '@/context/SettingsContext'
 import { useComposeWindowState } from '@/hooks/useComposeWindowState'
 import { Button } from '@/components/common/Button/Button'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader, DRAG_HANDLE_CLASS } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
-import { PLACEHOLDERS, LABELS, COMPOSE_WINDOW } from '@/constants'
+import { RichTextToolbar } from './RichTextToolbar'
+import { PLACEHOLDERS, COMPOSE_WINDOW } from '@/constants'
 import { cn } from '@/utils/cn'
+import type { EmailAddress } from '@/types/email'
 import styles from './ComposeWindow.module.css'
 
+// Convert EmailAddress to display string
+function formatRecipient(addr: EmailAddress): string {
+  return addr.name ? `${addr.name} <${addr.email}>` : addr.email
+}
+
 export function ComposeWindow() {
-  const { composeState, closeCompose, minimizeCompose, maximizeCompose, openCompose } = useApp()
+  const { composeState, composeData, closeCompose, minimizeCompose, maximizeCompose, openCompose } = useApp()
+  const { accounts } = useAccounts()
+  const { sendEmail, saveDraft, deleteEmails } = useEmail()
+  const { signatures } = useSettings()
   const { size, position, setSize, setPosition } = useComposeWindowState()
+
+  // Get the default signature (or first signature if none is default)
+  const defaultSignature = useMemo(() => {
+    const sig = signatures.find(s => s.isDefault) ?? signatures[0]
+    return sig?.content ?? ''
+  }, [signatures])
+
+  const [fromAccountId, setFromAccountId] = useState(accounts[0]?.id ?? '')
   const [to, setTo] = useState<string[]>([])
   const [cc, setCc] = useState<string[]>([])
+  const [bcc, setBcc] = useState<string[]>([])
   const [showCc, setShowCc] = useState(false)
+  const [showBcc, setShowBcc] = useState(false)
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [draftId, setDraftId] = useState<string | undefined>(undefined)
+  const [replyToId, setReplyToId] = useState<string | undefined>(undefined)
+  const [forwardedFromId, setForwardedFromId] = useState<string | undefined>(undefined)
+
+  // Track if we've initialized from composeData
+  const lastComposeDataRef = useRef<typeof composeData>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
+
+  // Initialize form from composeData when it changes
+  useEffect(() => {
+    if (composeData && composeData !== lastComposeDataRef.current) {
+      lastComposeDataRef.current = composeData
+
+      // Pre-populate recipients
+      if (composeData.to) {
+        setTo(composeData.to.map(formatRecipient))
+      } else {
+        setTo([])
+      }
+
+      if (composeData.cc) {
+        setCc(composeData.cc.map(formatRecipient))
+        setShowCc(true)
+      } else {
+        setCc([])
+        setShowCc(false)
+      }
+
+      // Pre-populate subject and body
+      setSubject(composeData.subject ?? '')
+
+      // For new emails, add signature; for replies/forwards, the body already has quoted text
+      const initialBody = composeData.mode === 'new' && defaultSignature
+        ? `<br><br>--<br>${defaultSignature}`
+        : (composeData.body ?? '')
+      setBody(initialBody)
+      // Also set the editor content
+      if (editorRef.current) {
+        editorRef.current.innerHTML = initialBody
+      }
+
+      // Set IDs for reply/forward tracking
+      setDraftId(composeData.draftId)
+      setReplyToId(composeData.replyToId)
+      setForwardedFromId(composeData.forwardedFromId)
+
+      // Set account from original email if available
+      if (composeData.originalEmail?.accountId) {
+        setFromAccountId(composeData.originalEmail.accountId)
+      }
+    }
+  }, [composeData, defaultSignature])
+
+  const resetForm = useCallback(() => {
+    setFromAccountId(accounts[0]?.id ?? '')
+    setTo([])
+    setCc([])
+    setBcc([])
+    setShowCc(false)
+    setShowBcc(false)
+    setSubject('')
+    setBody('')
+    setIsSending(false)
+    setDraftId(undefined)
+    setReplyToId(undefined)
+    setForwardedFromId(undefined)
+    lastComposeDataRef.current = null
+  }, [accounts])
 
   if (composeState === 'closed') return null
+
+  const selectedAccount = accounts.find((a) => a.id === fromAccountId) ?? accounts[0]
 
   const handleMinimize = () => {
     if (composeState === 'minimized') {
@@ -38,16 +132,83 @@ export function ComposeWindow() {
   }
 
   const handleClose = () => {
-    setTo([])
-    setCc([])
-    setShowCc(false)
-    setSubject('')
-    setBody('')
+    // Auto-save as draft if there's content
+    if (to.length > 0 || subject || body) {
+      handleSaveDraft()
+    }
+    resetForm()
     closeCompose()
   }
 
-  const handleSend = () => {
-    handleClose()
+  const parseRecipients = (recipients: string[]): EmailAddress[] => {
+    return recipients.map((r) => {
+      // Simple parsing - in a real app, you'd want more robust parsing
+      const emailMatch = r.match(/<(.+)>/)
+      if (emailMatch) {
+        const name = r.replace(/<.+>/, '').trim()
+        return { name, email: emailMatch[1] }
+      }
+      return { name: r.split('@')[0], email: r }
+    })
+  }
+
+  const handleSend = async () => {
+    if (to.length === 0) return
+
+    setIsSending(true)
+    try {
+      await sendEmail({
+        id: draftId, // Include draft ID if editing a draft
+        accountId: fromAccountId,
+        accountColor: selectedAccount?.color as 'blue' | 'green' | 'purple' | 'orange' | 'red',
+        from: {
+          name: selectedAccount?.name ?? 'You',
+          email: selectedAccount?.email ?? '',
+        },
+        to: parseRecipients(to),
+        cc: showCc && cc.length > 0 ? parseRecipients(cc) : undefined,
+        bcc: showBcc && bcc.length > 0 ? parseRecipients(bcc) : undefined,
+        subject,
+        body,
+        replyToId,
+        forwardedFromId,
+        isDraft: !!draftId,
+      })
+      resetForm()
+      closeCompose()
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const handleSaveDraft = async () => {
+    if (to.length === 0 && !subject && !body) return
+
+    await saveDraft({
+      id: draftId, // Include draft ID if editing existing draft
+      accountId: fromAccountId,
+      accountColor: selectedAccount?.color as 'blue' | 'green' | 'purple' | 'orange' | 'red',
+      from: {
+        name: selectedAccount?.name ?? 'You',
+        email: selectedAccount?.email ?? '',
+      },
+      to: parseRecipients(to),
+      cc: showCc && cc.length > 0 ? parseRecipients(cc) : undefined,
+      bcc: showBcc && bcc.length > 0 ? parseRecipients(bcc) : undefined,
+      subject,
+      body,
+      replyToId,
+      forwardedFromId,
+    })
+  }
+
+  const handleDiscardDraft = () => {
+    // If editing an existing draft, delete it
+    if (draftId) {
+      deleteEmails([draftId])
+    }
+    resetForm()
+    closeCompose()
   }
 
   const title = subject || 'New Message'
@@ -66,26 +227,62 @@ export function ComposeWindow() {
 
       {composeState !== 'minimized' && (
         <div className={styles.content}>
+          {/* From account selector */}
+          <div className={styles.fromField}>
+            <label className={styles.fieldLabel}>From</label>
+            <select
+              className={styles.accountSelect}
+              value={fromAccountId}
+              onChange={(e) => setFromAccountId(e.target.value)}
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name} &lt;{account.email}&gt;
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className={styles.recipients}>
             <RecipientField
               label="To"
               recipients={to}
               onChange={setTo}
             />
-            {!showCc && (
-              <button
-                type="button"
-                className={styles.addCcButton}
-                onClick={() => setShowCc(true)}
-              >
-                {LABELS.CC}
-              </button>
-            )}
+
+            <div className={styles.recipientActions}>
+              {!showCc && (
+                <button
+                  type="button"
+                  className={styles.addFieldButton}
+                  onClick={() => setShowCc(true)}
+                >
+                  Cc
+                </button>
+              )}
+              {!showBcc && (
+                <button
+                  type="button"
+                  className={styles.addFieldButton}
+                  onClick={() => setShowBcc(true)}
+                >
+                  Bcc
+                </button>
+              )}
+            </div>
+
             {showCc && (
               <RecipientField
                 label="Cc"
                 recipients={cc}
                 onChange={setCc}
+              />
+            )}
+            {showBcc && (
+              <RecipientField
+                label="Bcc"
+                recipients={bcc}
+                onChange={setBcc}
               />
             )}
           </div>
@@ -100,18 +297,40 @@ export function ComposeWindow() {
             />
           </div>
 
-          <textarea
+          <RichTextToolbar editorRef={editorRef} />
+
+          <div
+            ref={editorRef}
             className={styles.body}
-            placeholder={PLACEHOLDERS.COMPOSE_BODY}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
+            contentEditable
+            suppressContentEditableWarning
+            data-placeholder={PLACEHOLDERS.COMPOSE_BODY}
+            onInput={(e) => setBody((e.target as HTMLDivElement).innerHTML)}
           />
 
           <div className={styles.actions}>
-            <Button variant="primary" onClick={handleSend}>
+            <Button variant="primary" onClick={handleSend} disabled={to.length === 0 || isSending}>
               <Icon name="send" size={16} />
-              Send
+              {isSending ? 'Sending...' : 'Send'}
             </Button>
+            <div className={styles.secondaryActions}>
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={handleSaveDraft}
+                title="Save draft"
+              >
+                <Icon name="archive" size={18} />
+              </button>
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={handleDiscardDraft}
+                title="Discard"
+              >
+                <Icon name="trash" size={18} />
+              </button>
+            </div>
           </div>
         </div>
       )}

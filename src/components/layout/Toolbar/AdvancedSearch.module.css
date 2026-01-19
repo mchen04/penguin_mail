@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Advanced Search - Search bar with expandable filters
+   ========================================================================== */
+
+.container {
+  position: relative;
+  flex: 1;
+  max-width: 600px;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchBar:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-bg);
+}
+
+.icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-7);
+  height: var(--space-7);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filterButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.filterButton[data-active='true'] {
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+/* Dropdown panel */
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-lg);
+  z-index: var(--z-dropdown);
+}
+
+.filterGroup {
+  margin-bottom: var(--space-3);
+}
+
+.filterRow {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.filterRow .filterGroup {
+  flex: 1;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filterInput,
+.filterSelect {
+  width: 100%;
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease;
+}
+
+.filterInput:focus,
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.filterInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.filterSelect {
+  cursor: pointer;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.clearButton,
+.applyButton {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.clearButton {
+  color: var(--color-text-secondary);
+}
+
+.clearButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.applyButton {
+  background: var(--color-primary);
+  color: white;
+}
+
+.applyButton:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .dropdown {
+    padding: var(--space-3);
+  }
+
+  .filterRow {
+    flex-direction: column;
+    gap: 0;
+  }
+}

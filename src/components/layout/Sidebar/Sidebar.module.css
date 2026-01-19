@@ -97,6 +97,11 @@
   color: var(--color-text);
 }
 
+.footerButton.active {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
 /* Mobile: overlay mode */
 @media (max-width: 767px) {
   .sidebar {

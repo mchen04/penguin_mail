@@ -1,7 +1,8 @@
-import type { FolderType } from './email'
+/**
+ * Account types for the email client
+ */
 
-// Re-export for convenience
-export type { FolderType } from './email'
+import type { SystemFolderType } from './email'
 
 export type AccountColor =
   | 'blue'
@@ -18,7 +19,31 @@ export interface Account {
   email: string
   name: string
   color: AccountColor
+  displayName?: string
   signature?: string
+  defaultSignatureId?: string
+  avatar?: string
+  isDefault: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AccountCreateInput {
+  email: string
+  name: string
+  color?: AccountColor
+  displayName?: string
+  signature?: string
+}
+
+export interface AccountUpdateInput {
+  name?: string
+  color?: AccountColor
+  displayName?: string
+  signature?: string
+  defaultSignatureId?: string
+  avatar?: string
+  isDefault?: boolean
 }
 
 export const ACCOUNT_COLOR_VAR: Record<AccountColor, string> = {
@@ -32,10 +57,22 @@ export const ACCOUNT_COLOR_VAR: Record<AccountColor, string> = {
   indigo: 'var(--account-indigo)',
 }
 
-export const FOLDER_LABELS: Record<FolderType, string> = {
+export const FOLDER_LABELS: Record<SystemFolderType, string> = {
   inbox: 'Inbox',
   drafts: 'Drafts',
   sent: 'Sent',
   spam: 'Spam',
   trash: 'Trash',
+  archive: 'Archive',
+  starred: 'Starred',
+}
+
+export const FOLDER_ICONS: Record<SystemFolderType, string> = {
+  inbox: 'inbox',
+  drafts: 'edit',
+  sent: 'send',
+  spam: 'alertOctagon',
+  trash: 'trash',
+  archive: 'archive',
+  starred: 'star',
 }

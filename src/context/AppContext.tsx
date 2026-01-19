@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import type { Theme, Density } from '@/types/settings'
+import type { Email, EmailAddress } from '@/types/email'
 import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
 
 // --------------------------------------------------------------------------
@@ -7,27 +8,50 @@ import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
 // --------------------------------------------------------------------------
 
 type ComposeState = 'closed' | 'minimized' | 'open' | 'maximized'
+type AppView = 'mail' | 'contacts'
+type ComposeMode = 'new' | 'reply' | 'replyAll' | 'forward' | 'editDraft'
+
+export interface ComposeData {
+  mode: ComposeMode
+  originalEmail?: Email
+  draftId?: string
+  to?: EmailAddress[]
+  cc?: EmailAddress[]
+  subject?: string
+  body?: string
+  replyToId?: string
+  forwardedFromId?: string
+}
 
 interface AppState {
   sidebarCollapsed: boolean
   composeState: ComposeState
+  composeData: ComposeData | null
   settingsOpen: boolean
   theme: Theme
   density: Density
+  currentView: AppView
 }
 
 type AppAction =
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
   | { type: 'SET_COMPOSE_STATE'; payload: ComposeState }
+  | { type: 'SET_COMPOSE_DATA'; payload: ComposeData | null }
+  | { type: 'OPEN_COMPOSE'; payload: { state: ComposeState; data: ComposeData | null } }
   | { type: 'SET_SETTINGS_OPEN'; payload: boolean }
   | { type: 'SET_THEME'; payload: Theme }
   | { type: 'SET_DENSITY'; payload: Density }
+  | { type: 'SET_VIEW'; payload: AppView }
 
 interface AppContextValue extends AppState {
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
-  openCompose: () => void
+  openCompose: (data?: ComposeData) => void
+  openReply: (email: Email) => void
+  openReplyAll: (email: Email) => void
+  openForward: (email: Email) => void
+  openDraft: (draft: Email) => void
   minimizeCompose: () => void
   maximizeCompose: () => void
   closeCompose: () => void
@@ -36,6 +60,9 @@ interface AppContextValue extends AppState {
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
   setDensity: (density: Density) => void
+  setView: (view: AppView) => void
+  showMail: () => void
+  showContacts: () => void
 }
 
 // --------------------------------------------------------------------------
@@ -64,9 +91,11 @@ function getInitialState(): AppState {
   return {
     sidebarCollapsed: false,
     composeState: 'closed',
+    composeData: null,
     settingsOpen: false,
     theme: isValidTheme(savedTheme) ? savedTheme : 'light',
     density: isValidDensity(savedDensity) ? savedDensity : 'default',
+    currentView: 'mail',
   }
 }
 
@@ -82,12 +111,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, sidebarCollapsed: action.payload }
     case 'SET_COMPOSE_STATE':
       return { ...state, composeState: action.payload }
+    case 'SET_COMPOSE_DATA':
+      return { ...state, composeData: action.payload }
+    case 'OPEN_COMPOSE':
+      return { ...state, composeState: action.payload.state, composeData: action.payload.data }
     case 'SET_SETTINGS_OPEN':
       return { ...state, settingsOpen: action.payload }
     case 'SET_THEME':
       return { ...state, theme: action.payload }
     case 'SET_DENSITY':
       return { ...state, density: action.payload }
+    case 'SET_VIEW':
+      return { ...state, currentView: action.payload }
     default:
       return state
   }
@@ -114,16 +149,109 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.DENSITY, state.density)
   }, [state.density])
 
+  // Helper to create reply body with quoted text
+  const createQuotedBody = useCallback((email: Email, prefix: string) => {
+    const date = new Date(email.date).toLocaleString()
+    return `<br><br>${prefix}<br><br><blockquote style="margin-left: 0.5em; padding-left: 1em; border-left: 2px solid #ccc; color: #666;">On ${date}, ${email.from.name} &lt;${email.from.email}&gt; wrote:<br><br>${email.body}</blockquote>`
+  }, [])
+
   // Memoized action creators
   const toggleSidebar = useCallback(() => dispatch({ type: 'TOGGLE_SIDEBAR' }), [])
   const setSidebarCollapsed = useCallback(
     (collapsed: boolean) => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: collapsed }),
     []
   )
-  const openCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'open' }), [])
+  const openCompose = useCallback((data?: ComposeData) => {
+    dispatch({
+      type: 'OPEN_COMPOSE',
+      payload: { state: 'open', data: data ?? { mode: 'new' } }
+    })
+  }, [])
+
+  const openReply = useCallback((email: Email) => {
+    const replySubject = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`
+    dispatch({
+      type: 'OPEN_COMPOSE',
+      payload: {
+        state: 'open',
+        data: {
+          mode: 'reply',
+          originalEmail: email,
+          to: [email.from],
+          subject: replySubject,
+          body: createQuotedBody(email, ''),
+          replyToId: email.id,
+        }
+      }
+    })
+  }, [createQuotedBody])
+
+  const openReplyAll = useCallback((email: Email) => {
+    const replySubject = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`
+    // Reply all includes original sender + all other recipients (excluding yourself)
+    const allRecipients = [email.from, ...email.to.filter(r => r.email !== email.from.email)]
+    const ccRecipients = email.cc?.filter(r => r.email !== email.from.email) ?? []
+    dispatch({
+      type: 'OPEN_COMPOSE',
+      payload: {
+        state: 'open',
+        data: {
+          mode: 'replyAll',
+          originalEmail: email,
+          to: allRecipients,
+          cc: ccRecipients.length > 0 ? ccRecipients : undefined,
+          subject: replySubject,
+          body: createQuotedBody(email, ''),
+          replyToId: email.id,
+        }
+      }
+    })
+  }, [createQuotedBody])
+
+  const openForward = useCallback((email: Email) => {
+    const forwardSubject = email.subject.startsWith('Fwd:') ? email.subject : `Fwd: ${email.subject}`
+    dispatch({
+      type: 'OPEN_COMPOSE',
+      payload: {
+        state: 'open',
+        data: {
+          mode: 'forward',
+          originalEmail: email,
+          to: [],
+          subject: forwardSubject,
+          body: createQuotedBody(email, '---------- Forwarded message ---------'),
+          forwardedFromId: email.id,
+        }
+      }
+    })
+  }, [createQuotedBody])
+
+  const openDraft = useCallback((draft: Email) => {
+    dispatch({
+      type: 'OPEN_COMPOSE',
+      payload: {
+        state: 'open',
+        data: {
+          mode: 'editDraft',
+          originalEmail: draft,
+          draftId: draft.id,
+          to: draft.to,
+          cc: draft.cc,
+          subject: draft.subject,
+          body: draft.body,
+          replyToId: draft.replyToId,
+          forwardedFromId: draft.forwardedFromId,
+        }
+      }
+    })
+  }, [])
+
   const minimizeCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'minimized' }), [])
   const maximizeCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'maximized' }), [])
-  const closeCompose = useCallback(() => dispatch({ type: 'SET_COMPOSE_STATE', payload: 'closed' }), [])
+  const closeCompose = useCallback(() => {
+    dispatch({ type: 'SET_COMPOSE_STATE', payload: 'closed' })
+    dispatch({ type: 'SET_COMPOSE_DATA', payload: null })
+  }, [])
   const openSettings = useCallback(() => dispatch({ type: 'SET_SETTINGS_OPEN', payload: true }), [])
   const closeSettings = useCallback(() => dispatch({ type: 'SET_SETTINGS_OPEN', payload: false }), [])
   const setTheme = useCallback(
@@ -138,6 +266,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (density: Density) => dispatch({ type: 'SET_DENSITY', payload: density }),
     []
   )
+  const setView = useCallback(
+    (view: AppView) => dispatch({ type: 'SET_VIEW', payload: view }),
+    []
+  )
+  const showMail = useCallback(() => dispatch({ type: 'SET_VIEW', payload: 'mail' }), [])
+  const showContacts = useCallback(() => dispatch({ type: 'SET_VIEW', payload: 'contacts' }), [])
 
   // Memoized context value
   const value = useMemo<AppContextValue>(
@@ -146,6 +280,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleSidebar,
       setSidebarCollapsed,
       openCompose,
+      openReply,
+      openReplyAll,
+      openForward,
+      openDraft,
       minimizeCompose,
       maximizeCompose,
       closeCompose,
@@ -154,12 +292,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       toggleTheme,
       setDensity,
+      setView,
+      showMail,
+      showContacts,
     }),
     [
       state,
       toggleSidebar,
       setSidebarCollapsed,
       openCompose,
+      openReply,
+      openReplyAll,
+      openForward,
+      openDraft,
       minimizeCompose,
       maximizeCompose,
       closeCompose,
@@ -168,6 +313,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       toggleTheme,
       setDensity,
+      setView,
+      showMail,
+      showContacts,
     ]
   )
 

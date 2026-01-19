@@ -4,11 +4,15 @@ import {
   useReducer,
   useCallback,
   useMemo,
+  useEffect,
   type ReactNode,
 } from 'react'
 import type { Email, FolderType } from '@/types/email'
-import { mockEmails } from '@/data/mockEmails'
+import { useRepositories } from './RepositoryContext'
 import { ALL_ACCOUNTS_ID } from '@/constants'
+
+export type SortField = 'date' | 'sender' | 'subject'
+export type SortDirection = 'asc' | 'desc'
 
 interface EmailState {
   emails: Email[]
@@ -18,9 +22,13 @@ interface EmailState {
   selectedIds: Set<string>
   lastSelectedId: string | null // For shift-click range selection
   searchQuery: string
+  sortField: SortField
+  sortDirection: SortDirection
+  isLoading: boolean
 }
 
 type EmailAction =
+  | { type: 'SET_EMAILS'; emails: Email[] }
   | { type: 'SET_FOLDER'; folder: FolderType }
   | { type: 'SET_ACCOUNT'; accountId: string }
   | { type: 'SELECT_EMAIL'; id: string | null }
@@ -28,25 +36,41 @@ type EmailAction =
   | { type: 'MARK_READ'; ids: string[] }
   | { type: 'MARK_UNREAD'; ids: string[] }
   | { type: 'DELETE'; ids: string[] }
+  | { type: 'DELETE_PERMANENTLY'; ids: string[] }
+  | { type: 'EMPTY_FOLDER'; folder: FolderType }
   | { type: 'ARCHIVE'; ids: string[] }
+  | { type: 'MOVE_TO_FOLDER'; ids: string[]; folder: FolderType }
   | { type: 'SET_SELECTION'; ids: Set<string> }
   | { type: 'CLEAR_SELECTION' }
   | { type: 'TOGGLE_SELECTION'; id: string }
   | { type: 'TOGGLE_SELECTION_RANGE'; id: string; filteredIds: string[] }
   | { type: 'SET_SEARCH'; query: string }
+  | { type: 'SET_SORT'; field: SortField; direction: SortDirection }
+  | { type: 'SET_LOADING'; loading: boolean }
+  | { type: 'ADD_EMAIL'; email: Email }
+  | { type: 'UPDATE_EMAIL'; id: string; updates: Partial<Email> }
 
 const initialState: EmailState = {
-  emails: mockEmails,
+  emails: [],
   currentFolder: 'inbox',
   currentAccountId: ALL_ACCOUNTS_ID,
   selectedEmailId: null,
   selectedIds: new Set(),
   lastSelectedId: null,
   searchQuery: '',
+  sortField: 'date',
+  sortDirection: 'desc',
+  isLoading: true,
 }
 
 function emailReducer(state: EmailState, action: EmailAction): EmailState {
   switch (action.type) {
+    case 'SET_EMAILS':
+      return { ...state, emails: action.emails, isLoading: false }
+
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.loading }
+
     case 'SET_FOLDER':
       return {
         ...state,
@@ -117,14 +141,50 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         ),
         selectedIds: new Set(),
         lastSelectedId: null,
+        // Clear selection if currently selected email was deleted
+        selectedEmailId: action.ids.includes(state.selectedEmailId ?? '')
+          ? null
+          : state.selectedEmailId,
+      }
+
+    case 'DELETE_PERMANENTLY':
+      return {
+        ...state,
+        emails: state.emails.filter((email) => !action.ids.includes(email.id)),
+        selectedIds: new Set(),
+        lastSelectedId: null,
+        selectedEmailId: action.ids.includes(state.selectedEmailId ?? '')
+          ? null
+          : state.selectedEmailId,
+      }
+
+    case 'EMPTY_FOLDER':
+      return {
+        ...state,
+        emails: state.emails.filter((email) => email.folder !== action.folder),
+        selectedIds: new Set(),
+        lastSelectedId: null,
+        selectedEmailId: null,
       }
 
     case 'ARCHIVE':
-      // For now, just move to trash (would be archive folder in real app)
       return {
         ...state,
         emails: state.emails.map((email) =>
-          action.ids.includes(email.id) ? { ...email, folder: 'trash' } : email
+          action.ids.includes(email.id) ? { ...email, folder: 'archive' } : email
+        ),
+        selectedIds: new Set(),
+        lastSelectedId: null,
+        selectedEmailId: action.ids.includes(state.selectedEmailId ?? '')
+          ? null
+          : state.selectedEmailId,
+      }
+
+    case 'MOVE_TO_FOLDER':
+      return {
+        ...state,
+        emails: state.emails.map((email) =>
+          action.ids.includes(email.id) ? { ...email, folder: action.folder } : email
         ),
         selectedIds: new Set(),
         lastSelectedId: null,
@@ -216,12 +276,34 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         lastSelectedId: null,
       }
 
+    case 'SET_SORT':
+      return {
+        ...state,
+        sortField: action.field,
+        sortDirection: action.direction,
+      }
+
+    case 'ADD_EMAIL':
+      return {
+        ...state,
+        emails: [action.email, ...state.emails],
+      }
+
+    case 'UPDATE_EMAIL':
+      return {
+        ...state,
+        emails: state.emails.map((email) =>
+          email.id === action.id ? { ...email, ...action.updates } : email
+        ),
+      }
+
     default:
       return state
   }
 }
 
-interface EmailContextValue extends EmailState {
+interface EmailContextValue extends Omit<EmailState, 'isLoading'> {
+  isLoading: boolean
   filteredEmails: Email[]
   setFolder: (folder: FolderType) => void
   setAccount: (accountId: string) => void
@@ -230,30 +312,66 @@ interface EmailContextValue extends EmailState {
   markRead: (ids: string[]) => void
   markUnread: (ids: string[]) => void
   deleteEmails: (ids: string[]) => void
+  deletePermanently: (ids: string[]) => void
+  emptyFolder: (folder: FolderType) => void
   archiveEmails: (ids: string[]) => void
+  moveToFolder: (ids: string[], folder: FolderType) => void
+  markAsSpam: (ids: string[]) => void
+  markNotSpam: (ids: string[]) => void
   setSelection: (ids: Set<string>) => void
   clearSelection: () => void
   toggleSelection: (id: string, shiftKey?: boolean) => void
   isSelected: (id: string) => boolean
   selectAll: () => void
   setSearch: (query: string) => void
+  setSort: (field: SortField, direction: SortDirection) => void
+  toggleSortDirection: () => void
   // Dynamic folder counts computed from actual email data
   getUnreadCount: (folder: FolderType, accountId?: string | null) => number
   getFolderCount: (folder: FolderType, accountId?: string | null) => number
   getTotalUnreadCount: () => number
+  // New methods for compose
+  sendEmail: (email: Partial<Email>) => Promise<void>
+  saveDraft: (email: Partial<Email>) => Promise<void>
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null)
 
 export function EmailProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(emailReducer, initialState)
+  const { emails: emailRepository } = useRepositories()
+
+  // Load emails from repository on mount
+  useEffect(() => {
+    async function loadEmails() {
+      try {
+        // Load all emails - use search with no filters to get everything
+        const allEmails = await emailRepository.search({}, { page: 1, pageSize: 10000 })
+        dispatch({ type: 'SET_EMAILS', emails: allEmails.data })
+      } catch {
+        dispatch({ type: 'SET_LOADING', loading: false })
+      }
+    }
+    loadEmails()
+  }, [emailRepository])
+
+  // Sync operations through repository - the repository handles persistence
+  // State updates trigger re-renders, repository methods persist changes
 
   // Filter emails from state (not static mock data) to reflect mutations
   const filteredEmails = useMemo(() => {
     const query = state.searchQuery.toLowerCase().trim()
 
     return state.emails.filter((email) => {
-      const folderMatch = email.folder === state.currentFolder
+      // Handle starred as a virtual folder
+      if (state.currentFolder === 'starred') {
+        if (!email.isStarred) return false
+        // Don't show starred emails that are in trash or spam
+        if (email.folder === 'trash' || email.folder === 'spam') return false
+      } else {
+        if (email.folder !== state.currentFolder) return false
+      }
+
       const accountMatch =
         state.currentAccountId === ALL_ACCOUNTS_ID || email.accountId === state.currentAccountId
 
@@ -265,8 +383,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         email.from.email.toLowerCase().includes(query) ||
         email.preview.toLowerCase().includes(query)
 
-      return folderMatch && accountMatch && searchMatch
-    })
+      return accountMatch && searchMatch
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [state.emails, state.currentFolder, state.currentAccountId, state.searchQuery])
 
   // Memoized action creators
@@ -283,24 +401,75 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     []
   )
   const toggleStar = useCallback(
-    (id: string) => dispatch({ type: 'TOGGLE_STAR', id }),
-    []
+    (id: string) => {
+      dispatch({ type: 'TOGGLE_STAR', id })
+      emailRepository.toggleStar([id])
+    },
+    [emailRepository]
   )
   const markRead = useCallback(
-    (ids: string[]) => dispatch({ type: 'MARK_READ', ids }),
-    []
+    (ids: string[]) => {
+      dispatch({ type: 'MARK_READ', ids })
+      emailRepository.markAsRead(ids)
+    },
+    [emailRepository]
   )
   const markUnread = useCallback(
-    (ids: string[]) => dispatch({ type: 'MARK_UNREAD', ids }),
-    []
+    (ids: string[]) => {
+      dispatch({ type: 'MARK_UNREAD', ids })
+      emailRepository.markAsUnread(ids)
+    },
+    [emailRepository]
   )
   const deleteEmails = useCallback(
-    (ids: string[]) => dispatch({ type: 'DELETE', ids }),
-    []
+    (ids: string[]) => {
+      dispatch({ type: 'DELETE', ids })
+      emailRepository.deleteMany(ids)
+    },
+    [emailRepository]
+  )
+  const deletePermanently = useCallback(
+    (ids: string[]) => {
+      dispatch({ type: 'DELETE_PERMANENTLY', ids })
+      emailRepository.deletePermanentlyMany(ids)
+    },
+    [emailRepository]
+  )
+  const emptyFolder = useCallback(
+    (folder: FolderType) => {
+      const idsToDelete = state.emails.filter((e) => e.folder === folder).map((e) => e.id)
+      dispatch({ type: 'EMPTY_FOLDER', folder })
+      emailRepository.deletePermanentlyMany(idsToDelete)
+    },
+    [emailRepository, state.emails]
   )
   const archiveEmails = useCallback(
-    (ids: string[]) => dispatch({ type: 'ARCHIVE', ids }),
-    []
+    (ids: string[]) => {
+      dispatch({ type: 'ARCHIVE', ids })
+      emailRepository.archive(ids)
+    },
+    [emailRepository]
+  )
+  const moveToFolder = useCallback(
+    (ids: string[], folder: FolderType) => {
+      dispatch({ type: 'MOVE_TO_FOLDER', ids, folder })
+      emailRepository.moveToFolder(ids, folder)
+    },
+    [emailRepository]
+  )
+  const markAsSpam = useCallback(
+    (ids: string[]) => {
+      dispatch({ type: 'MOVE_TO_FOLDER', ids, folder: 'spam' })
+      emailRepository.markAsSpam(ids)
+    },
+    [emailRepository]
+  )
+  const markNotSpam = useCallback(
+    (ids: string[]) => {
+      dispatch({ type: 'MOVE_TO_FOLDER', ids, folder: 'inbox' })
+      emailRepository.moveToFolder(ids, 'inbox')
+    },
+    [emailRepository]
   )
   const setSelection = useCallback(
     (ids: Set<string>) => dispatch({ type: 'SET_SELECTION', ids }),
@@ -313,6 +482,20 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const setSearch = useCallback(
     (query: string) => dispatch({ type: 'SET_SEARCH', query }),
     []
+  )
+  const setSort = useCallback(
+    (field: SortField, direction: SortDirection) =>
+      dispatch({ type: 'SET_SORT', field, direction }),
+    []
+  )
+  const toggleSortDirection = useCallback(
+    () =>
+      dispatch({
+        type: 'SET_SORT',
+        field: state.sortField,
+        direction: state.sortDirection === 'asc' ? 'desc' : 'asc',
+      }),
+    [state.sortField, state.sortDirection]
   )
 
   // Selection helpers using filteredEmails for proper scoping
@@ -346,7 +529,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const getUnreadCount = useCallback(
     (folder: FolderType, accountId?: string | null) => {
       return state.emails.filter((email) => {
-        const folderMatch = email.folder === folder
+        const folderMatch = folder === 'starred' ? email.isStarred : email.folder === folder
         const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || email.accountId === accountId
         return folderMatch && accountMatch && !email.isRead
       }).length
@@ -357,7 +540,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const getFolderCount = useCallback(
     (folder: FolderType, accountId?: string | null) => {
       return state.emails.filter((email) => {
-        const folderMatch = email.folder === folder
+        const folderMatch = folder === 'starred' ? email.isStarred : email.folder === folder
         const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || email.accountId === accountId
         return folderMatch && accountMatch
       }).length
@@ -368,6 +551,65 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const getTotalUnreadCount = useCallback(() => {
     return state.emails.filter((email) => email.folder === 'inbox' && !email.isRead).length
   }, [state.emails])
+
+  // Send email (move from drafts to sent or create new sent email)
+  const sendEmail = useCallback(async (email: Partial<Email>) => {
+    const newEmail: Email = {
+      id: email.id ?? `email-${Date.now()}`,
+      accountId: email.accountId ?? 'personal',
+      accountColor: email.accountColor ?? 'green',
+      from: email.from ?? { name: 'Michael Chen', email: 'm.chen.dev@gmail.com' },
+      to: email.to ?? [],
+      cc: email.cc,
+      bcc: email.bcc,
+      subject: email.subject ?? '',
+      preview: (email.body ?? '').replace(/<[^>]*>/g, '').substring(0, 100),
+      body: email.body ?? '',
+      date: new Date(),
+      isRead: true,
+      isStarred: false,
+      hasAttachment: (email.attachments?.length ?? 0) > 0,
+      attachments: email.attachments ?? [],
+      folder: 'sent',
+      labels: [],
+      threadId: email.threadId ?? `thread-${Date.now()}`,
+      replyToId: email.replyToId,
+      forwardedFromId: email.forwardedFromId,
+      isDraft: false,
+    }
+
+    // If it was a draft, update it; otherwise add new
+    if (email.isDraft && email.id) {
+      dispatch({ type: 'UPDATE_EMAIL', id: email.id, updates: { ...newEmail, folder: 'sent', isDraft: false } })
+      // Repository only accepts EmailUpdateInput fields
+      await emailRepository.update(email.id, { folder: 'sent' })
+    } else {
+      dispatch({ type: 'ADD_EMAIL', email: newEmail })
+      await emailRepository.create({
+        accountId: newEmail.accountId,
+        to: newEmail.to,
+        cc: newEmail.cc,
+        bcc: newEmail.bcc,
+        subject: newEmail.subject,
+        body: newEmail.body,
+        attachments: newEmail.attachments,
+        replyToId: newEmail.replyToId,
+        forwardedFromId: newEmail.forwardedFromId,
+      })
+    }
+  }, [emailRepository])
+
+  // Save draft
+  const saveDraft = useCallback(async (email: Partial<Email>) => {
+    const result = await emailRepository.saveDraft(email)
+    if (result.success) {
+      if (email.id) {
+        dispatch({ type: 'UPDATE_EMAIL', id: email.id, updates: result.data })
+      } else {
+        dispatch({ type: 'ADD_EMAIL', email: result.data })
+      }
+    }
+  }, [emailRepository])
 
   // Memoized context value
   const value = useMemo<EmailContextValue>(
@@ -381,16 +623,25 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       markRead,
       markUnread,
       deleteEmails,
+      deletePermanently,
+      emptyFolder,
       archiveEmails,
+      moveToFolder,
+      markAsSpam,
+      markNotSpam,
       setSelection,
       clearSelection,
       toggleSelection,
       isSelected,
       selectAll,
       setSearch,
+      setSort,
+      toggleSortDirection,
       getUnreadCount,
       getFolderCount,
       getTotalUnreadCount,
+      sendEmail,
+      saveDraft,
     }),
     [
       state,
@@ -402,16 +653,25 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       markRead,
       markUnread,
       deleteEmails,
+      deletePermanently,
+      emptyFolder,
       archiveEmails,
+      moveToFolder,
+      markAsSpam,
+      markNotSpam,
       setSelection,
       clearSelection,
       toggleSelection,
       isSelected,
       selectAll,
       setSearch,
+      setSort,
+      toggleSortDirection,
       getUnreadCount,
       getFolderCount,
       getTotalUnreadCount,
+      sendEmail,
+      saveDraft,
     ]
   )
 

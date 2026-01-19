@@ -13,6 +13,7 @@ interface EmailHeaderProps {
   onArchive: () => void
   onDelete: () => void
   onToggleStar: () => void
+  onPrint?: () => void
 }
 
 export function EmailHeader({
@@ -24,6 +25,7 @@ export function EmailHeader({
   onArchive,
   onDelete,
   onToggleStar,
+  onPrint,
 }: EmailHeaderProps) {
   const accountColorVar = ACCOUNT_COLOR_VAR[email.accountColor]
 
@@ -55,6 +57,13 @@ export function EmailHeader({
             label={email.isStarred ? 'Unstar' : 'Star'}
             onClick={onToggleStar}
           />
+          {onPrint && (
+            <IconButton
+              icon="print"
+              label="Print"
+              onClick={onPrint}
+            />
+          )}
           <IconButton
             icon="moreVertical"
             label="More actions"
