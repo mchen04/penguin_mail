@@ -21,21 +21,21 @@ export const DRAGGABLE_BOUNDS = {
 
 export const COMPOSE_WINDOW = {
   /** Default width for compose window */
-  DEFAULT_WIDTH: 560,
+  DEFAULT_WIDTH: 600,
   /** Default height for compose window */
-  DEFAULT_HEIGHT: 460,
+  DEFAULT_HEIGHT: 500,
   /** Minimum width when resizing */
   MIN_WIDTH: 320,
   /** Minimum height when resizing */
   MIN_HEIGHT: 400,
   /** Maximum width as percentage of viewport */
-  MAX_WIDTH_PERCENT: 0.75,
+  MAX_WIDTH_PERCENT: 0.9,
   /** Maximum height as percentage of viewport */
-  MAX_HEIGHT_PERCENT: 0.75,
+  MAX_HEIGHT_PERCENT: 0.9,
   /** Default offset from right edge */
-  DEFAULT_RIGHT: 64,
+  DEFAULT_RIGHT: 16,
   /** Default offset from bottom edge */
-  DEFAULT_BOTTOM: 64,
+  DEFAULT_BOTTOM: 16,
   /** Width when minimized */
   MINIMIZED_WIDTH: 280,
 } as const;
