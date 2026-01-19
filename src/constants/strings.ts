@@ -2,12 +2,17 @@
  * String constants for UI text, storage keys, and data attributes
  */
 
-export const STORAGE_KEYS = {
+// Legacy storage keys (pre-repository pattern)
+// New code should use STORAGE_KEYS from @/services/storage
+export const LEGACY_STORAGE_KEYS = {
   THEME: 'theme',
   DENSITY: 'density',
   COMPOSE_SIZE: 'compose-size',
   COMPOSE_POSITION: 'compose-position',
 } as const;
+
+// Re-export for backwards compatibility
+export { LEGACY_STORAGE_KEYS as STORAGE_KEYS };
 
 export const DATA_ATTRIBUTES = {
   THEME: 'data-theme',

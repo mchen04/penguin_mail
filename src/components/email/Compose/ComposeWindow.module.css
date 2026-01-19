@@ -50,10 +50,62 @@
   overflow: hidden;
 }
 
+/* From field */
+.fromField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  min-width: 40px;
+}
+
+.accountSelect {
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.accountSelect:focus {
+  border-color: var(--color-primary);
+}
+
 /* Recipients section */
 .recipients {
   position: relative;
   border-bottom: 1px solid var(--color-border);
+}
+
+.recipientActions {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-3);
+  display: flex;
+  gap: var(--space-1);
+}
+
+.addFieldButton {
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.addFieldButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
 }
 
 .addCcButton {
@@ -115,9 +167,31 @@
 .actions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-3);
   border-top: 1px solid var(--color-border);
+}
+
+.secondaryActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.iconButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
 }
 
 /* ==========================================================================

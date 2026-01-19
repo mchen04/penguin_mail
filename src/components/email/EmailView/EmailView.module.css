@@ -8,3 +8,252 @@
   height: 100%;
   background: var(--color-surface);
 }
+
+/* ==========================================================================
+   Thread View
+   ========================================================================== */
+
+.threadHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.backButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.threadInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.threadSubject {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.threadCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.threadActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.actionButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+/* Thread messages container */
+.threadMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* Individual thread message */
+.threadMessage {
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.threadMessage.expanded {
+  background: var(--color-surface);
+}
+
+.threadMessage.lastMessage {
+  margin-bottom: 0;
+}
+
+/* Message header (clickable to expand/collapse) */
+.messageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-3);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.messageHeader:hover {
+  background: var(--color-surface-hover);
+}
+
+.messageSender {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.senderAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.senderInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.senderName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.messagePreview {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messageDate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.expandIcon {
+  color: var(--color-text-tertiary);
+}
+
+/* Expanded message content */
+.messageContent {
+  padding: 0 var(--space-3) var(--space-3);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.messageRecipients {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  font-size: var(--font-size-xs);
+}
+
+.recipientLabel {
+  color: var(--color-text-tertiary);
+}
+
+.recipientList {
+  color: var(--color-text-secondary);
+}
+
+/* Message actions (reply, forward, etc.) */
+.messageActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-light);
+  margin-top: var(--space-3);
+}
+
+.replyButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.replyButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-text-tertiary);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Responsive: Mobile
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .threadHeader {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .threadSubject {
+    font-size: var(--font-size-md);
+  }
+
+  .threadMessages {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .messageSender {
+    gap: var(--space-2);
+  }
+
+  .senderAvatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .messageActions {
+    flex-wrap: wrap;
+  }
+
+  .replyButton {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-size-xs);
+  }
+}

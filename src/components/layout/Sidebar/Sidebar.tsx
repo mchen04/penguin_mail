@@ -1,10 +1,13 @@
 import { useApp } from '@/context/AppContext'
 import { useAccounts } from '@/context/AccountContext'
 import { AccountSection } from './AccountSection'
+import { LabelsSection } from './LabelsSection'
+import { CustomFoldersSection } from './CustomFoldersSection'
+import { Icon } from '@/components/common/Icon/Icon'
 import styles from './Sidebar.module.css'
 
 export function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useApp()
+  const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed, showContacts, currentView } = useApp()
   const { accounts } = useAccounts()
 
   return (
@@ -79,21 +82,29 @@ export function Sidebar() {
           {accounts.map((account) => (
             <AccountSection key={account.id} account={account} />
           ))}
+
+          {/* Custom Folders section */}
+          <CustomFoldersSection />
+
+          {/* Labels section */}
+          <LabelsSection />
         </nav>
 
-        {/* Footer with Add account and Help */}
+        {/* Footer with Contacts, Add account, and Help */}
         <div className={styles.footer}>
+          <button
+            className={`${styles.footerButton} ${currentView === 'contacts' ? styles.active : ''}`}
+            onClick={showContacts}
+          >
+            <Icon name="users" size={18} />
+            Contacts
+          </button>
           <button className={styles.footerButton}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            <Icon name="plus" size={18} />
             Add account
           </button>
           <button className={styles.footerButton}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
-            </svg>
+            <Icon name="help" size={18} />
             Help
           </button>
         </div>

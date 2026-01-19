@@ -10,12 +10,87 @@
 /* Empty state */
 .empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  height: 300px;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-4);
 }
 
+.emptyIcon {
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.emptyDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  max-width: 300px;
+}
+
+/* For backwards compatibility */
 .emptyText {
   color: var(--color-text-tertiary);
   font-size: var(--font-size-md);
+}
+
+/* ==========================================================================
+   Loading Skeleton
+   ========================================================================== */
+
+.skeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.skeletonCheckbox {
+  width: 20px;
+  height: 20px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonAvatar {
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-full);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+.skeletonContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeletonLine {
+  height: 12px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }

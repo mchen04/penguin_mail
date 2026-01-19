@@ -1,10 +1,18 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, type ReactNode } from 'react'
-import type { Account, FolderType } from '@/types/account'
+import type { Account } from '@/types/account'
+import type { SystemFolderType } from '@/types/email'
 import { ALL_ACCOUNTS_ID } from '@/constants'
 
 // --------------------------------------------------------------------------
 // Mock Data
 // --------------------------------------------------------------------------
+
+const now = new Date()
+const daysAgo = (days: number): Date => {
+  const date = new Date(now)
+  date.setDate(date.getDate() - days)
+  return date
+}
 
 // Accounts without hardcoded folderCounts - counts come from EmailContext now
 const MOCK_ACCOUNTS: Account[] = [
@@ -13,12 +21,18 @@ const MOCK_ACCOUNTS: Account[] = [
     email: 'mchen023@ucr.edu',
     name: 'UCR',
     color: 'blue',
+    isDefault: true,
+    createdAt: daysAgo(365),
+    updatedAt: daysAgo(30),
   },
   {
     id: 'personal',
     email: 'm.chen.dev@gmail.com',
     name: 'Personal',
     color: 'green',
+    isDefault: false,
+    createdAt: daysAgo(365),
+    updatedAt: daysAgo(30),
   },
 ]
 
@@ -30,19 +44,19 @@ interface AccountState {
   accounts: Account[]
   expandedAccountIds: Set<string>
   selectedAccountId: string | null // null = "All accounts"
-  selectedFolder: FolderType
+  selectedFolder: SystemFolderType
 }
 
 type AccountAction =
   | { type: 'TOGGLE_ACCOUNT_EXPANDED'; payload: string }
   | { type: 'SET_SELECTED_ACCOUNT'; payload: string | null }
-  | { type: 'SET_SELECTED_FOLDER'; payload: FolderType }
-  | { type: 'SELECT_FOLDER'; payload: { accountId: string | null; folder: FolderType } }
+  | { type: 'SET_SELECTED_FOLDER'; payload: SystemFolderType }
+  | { type: 'SELECT_FOLDER'; payload: { accountId: string | null; folder: SystemFolderType } }
 
 interface AccountContextValue extends AccountState {
   toggleAccountExpanded: (accountId: string) => void
   selectAccount: (accountId: string | null) => void
-  selectFolder: (accountId: string | null, folder: FolderType) => void
+  selectFolder: (accountId: string | null, folder: SystemFolderType) => void
   getAccountById: (id: string) => Account | undefined
 }
 
@@ -106,7 +120,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     []
   )
   const selectFolder = useCallback(
-    (accountId: string | null, folder: FolderType) =>
+    (accountId: string | null, folder: SystemFolderType) =>
       dispatch({ type: 'SELECT_FOLDER', payload: { accountId, folder } }),
     []
   )

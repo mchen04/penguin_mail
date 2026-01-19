@@ -60,6 +60,20 @@
   background: var(--color-surface-active);
 }
 
+/* Danger variant */
+.danger {
+  background: var(--color-error);
+  color: white;
+}
+
+.danger:hover {
+  background: var(--color-error-hover, #d93025);
+}
+
+.danger:active {
+  background: var(--color-error-active, #c5221f);
+}
+
 /* Focus state */
 .button:focus-visible {
   outline: 2px solid var(--color-primary);

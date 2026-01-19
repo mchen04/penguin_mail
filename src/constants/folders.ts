@@ -2,18 +2,22 @@
  * Folder-related constants for email organization
  */
 
+import type { SystemFolderType } from '@/types/email'
+
 export const FOLDER_IDS = {
   INBOX: 'inbox',
   DRAFTS: 'drafts',
   SENT: 'sent',
   SPAM: 'spam',
   TRASH: 'trash',
+  ARCHIVE: 'archive',
+  STARRED: 'starred',
 } as const;
 
 export type FolderId = typeof FOLDER_IDS[keyof typeof FOLDER_IDS];
 
-/** Standard folders that appear for each account */
-export const STANDARD_FOLDERS: FolderId[] = [
+/** Standard folders that appear for each account (sidebar) */
+export const STANDARD_FOLDERS: SystemFolderType[] = [
   FOLDER_IDS.INBOX,
   FOLDER_IDS.DRAFTS,
   FOLDER_IDS.SENT,

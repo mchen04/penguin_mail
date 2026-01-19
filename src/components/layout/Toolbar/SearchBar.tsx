@@ -36,6 +36,7 @@ export function SearchBar({
         value={value}
         onChange={handleChange}
         aria-label="Search mail"
+        data-search-input
       />
     </div>
   )

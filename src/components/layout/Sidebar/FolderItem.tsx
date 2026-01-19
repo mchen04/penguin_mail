@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
-import { FOLDER_LABELS, type FolderType } from '@/types/account'
+import { FOLDER_LABELS, type SystemFolderType } from '@/types'
 import styles from './FolderItem.module.css'
 
 interface FolderItemProps {
-  folder: FolderType
+  folder: SystemFolderType
   count: number
   isSelected: boolean
   onClick: () => void
 }
 
 // Folder icons as inline SVGs
-const FOLDER_ICONS: Record<FolderType, ReactNode> = {
+const FOLDER_ICONS: Record<SystemFolderType, ReactNode> = {
   inbox: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
@@ -43,6 +43,18 @@ const FOLDER_ICONS: Record<FolderType, ReactNode> = {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+    </svg>
+  ),
+  archive: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="21 8 21 21 3 21 3 8" />
+      <rect x="1" y="3" width="22" height="5" />
+      <line x1="10" y1="12" x2="14" y2="12" />
+    </svg>
+  ),
+  starred: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   ),
 }
