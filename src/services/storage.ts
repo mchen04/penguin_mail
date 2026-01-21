@@ -106,19 +106,6 @@ export const storage = {
   },
 
   /**
-   * Remove item from storage
-   */
-  async remove(key: string, options: StorageOptions = defaultOptions): Promise<void> {
-    await delay(options)
-
-    try {
-      localStorage.removeItem(getKey(key))
-    } catch (error) {
-      console.error(`Error removing from storage: ${key}`, error)
-    }
-  },
-
-  /**
    * Clear all app storage
    */
   async clear(options: StorageOptions = defaultOptions): Promise<void> {
@@ -145,52 +132,6 @@ export const storage = {
     await delay(options)
     return localStorage.getItem(getKey(key)) !== null
   },
-
-  /**
-   * Get all keys with prefix
-   */
-  async keys(options: StorageOptions = defaultOptions): Promise<string[]> {
-    await delay(options)
-
-    const keys: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX)) {
-        keys.push(key.replace(STORAGE_PREFIX, ''))
-      }
-    }
-    return keys
-  },
-
-  /**
-   * Get or set with default value
-   */
-  async getOrSet<T>(
-    key: string,
-    defaultValue: T | (() => T),
-    options: StorageOptions = defaultOptions
-  ): Promise<T> {
-    const existing = await this.get<T>(key, options)
-    if (existing !== null) return existing
-
-    const value = typeof defaultValue === 'function' ? (defaultValue as () => T)() : defaultValue
-    await this.set(key, value, options)
-    return value
-  },
-
-  /**
-   * Update a value with a function
-   */
-  async update<T>(
-    key: string,
-    updater: (current: T | null) => T,
-    options: StorageOptions = defaultOptions
-  ): Promise<T> {
-    const current = await this.get<T>(key, options)
-    const updated = updater(current)
-    await this.set(key, updated, { ...options, simulateDelay: false })
-    return updated
-  },
 }
 
 /**
@@ -208,6 +149,8 @@ export const STORAGE_KEYS = {
   DENSITY: 'density',
   DRAFTS: 'drafts',
   INITIALIZED: 'initialized',
+  COMPOSE_SIZE: 'compose-size',
+  COMPOSE_POSITION: 'compose-position',
 } as const
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]

@@ -50,10 +50,6 @@ export type IconName =
   | 'print'
   | 'download'
   | 'image'
-  | 'chevron-down'
-  | 'chevron-right'
-  | 'alertOctagon'
-  | 'alertTriangle'
   | 'vacation'
   | 'filter'
   | 'ban'
@@ -331,22 +327,6 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
       <circle cx="8.5" cy="8.5" r="1.5" />
       <polyline points="21 15 16 10 5 21" />
-    </>
-  ),
-  'chevron-down': <polyline points="6 9 12 15 18 9" />,
-  'chevron-right': <polyline points="9 18 15 12 9 6" />,
-  alertOctagon: (
-    <>
-      <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </>
-  ),
-  alertTriangle: (
-    <>
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      <line x1="12" y1="9" x2="12" y2="13" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
     </>
   ),
   vacation: (

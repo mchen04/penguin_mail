@@ -11,8 +11,6 @@ export type {
   SystemFolderType,
   FolderType,
   CustomFolder,
-  Thread,
-  EmailDraft,
   EmailCreateInput,
   EmailUpdateInput,
   EmailSearchQuery,
@@ -27,7 +25,7 @@ export type {
   AccountCreateInput,
   AccountUpdateInput,
 } from './account'
-export { ACCOUNT_COLOR_VAR, FOLDER_LABELS, FOLDER_ICONS } from './account'
+export { ACCOUNT_COLOR_VAR, FOLDER_LABELS } from './account'
 
 // Settings types
 export type {

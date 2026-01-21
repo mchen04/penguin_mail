@@ -66,13 +66,3 @@ export const FOLDER_LABELS: Record<SystemFolderType, string> = {
   archive: 'Archive',
   starred: 'Starred',
 }
-
-export const FOLDER_ICONS: Record<SystemFolderType, string> = {
-  inbox: 'inbox',
-  drafts: 'edit',
-  sent: 'send',
-  spam: 'alertOctagon',
-  trash: 'trash',
-  archive: 'archive',
-  starred: 'star',
-}

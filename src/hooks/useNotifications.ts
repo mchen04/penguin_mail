@@ -122,28 +122,3 @@ export function useNotifications(): UseNotificationsReturn {
     notifyNewEmail,
   }
 }
-
-/**
- * Request notification permission on first interaction
- * Call this from a user-initiated event (button click, etc.)
- */
-export async function requestNotificationPermission(): Promise<boolean> {
-  if (!('Notification' in window)) {
-    return false
-  }
-
-  if (Notification.permission === 'granted') {
-    return true
-  }
-
-  if (Notification.permission === 'denied') {
-    return false
-  }
-
-  try {
-    const result = await Notification.requestPermission()
-    return result === 'granted'
-  } catch {
-    return false
-  }
-}

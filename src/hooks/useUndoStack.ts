@@ -181,19 +181,3 @@ export function useUndoStack(options: UseUndoStackOptions = {}): UseUndoStackRet
     lastAction: stack[0] ?? null,
   }
 }
-
-// --------------------------------------------------------------------------
-// Helper type for creating type-safe undo actions
-// --------------------------------------------------------------------------
-
-/**
- * Factory for creating typed undo actions
- */
-export function createUndoAction<TType extends string, TData>(
-  type: TType,
-  description: string,
-  undoFn: () => void | Promise<void>,
-  data: TData
-) {
-  return { type, description, undoFn, data }
-}
