@@ -1,26 +1,16 @@
 /**
- * Simulate network delay for realistic UX
- * Uses random variance to feel more natural
+ * Delay utilities for simulating network latency
  */
 
-import { SIMULATED_DELAY } from '@/constants'
-
-export function simulateDelay(
-  baseMs: number = SIMULATED_DELAY.BASE_MS,
-  variance: number = SIMULATED_DELAY.VARIANCE
-): Promise<void> {
-  const delay = baseMs + Math.random() * variance
-  return new Promise((resolve) => setTimeout(resolve, delay))
-}
+import { STORAGE_SIMULATION } from '@/constants'
 
 /**
- * Simulate occasional slower responses (simulates server load)
+ * Simulate a network delay
+ * Used in mock repositories to simulate realistic API response times
  */
-export function simulateNetworkDelay(): Promise<void> {
-  // 10% chance of slower response (300-500ms)
-  // 90% chance of fast response (50-150ms)
-  const isSlowResponse = Math.random() < SIMULATED_DELAY.SLOW_CHANCE
-  return isSlowResponse
-    ? simulateDelay(SIMULATED_DELAY.SLOW_BASE_MS, SIMULATED_DELAY.SLOW_VARIANCE)
-    : simulateDelay(SIMULATED_DELAY.FAST_BASE_MS, SIMULATED_DELAY.FAST_VARIANCE)
+export async function simulateNetworkDelay(): Promise<void> {
+  const delay =
+    Math.random() * (STORAGE_SIMULATION.MAX_DELAY - STORAGE_SIMULATION.MIN_DELAY) +
+    STORAGE_SIMULATION.MIN_DELAY
+  await new Promise((resolve) => setTimeout(resolve, delay))
 }

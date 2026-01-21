@@ -3,87 +3,46 @@
  * Displays and manages custom email folders in the sidebar
  */
 
-import { useState, useCallback } from 'react'
 import { useFolders } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
+import { useSidebarSection } from '@/hooks'
 import { Icon } from '@/components/common/Icon/Icon'
 import { FOLDER_COLORS, ICON_SIZE } from '@/constants'
-import styles from './CustomFoldersSection.module.css'
+import styles from './SidebarSection.module.css'
 
 export function CustomFoldersSection() {
   const { folders, addFolder, updateFolder, deleteFolder, getRootFolders } = useFolders()
   const { setFolder, currentFolder } = useEmail()
-  const [isExpanded, setIsExpanded] = useState(true)
-  const [isCreating, setIsCreating] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [newFolderName, setNewFolderName] = useState('')
-  const [newFolderColor, setNewFolderColor] = useState<string>(FOLDER_COLORS[0])
 
   const rootFolders = getRootFolders()
 
-  const handleToggleExpand = useCallback(() => {
-    setIsExpanded((prev) => !prev)
-  }, [])
-
-  const handleStartCreate = useCallback(() => {
-    setIsCreating(true)
-    setNewFolderName('')
-    setNewFolderColor(FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)])
-  }, [])
-
-  const handleCancelCreate = useCallback(() => {
-    setIsCreating(false)
-    setNewFolderName('')
-  }, [])
-
-  const handleCreateFolder = useCallback(async () => {
-    if (newFolderName.trim()) {
-      await addFolder(newFolderName.trim(), newFolderColor)
-      setIsCreating(false)
-      setNewFolderName('')
-    }
-  }, [addFolder, newFolderName, newFolderColor])
-
-  const handleFolderClick = useCallback(
-    (folderId: string) => {
-      setFolder(folderId)
-    },
-    [setFolder]
-  )
-
-  const handleStartEdit = useCallback((e: React.MouseEvent, folderId: string) => {
-    e.stopPropagation()
-    setEditingId(folderId)
-  }, [])
-
-  const handleCancelEdit = useCallback(() => {
-    setEditingId(null)
-  }, [])
-
-  const handleSaveEdit = useCallback(
-    async (folderId: string, newName: string) => {
-      if (newName.trim()) {
-        await updateFolder(folderId, { name: newName.trim() })
-      }
-      setEditingId(null)
-    },
-    [updateFolder]
-  )
-
-  const handleDeleteFolder = useCallback(
-    async (e: React.MouseEvent, folderId: string) => {
-      e.stopPropagation()
-      await deleteFolder(folderId)
-    },
-    [deleteFolder]
-  )
-
-  const handleColorChange = useCallback(
-    async (folderId: string, color: string) => {
-      await updateFolder(folderId, { color })
-    },
-    [updateFolder]
-  )
+  const {
+    isExpanded,
+    isCreating,
+    editingId,
+    newName,
+    newColor,
+    colors,
+    setNewName,
+    setNewColor,
+    handleToggleExpand,
+    handleStartCreate,
+    handleCancelCreate,
+    handleCreate,
+    handleItemClick,
+    handleStartEdit,
+    handleCancelEdit,
+    handleSaveEdit,
+    handleDelete,
+    handleColorChange,
+  } = useSidebarSection({
+    items: folders,
+    colors: FOLDER_COLORS,
+    onAdd: addFolder,
+    onUpdate: updateFolder,
+    onDelete: deleteFolder,
+    onSelect: setFolder,
+  })
 
   if (folders.length === 0 && !isCreating) {
     return null
@@ -113,13 +72,13 @@ export function CustomFoldersSection() {
           {isCreating && (
             <div className={styles.createForm}>
               <div className={styles.colorPicker}>
-                {FOLDER_COLORS.map((color) => (
+                {colors.map((color) => (
                   <button
                     key={color}
                     className={styles.colorOption}
                     style={{ backgroundColor: color }}
-                    data-selected={color === newFolderColor}
-                    onClick={() => setNewFolderColor(color)}
+                    data-selected={color === newColor}
+                    onClick={() => setNewColor(color)}
                     aria-label={`Select color ${color}`}
                   />
                 ))}
@@ -128,10 +87,10 @@ export function CustomFoldersSection() {
                 type="text"
                 className={styles.input}
                 placeholder="Folder name"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateFolder()
+                  if (e.key === 'Enter') handleCreate()
                   if (e.key === 'Escape') handleCancelCreate()
                 }}
                 autoFocus
@@ -142,8 +101,8 @@ export function CustomFoldersSection() {
                 </button>
                 <button
                   className={styles.saveButton}
-                  onClick={handleCreateFolder}
-                  disabled={!newFolderName.trim()}
+                  onClick={handleCreate}
+                  disabled={!newName.trim()}
                 >
                   Create
                 </button>
@@ -155,14 +114,14 @@ export function CustomFoldersSection() {
           {rootFolders.map((folder) => (
             <div
               key={folder.id}
-              className={styles.folderItem}
+              className={styles.item}
               data-selected={folder.id === currentFolder}
-              onClick={() => handleFolderClick(folder.id)}
+              onClick={() => handleItemClick(folder.id)}
             >
               {editingId === folder.id ? (
                 <div className={styles.editForm}>
                   <div className={styles.colorPicker}>
-                    {FOLDER_COLORS.map((color) => (
+                    {colors.map((color) => (
                       <button
                         key={color}
                         className={styles.colorOption}
@@ -195,7 +154,7 @@ export function CustomFoldersSection() {
                     </button>
                     <button
                       className={styles.deleteButton}
-                      onClick={(e) => handleDeleteFolder(e, folder.id)}
+                      onClick={(e) => handleDelete(e, folder.id)}
                     >
                       Delete
                     </button>
@@ -204,7 +163,7 @@ export function CustomFoldersSection() {
               ) : (
                 <>
                   <Icon name="folder" size={ICON_SIZE.SMALL} style={{ color: folder.color }} />
-                  <span className={styles.folderName}>{folder.name}</span>
+                  <span className={styles.itemName}>{folder.name}</span>
                   <button
                     className={styles.editButton}
                     onClick={(e) => handleStartEdit(e, folder.id)}

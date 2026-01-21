@@ -1,16 +1,17 @@
 /**
- * Text manipulation utilities
+ * Text processing utilities
  */
-
-/** Regex pattern to match HTML tags */
-const HTML_TAG_REGEX = /<[^>]*>/g
 
 /**
- * Strip HTML tags from a string
- * @param html - String potentially containing HTML tags
- * @param replacement - String to replace tags with (default: empty string)
- * @returns Plain text with HTML tags removed
+ * Remove HTML tags from a string
+ * Used for generating plain text previews of HTML content
+ * @param html - The HTML string to strip
+ * @param separator - Optional separator to use between text nodes (default: '')
  */
-export function stripHtml(html: string, replacement = ''): string {
-  return html.replace(HTML_TAG_REGEX, replacement)
+export function stripHtml(html: string, separator = ''): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  if (separator) {
+    return doc.body.textContent?.replace(/\s+/g, separator).trim() || ''
+  }
+  return doc.body.textContent || ''
 }
