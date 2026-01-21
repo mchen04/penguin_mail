@@ -3,6 +3,7 @@
  * Formats and prints an email in a print-friendly format
  */
 
+import DOMPurify from 'dompurify'
 import type { Email } from '@/types/email'
 import { formatFullDate } from './formatDate'
 import { formatBytes } from './formatBytes'
@@ -129,7 +130,7 @@ export function printEmail(email: Email): void {
   </div>
 
   <div class="body">
-    ${email.body}
+    ${DOMPurify.sanitize(email.body)}
   </div>
 
   ${attachmentList}
