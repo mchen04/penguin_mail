@@ -25,3 +25,6 @@ dist-ssr
 
 # Assignment folder
 assignment/
+
+# Claude Code
+.claude/
