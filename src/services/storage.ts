@@ -149,6 +149,10 @@ export const STORAGE_KEYS = {
   DENSITY: 'density',
   DRAFTS: 'drafts',
   INITIALIZED: 'initialized',
+  SAVED_SEARCHES: 'saved_searches',
+  EMAIL_TEMPLATES: 'email_templates',
+  SCHEDULED_EMAILS: 'scheduled_emails',
+  SNOOZED_EMAILS: 'snoozed_emails',
 } as const
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]

@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useLabels } from '@/context/OrganizationContext'
 import { Icon } from '@/components/common/Icon/Icon'
+import { useClickOutside } from '@/hooks'
 import { ICON_SIZE } from '@/constants'
 import styles from './LabelPicker.module.css'
 
@@ -15,18 +16,7 @@ export function LabelPicker({ selectedLabelIds, onToggleLabel }: LabelPickerProp
   const pickerRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen])
+  useClickOutside(pickerRef, () => setIsOpen(false), isOpen)
 
   if (labels.length === 0) {
     return null

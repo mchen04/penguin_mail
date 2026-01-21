@@ -1,0 +1,11 @@
+/* ==========================================================================
+   ScheduleSendPicker - Positioning wrapper for compose window
+   ========================================================================== */
+
+.wrapper {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: var(--space-2);
+  z-index: 100;
+}

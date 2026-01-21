@@ -3,27 +3,24 @@ import { useApp } from '@/context/AppContext'
 import { useAccounts } from '@/context/AccountContext'
 import { useEmail } from '@/context/EmailContext'
 import { useSettings } from '@/context/SettingsContext'
+import { useFeatures } from '@/context/FeaturesContext'
 import { Button } from '@/components/common/Button/Button'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
 import { RichTextToolbar } from './RichTextToolbar'
+import { ScheduleSendPicker } from './ScheduleSendPicker'
 import { PLACEHOLDERS, ICON_SIZE, AUTO_SAVE, RANDOM_ID } from '@/constants'
-import { cn } from '@/utils/cn'
-import { formatBytes } from '@/utils'
-import type { EmailAddress, Attachment } from '@/types/email'
+import { cn, formatBytes, formatRecipient, parseRecipients } from '@/utils'
+import type { Attachment } from '@/types/email'
 import styles from './ComposeWindow.module.css'
-
-// Convert EmailAddress to display string
-function formatRecipient(addr: EmailAddress): string {
-  return addr.name ? `${addr.name} <${addr.email}>` : addr.email
-}
 
 export function ComposeWindow() {
   const { composeState, composeData, closeCompose, minimizeCompose, maximizeCompose, openCompose } = useApp()
   const { accounts } = useAccounts()
-  const { sendEmail, saveDraft, deleteEmails } = useEmail()
+  const { sendEmail, saveDraft, deleteEmails, scheduleEmail } = useEmail()
   const { signatures } = useSettings()
+  const { templates } = useFeatures()
 
   // Get the default signature (or first signature if none is default)
   const defaultSignature = useMemo(() => {
@@ -46,6 +43,8 @@ export function ComposeWindow() {
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [showSchedulePicker, setShowSchedulePicker] = useState(false)
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false)
 
   // Track if we've initialized from composeData
   const lastComposeDataRef = useRef<typeof composeData>(null)
@@ -135,22 +134,8 @@ export function ComposeWindow() {
               name: selectedAccount?.name ?? 'You',
               email: selectedAccount?.email ?? '',
             },
-            to: to.map((r) => {
-              const emailMatch = r.match(/<(.+)>/)
-              if (emailMatch) {
-                const name = r.replace(/<.+>/, '').trim()
-                return { name, email: emailMatch[1] }
-              }
-              return { name: r.split('@')[0], email: r }
-            }),
-            cc: showCc && cc.length > 0 ? cc.map((r) => {
-              const emailMatch = r.match(/<(.+)>/)
-              if (emailMatch) {
-                const name = r.replace(/<.+>/, '').trim()
-                return { name, email: emailMatch[1] }
-              }
-              return { name: r.split('@')[0], email: r }
-            }) : undefined,
+            to: parseRecipients(to),
+            cc: showCc && cc.length > 0 ? parseRecipients(cc) : undefined,
             subject,
             body,
             attachments,
@@ -194,6 +179,8 @@ export function ComposeWindow() {
     setAttachments([])
     setIsDraggingOver(false)
     setAutoSaveStatus('idle')
+    setShowSchedulePicker(false)
+    setShowTemplatePicker(false)
     lastComposeDataRef.current = null
     lastSavedRef.current = { to: [], subject: '', body: '', attachments: [] }
     if (autoSaveTimerRef.current) {
@@ -288,18 +275,6 @@ export function ComposeWindow() {
     closeCompose()
   }
 
-  const parseRecipients = (recipients: string[]): EmailAddress[] => {
-    return recipients.map((r) => {
-      // Simple parsing - in a real app, you'd want more robust parsing
-      const emailMatch = r.match(/<(.+)>/)
-      if (emailMatch) {
-        const name = r.replace(/<.+>/, '').trim()
-        return { name, email: emailMatch[1] }
-      }
-      return { name: r.split('@')[0], email: r }
-    })
-  }
-
   const handleSend = async () => {
     if (to.length === 0) return
 
@@ -359,6 +334,46 @@ export function ComposeWindow() {
     }
     resetForm()
     closeCompose()
+  }
+
+  const handleScheduleSend = async (scheduledAt: Date) => {
+    if (to.length === 0) return
+
+    setIsSending(true)
+    try {
+      await scheduleEmail({
+        id: draftId,
+        accountId: fromAccountId,
+        accountColor: selectedAccount?.color as 'blue' | 'green' | 'purple' | 'orange' | 'red',
+        from: {
+          name: selectedAccount?.name ?? 'You',
+          email: selectedAccount?.email ?? '',
+        },
+        to: parseRecipients(to),
+        cc: showCc && cc.length > 0 ? parseRecipients(cc) : undefined,
+        bcc: showBcc && bcc.length > 0 ? parseRecipients(bcc) : undefined,
+        subject,
+        body,
+        attachments,
+        replyToId,
+        forwardedFromId,
+        isDraft: !!draftId,
+      }, scheduledAt)
+      resetForm()
+      closeCompose()
+    } finally {
+      setIsSending(false)
+      setShowSchedulePicker(false)
+    }
+  }
+
+  const handleApplyTemplate = (template: { subject: string; body: string }) => {
+    setSubject(template.subject)
+    setBody(template.body)
+    if (editorRef.current) {
+      editorRef.current.innerHTML = template.body
+    }
+    setShowTemplatePicker(false)
   }
 
   const title = subject || 'New Message'
@@ -507,6 +522,23 @@ export function ComposeWindow() {
                 <Icon name="send" size={ICON_SIZE.XSMALL} />
                 {isSending ? 'Sending...' : 'Send'}
               </Button>
+              <div className={styles.scheduleWrapper}>
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setShowSchedulePicker(!showSchedulePicker)}
+                  title="Schedule send"
+                  disabled={to.length === 0}
+                >
+                  <Icon name="clock" size={ICON_SIZE.DEFAULT} />
+                </button>
+                {showSchedulePicker && (
+                  <ScheduleSendPicker
+                    onSchedule={handleScheduleSend}
+                    onCancel={() => setShowSchedulePicker(false)}
+                  />
+                )}
+              </div>
               <button
                 type="button"
                 className={styles.iconButton}
@@ -515,6 +547,33 @@ export function ComposeWindow() {
               >
                 <Icon name="attachment" size={ICON_SIZE.DEFAULT} />
               </button>
+              {templates.length > 0 && (
+                <div className={styles.templateWrapper}>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    onClick={() => setShowTemplatePicker(!showTemplatePicker)}
+                    title="Insert template"
+                  >
+                    <Icon name="compose" size={ICON_SIZE.DEFAULT} />
+                  </button>
+                  {showTemplatePicker && (
+                    <div className={styles.templatePicker}>
+                      <div className={styles.templateHeader}>Templates</div>
+                      {templates.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          className={styles.templateItem}
+                          onClick={() => handleApplyTemplate(template)}
+                        >
+                          {template.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <RichTextToolbar editorRef={editorRef} />

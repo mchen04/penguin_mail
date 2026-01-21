@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { Icon } from '@/components/common/Icon/Icon'
+import { SnoozePicker } from '@/components/email/SnoozePicker'
+import { useClickOutside } from '@/hooks'
 import { ICON_SIZE } from '@/constants'
 import type { FolderType } from '@/types/email'
 import styles from './BulkActions.module.css'
@@ -20,9 +22,11 @@ interface BulkActionsProps {
   onMarkRead?: () => void
   isTrash?: boolean
   isSpam?: boolean
+  isSnoozed?: boolean
   onMarkAsSpam?: () => void
   onMarkNotSpam?: () => void
   onMoveToFolder?: (folder: FolderType) => void
+  onSnooze?: (snoozeUntil: Date) => void
 }
 
 export function BulkActions({
@@ -32,29 +36,29 @@ export function BulkActions({
   onMarkRead,
   isTrash = false,
   isSpam = false,
+  isSnoozed = false,
   onMarkAsSpam,
   onMarkNotSpam,
   onMoveToFolder,
+  onSnooze,
 }: BulkActionsProps) {
   const [showMoveMenu, setShowMoveMenu] = useState(false)
+  const [showSnoozeMenu, setShowSnoozeMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const snoozeRef = useRef<HTMLDivElement>(null)
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowMoveMenu(false)
-      }
-    }
-    if (showMoveMenu) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showMoveMenu])
+  // Close menus when clicking outside
+  useClickOutside(menuRef, () => setShowMoveMenu(false), showMoveMenu)
+  useClickOutside(snoozeRef, () => setShowSnoozeMenu(false), showSnoozeMenu)
 
   const handleMove = (folder: FolderType) => {
     onMoveToFolder?.(folder)
     setShowMoveMenu(false)
+  }
+
+  const handleSnooze = (snoozeUntil: Date) => {
+    onSnooze?.(snoozeUntil)
+    setShowSnoozeMenu(false)
   }
 
   return (
@@ -121,6 +125,25 @@ export function BulkActions({
           onClick={onMarkAsSpam}
           disabled={!hasSelection}
         />
+      )}
+      {/* Snooze dropdown - show outside of snoozed/trash/spam folders */}
+      {!isTrash && !isSpam && !isSnoozed && onSnooze && (
+        <div className={styles.snoozeDropdown} ref={snoozeRef}>
+          <IconButton
+            icon="clock"
+            label="Snooze"
+            onClick={() => setShowSnoozeMenu(!showSnoozeMenu)}
+            disabled={!hasSelection}
+          />
+          {showSnoozeMenu && hasSelection && (
+            <div className={styles.snoozeMenu}>
+              <SnoozePicker
+                onSnooze={handleSnooze}
+                onCancel={() => setShowSnoozeMenu(false)}
+              />
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

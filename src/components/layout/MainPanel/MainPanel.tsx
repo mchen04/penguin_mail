@@ -48,6 +48,7 @@ export function MainPanel() {
     markAsSpam,
     markNotSpam,
     moveToFolder,
+    snoozeEmails,
   } = useEmailActions()
 
   // Determine if we're in the trash folder (for permanent delete)
@@ -123,6 +124,12 @@ export function MainPanel() {
     }
   }
 
+  const handleSnooze = (snoozeUntil: Date) => {
+    if (selectedCount > 0) {
+      snoozeEmails(Array.from(selectedIds), snoozeUntil)
+    }
+  }
+
   // Show contacts view
   if (currentView === 'contacts') {
     return (
@@ -174,6 +181,7 @@ export function MainPanel() {
         onMarkAsSpam={handleMarkAsSpam}
         onMarkNotSpam={handleMarkNotSpam}
         onMoveToFolder={handleMoveToFolder}
+        onSnooze={handleSnooze}
       />
 
       <div className={styles.content}>

@@ -20,6 +20,7 @@ export type IconName =
   | 'search'
   | 'chevronDown'
   | 'chevronRight'
+  | 'chevronLeft'
   | 'plus'
   | 'help'
   | 'attachment'
@@ -49,10 +50,13 @@ export type IconName =
   | 'formatClear'
   | 'print'
   | 'download'
+  | 'upload'
   | 'image'
   | 'vacation'
   | 'filter'
   | 'ban'
+  | 'clock'
+  | 'compose'
 
 interface IconProps {
   name: IconName
@@ -126,6 +130,7 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
   ),
   chevronDown: <polyline points="6 9 12 15 18 9" />,
   chevronRight: <polyline points="9 18 15 12 9 6" />,
+  chevronLeft: <polyline points="15 18 9 12 15 6" />,
   plus: (
     <>
       <line x1="12" y1="5" x2="12" y2="19" />
@@ -322,6 +327,13 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
       <line x1="12" y1="15" x2="12" y2="3" />
     </>
   ),
+  upload: (
+    <>
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </>
+  ),
   image: (
     <>
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -349,6 +361,18 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="10" />
       <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </>
+  ),
+  compose: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
     </>
   ),
 }

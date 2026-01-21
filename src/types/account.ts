@@ -65,4 +65,6 @@ export const FOLDER_LABELS: Record<SystemFolderType, string> = {
   trash: 'Trash',
   archive: 'Archive',
   starred: 'Starred',
+  snoozed: 'Snoozed',
+  scheduled: 'Scheduled',
 }

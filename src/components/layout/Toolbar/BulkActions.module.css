@@ -54,3 +54,17 @@
 .moveMenuItem svg {
   color: var(--color-text-tertiary);
 }
+
+/* Snooze dropdown */
+.snoozeDropdown {
+  position: relative;
+}
+
+.snoozeMenu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: var(--space-1);
+  z-index: var(--z-dropdown);
+}

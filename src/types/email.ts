@@ -23,7 +23,7 @@ export interface Label {
   color: string
 }
 
-export type SystemFolderType = 'inbox' | 'drafts' | 'sent' | 'spam' | 'trash' | 'archive' | 'starred'
+export type SystemFolderType = 'inbox' | 'drafts' | 'sent' | 'spam' | 'trash' | 'archive' | 'starred' | 'snoozed' | 'scheduled'
 export type FolderType = SystemFolderType | string // string for custom folders
 
 export interface CustomFolder {
@@ -59,6 +59,10 @@ export interface Email {
   forwardedFromId?: string
   isDraft: boolean
   scheduledSendAt?: Date
+  /** For snoozed emails - when to return to inbox */
+  snoozeUntil?: Date
+  /** Original folder before snoozing */
+  snoozedFromFolder?: FolderType
 }
 
 export interface EmailCreateInput {
@@ -89,10 +93,12 @@ export interface EmailSearchQuery {
   hasAttachment?: boolean
   isStarred?: boolean
   isRead?: boolean
+  isUnread?: boolean
   folder?: FolderType
   labels?: string[]
   dateFrom?: Date
   dateTo?: Date
+  dateRange?: 'any' | 'today' | 'week' | 'month' | 'year' | 'custom'
   accountId?: string
 }
 
@@ -140,8 +146,49 @@ export const SYSTEM_FOLDERS: SystemFolderType[] = [
   'trash',
   'archive',
   'starred',
+  'snoozed',
+  'scheduled',
 ]
 
 export function isSystemFolder(folder: string): folder is SystemFolderType {
   return SYSTEM_FOLDERS.includes(folder as SystemFolderType)
+}
+
+/**
+ * Saved search for quick access to common searches
+ */
+export interface SavedSearch {
+  id: string
+  name: string
+  query: EmailSearchQuery
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * Email template for composing emails
+ */
+export interface EmailTemplate {
+  id: string
+  name: string
+  subject: string
+  body: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * Search filters for advanced email search
+ */
+export interface SearchFilters {
+  text: string
+  from: string
+  to: string
+  subject: string
+  hasAttachment: boolean | null
+  isUnread: boolean | null
+  isStarred: boolean | null
+  dateRange: 'any' | 'today' | 'week' | 'month' | 'year' | 'custom'
+  dateFrom?: Date
+  dateTo?: Date
 }

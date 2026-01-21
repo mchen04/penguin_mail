@@ -3,23 +3,16 @@
  * Provides advanced search filters for emails
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Icon } from '@/components/common/Icon/Icon'
+import { useFeatures } from '@/context/FeaturesContext'
+import { useClickOutside } from '@/hooks'
 import { PLACEHOLDERS, ICON_SIZE } from '@/constants'
+import type { SearchFilters } from '@/types'
 import styles from './AdvancedSearch.module.css'
 
-export interface SearchFilters {
-  text: string
-  from: string
-  to: string
-  subject: string
-  hasAttachment: boolean | null
-  isUnread: boolean | null
-  isStarred: boolean | null
-  dateRange: 'any' | 'today' | 'week' | 'month' | 'year' | 'custom'
-  dateFrom?: Date
-  dateTo?: Date
-}
+// Re-export for backward compatibility
+export type { SearchFilters } from '@/types'
 
 const defaultFilters: SearchFilters = {
   text: '',
@@ -40,21 +33,13 @@ interface AdvancedSearchProps {
 export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [filters, setFilters] = useState<SearchFilters>({ ...defaultFilters, ...initialFilters })
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [saveName, setSaveName] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { savedSearches, addSavedSearch, deleteSavedSearch } = useFeatures()
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsExpanded(false)
-      }
-    }
-
-    if (isExpanded) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isExpanded])
+  useClickOutside(dropdownRef, () => setIsExpanded(false), isExpanded)
 
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newFilters = { ...filters, text: e.target.value }
@@ -84,6 +69,43 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
   const hasActiveFilters = filters.from || filters.to || filters.subject ||
     filters.hasAttachment !== null || filters.isUnread !== null ||
     filters.isStarred !== null || filters.dateRange !== 'any'
+
+  const handleSaveSearch = useCallback(() => {
+    if (!saveName.trim()) return
+
+    addSavedSearch(saveName.trim(), {
+      text: filters.text,
+      from: filters.from,
+      to: filters.to,
+      subject: filters.subject,
+      hasAttachment: filters.hasAttachment ?? undefined,
+      isUnread: filters.isUnread ?? undefined,
+      isStarred: filters.isStarred ?? undefined,
+      dateRange: filters.dateRange,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+    })
+    setSaveName('')
+    setShowSaveDialog(false)
+  }, [saveName, filters, addSavedSearch])
+
+  const handleLoadSavedSearch = useCallback((savedSearch: typeof savedSearches[0]) => {
+    const newFilters: SearchFilters = {
+      text: savedSearch.query.text ?? '',
+      from: savedSearch.query.from ?? '',
+      to: savedSearch.query.to ?? '',
+      subject: savedSearch.query.subject ?? '',
+      hasAttachment: savedSearch.query.hasAttachment ?? null,
+      isUnread: savedSearch.query.isUnread ?? null,
+      isStarred: savedSearch.query.isStarred ?? null,
+      dateRange: savedSearch.query.dateRange ?? 'any',
+      dateFrom: savedSearch.query.dateFrom,
+      dateTo: savedSearch.query.dateTo,
+    }
+    setFilters(newFilters)
+    onSearch(newFilters)
+    setIsExpanded(false)
+  }, [onSearch])
 
   return (
     <div className={styles.container} ref={dropdownRef}>
@@ -209,6 +231,35 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
             </div>
           </div>
 
+          {/* Saved Searches */}
+          {savedSearches.length > 0 && (
+            <div className={styles.savedSearches}>
+              <label className={styles.savedSearchLabel}>Saved Searches</label>
+              <div className={styles.savedSearchList}>
+                {savedSearches.map((search) => (
+                  <div key={search.id} className={styles.savedSearchItem}>
+                    <button
+                      type="button"
+                      className={styles.savedSearchButton}
+                      onClick={() => handleLoadSavedSearch(search)}
+                    >
+                      <Icon name="search" size={ICON_SIZE.XSMALL} />
+                      {search.name}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.savedSearchDelete}
+                      onClick={() => deleteSavedSearch(search.id)}
+                      title="Delete saved search"
+                    >
+                      <Icon name="close" size={ICON_SIZE.XSMALL} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.actions}>
             <button
               type="button"
@@ -217,6 +268,46 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
             >
               Clear filters
             </button>
+            {hasActiveFilters && !showSaveDialog && (
+              <button
+                type="button"
+                className={styles.saveButton}
+                onClick={() => setShowSaveDialog(true)}
+              >
+                Save search
+              </button>
+            )}
+            {showSaveDialog && (
+              <div className={styles.saveDialog}>
+                <input
+                  type="text"
+                  className={styles.saveInput}
+                  placeholder="Search name"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveSearch()}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className={styles.saveConfirmButton}
+                  onClick={handleSaveSearch}
+                  disabled={!saveName.trim()}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className={styles.saveCancelButton}
+                  onClick={() => {
+                    setShowSaveDialog(false)
+                    setSaveName('')
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
             <button
               type="button"
               className={styles.applyButton}

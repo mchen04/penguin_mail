@@ -12,6 +12,8 @@ export const FOLDER_IDS = {
   TRASH: 'trash',
   ARCHIVE: 'archive',
   STARRED: 'starred',
+  SNOOZED: 'snoozed',
+  SCHEDULED: 'scheduled',
 } as const;
 
 export type FolderId = typeof FOLDER_IDS[keyof typeof FOLDER_IDS];
@@ -19,6 +21,8 @@ export type FolderId = typeof FOLDER_IDS[keyof typeof FOLDER_IDS];
 /** Standard folders that appear for each account (sidebar) */
 export const STANDARD_FOLDERS: SystemFolderType[] = [
   FOLDER_IDS.INBOX,
+  FOLDER_IDS.SNOOZED,
+  FOLDER_IDS.SCHEDULED,
   FOLDER_IDS.DRAFTS,
   FOLDER_IDS.SENT,
   FOLDER_IDS.SPAM,

@@ -1,11 +1,21 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSettings } from '@/context/SettingsContext'
+import { useFeatures } from '@/context/FeaturesContext'
+import { useToast } from '@/context/ToastContext'
 import { Modal } from '@/components/common/Modal/Modal'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
 import { ICON_SIZE, TEXT } from '@/constants'
-import { stripHtml } from '@/utils'
+import { stripHtml, getTodayDateString } from '@/utils'
+import {
+  exportAllData,
+  exportContactsToCSV,
+  importData,
+  importContactsFromCSV,
+  downloadFile,
+} from '@/services/exportImport'
 import type { Theme, Density, ReadingPanePosition, DateFormat, TimeFormat, Signature, VacationResponder, FilterRule } from '@/types/settings'
+import type { EmailTemplate } from '@/types/email'
 import styles from './SettingsModal.module.css'
 
 interface SettingsModalProps {
@@ -13,13 +23,14 @@ interface SettingsModalProps {
   onClose: () => void
 }
 
-type SettingsTab = 'general' | 'notifications' | 'inbox' | 'signatures' | 'vacation' | 'filters' | 'blocked' | 'shortcuts'
+type SettingsTab = 'general' | 'notifications' | 'inbox' | 'signatures' | 'templates' | 'vacation' | 'filters' | 'blocked' | 'shortcuts'
 
 const TABS: { id: SettingsTab; label: string; icon: IconName }[] = [
   { id: 'general', label: 'General', icon: 'settings' },
   { id: 'notifications', label: 'Notifications', icon: 'notifications' },
   { id: 'inbox', label: 'Inbox', icon: 'inbox' },
   { id: 'signatures', label: 'Signatures', icon: 'edit' },
+  { id: 'templates', label: 'Templates', icon: 'compose' },
   { id: 'vacation', label: 'Vacation', icon: 'vacation' },
   { id: 'filters', label: 'Filters', icon: 'filter' },
   { id: 'blocked', label: 'Blocked', icon: 'ban' },
@@ -61,6 +72,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     blockAddress,
     unblockAddress,
   } = useSettings()
+
+  const {
+    templates,
+    addTemplate,
+    updateTemplate,
+    deleteTemplate,
+  } = useFeatures()
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Settings" size="large">
@@ -121,6 +139,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               onUpdate={updateSignature}
               onDelete={deleteSignature}
               onSetDefault={setDefaultSignature}
+            />
+          )}
+
+          {activeTab === 'templates' && (
+            <TemplateSettings
+              templates={templates}
+              onAdd={addTemplate}
+              onUpdate={updateTemplate}
+              onDelete={deleteTemplate}
             />
           )}
 
@@ -191,6 +218,74 @@ function GeneralSettings({
   onTimeFormatChange,
   onResetSettings,
 }: GeneralSettingsProps) {
+  const toast = useToast()
+  const importJsonRef = useRef<HTMLInputElement>(null)
+  const importCsvRef = useRef<HTMLInputElement>(null)
+
+  const handleExportAll = async () => {
+    try {
+      const data = await exportAllData()
+      downloadFile(data, `penguin-mail-backup-${getTodayDateString()}.json`, 'application/json')
+      toast.success('Data exported successfully')
+    } catch {
+      toast.error('Failed to export data')
+    }
+  }
+
+  const handleExportContacts = async () => {
+    try {
+      const csv = await exportContactsToCSV()
+      downloadFile(csv, `contacts-${getTodayDateString()}.csv`, 'text/csv')
+      toast.success('Contacts exported to CSV')
+    } catch {
+      toast.error('Failed to export contacts')
+    }
+  }
+
+  const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const result = await importData(text)
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Failed to read import file')
+    }
+
+    // Reset input
+    if (importJsonRef.current) {
+      importJsonRef.current.value = ''
+    }
+  }
+
+  const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const result = await importContactsFromCSV(text)
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Failed to read CSV file')
+    }
+
+    // Reset input
+    if (importCsvRef.current) {
+      importCsvRef.current.value = ''
+    }
+  }
+
   return (
     <div className={styles.settings}>
       <section className={styles.section}>
@@ -297,6 +392,60 @@ function GeneralSettings({
               active={timeFormat === '24h'}
               onClick={() => onTimeFormatChange('24h')}
             />
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Data</h3>
+
+        <div className={styles.setting}>
+          <label className={styles.label}>Export</label>
+          <p className={styles.description}>
+            Download a backup of your data
+          </p>
+          <div className={styles.buttonGroup}>
+            <Button variant="secondary" onClick={handleExportAll}>
+              <Icon name="download" size={ICON_SIZE.SMALL} />
+              Export All Data
+            </Button>
+            <Button variant="secondary" onClick={handleExportContacts}>
+              <Icon name="download" size={ICON_SIZE.SMALL} />
+              Export Contacts (CSV)
+            </Button>
+          </div>
+        </div>
+
+        <div className={styles.setting}>
+          <label className={styles.label}>Import</label>
+          <p className={styles.description}>
+            Restore data from a backup file
+          </p>
+          <div className={styles.buttonGroup}>
+            <input
+              ref={importJsonRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportJson}
+              className={styles.hiddenInput}
+              id="import-json"
+            />
+            <Button variant="secondary" onClick={() => importJsonRef.current?.click()}>
+              <Icon name="upload" size={ICON_SIZE.SMALL} />
+              Import JSON Backup
+            </Button>
+            <input
+              ref={importCsvRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImportCsv}
+              className={styles.hiddenInput}
+              id="import-csv"
+            />
+            <Button variant="secondary" onClick={() => importCsvRef.current?.click()}>
+              <Icon name="upload" size={ICON_SIZE.SMALL} />
+              Import Contacts (CSV)
+            </Button>
           </div>
         </div>
       </section>
@@ -582,6 +731,164 @@ function SignatureSettings({
             <Button variant="secondary" onClick={startNew}>
               <Icon name="plus" size={ICON_SIZE.SMALL} />
               Add Signature
+            </Button>
+          </>
+        )}
+      </section>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
+// Template Settings
+// --------------------------------------------------------------------------
+
+interface TemplateSettingsProps {
+  templates: EmailTemplate[]
+  onAdd: (name: string, subject: string, body: string) => void
+  onUpdate: (id: string, updates: Partial<EmailTemplate>) => void
+  onDelete: (id: string) => void
+}
+
+function TemplateSettings({
+  templates,
+  onAdd,
+  onUpdate,
+  onDelete,
+}: TemplateSettingsProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+
+  const startNew = () => {
+    setIsEditing(true)
+    setEditingId(null)
+    setName('')
+    setSubject('')
+    setBody('')
+  }
+
+  const startEdit = (template: EmailTemplate) => {
+    setIsEditing(true)
+    setEditingId(template.id)
+    setName(template.name)
+    setSubject(template.subject)
+    setBody(template.body)
+  }
+
+  const handleSave = () => {
+    if (!name.trim()) return
+
+    if (editingId) {
+      onUpdate(editingId, { name, subject, body })
+    } else {
+      onAdd(name, subject, body)
+    }
+    setIsEditing(false)
+    setEditingId(null)
+    setName('')
+    setSubject('')
+    setBody('')
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setEditingId(null)
+    setName('')
+    setSubject('')
+    setBody('')
+  }
+
+  return (
+    <div className={styles.settings}>
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Email Templates</h3>
+        <p className={styles.description}>
+          Create reusable templates to quickly compose common emails
+        </p>
+
+        {isEditing ? (
+          <div className={styles.signatureForm}>
+            <div className={styles.formField}>
+              <label className={styles.label}>Template name</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Meeting Request, Weekly Update"
+              />
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.label}>Subject</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Email subject line"
+              />
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.label}>Body</label>
+              <textarea
+                className={styles.textarea}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Enter your template content..."
+                rows={6}
+              />
+            </div>
+            <div className={styles.formActions}>
+              <Button variant="secondary" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleSave}>
+                {editingId ? 'Save Changes' : 'Create Template'}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {templates.length === 0 ? (
+              <p className={styles.emptyMessage}>No templates yet. Create one to speed up your email writing.</p>
+            ) : (
+              <div className={styles.signatureList}>
+                {templates.map((template) => (
+                  <div key={template.id} className={styles.signatureItem}>
+                    <div className={styles.signatureInfo}>
+                      <span className={styles.signatureName}>{template.name}</span>
+                      <p className={styles.signaturePreview}>
+                        {template.subject && <strong>{template.subject}</strong>}
+                        {template.subject && template.body && ' - '}
+                        {stripHtml(template.body, ' ').slice(0, TEXT.SIGNATURE_PREVIEW_LENGTH)}...
+                      </p>
+                    </div>
+                    <div className={styles.signatureActions}>
+                      <button
+                        type="button"
+                        className={styles.actionButton}
+                        onClick={() => startEdit(template)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                        onClick={() => onDelete(template.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button variant="secondary" onClick={startNew}>
+              <Icon name="plus" size={ICON_SIZE.SMALL} />
+              Add Template
             </Button>
           </>
         )}

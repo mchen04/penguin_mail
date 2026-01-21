@@ -11,10 +11,14 @@ A Gmail-style email client built with React, TypeScript, and Vite.
 - **Attachments** - View and preview email attachments
 - **Labels and folders** - Organize emails with custom labels and folders
 - **Contacts** - Manage contacts for easy recipient selection
-- **Search** - Search emails with advanced filtering options
+- **Search** - Search emails with advanced filtering options and saved searches
 - **Bulk actions** - Select and manage multiple emails at once
 - **Keyboard shortcuts** - Customizable shortcuts for power users
 - **Compact compose window** - Gmail-style fixed compose window
+- **Schedule send** - Schedule emails to be sent at a later time
+- **Snooze** - Snooze emails to reappear in inbox at a specified time
+- **Email templates** - Save and reuse common email templates
+- **Data export/import** - Export and import emails and contacts
 
 ### Settings
 

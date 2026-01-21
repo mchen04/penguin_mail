@@ -26,6 +26,7 @@ interface ToolbarProps {
   onMarkAsSpam?: () => void
   onMarkNotSpam?: () => void
   onMoveToFolder?: (folder: FolderType) => void
+  onSnooze?: (snoozeUntil: Date) => void
 }
 
 export function Toolbar({
@@ -42,6 +43,7 @@ export function Toolbar({
   onMarkAsSpam,
   onMarkNotSpam,
   onMoveToFolder,
+  onSnooze,
 }: ToolbarProps) {
   const { setSidebarCollapsed, openCompose, openSettings } = useApp()
   const { searchFilters, setSearchFilters } = useEmail()
@@ -56,6 +58,7 @@ export function Toolbar({
   const hasSelection = selectedCount > 0
   const isTrash = currentFolder === 'trash'
   const isSpam = currentFolder === 'spam'
+  const isSnoozed = currentFolder === 'snoozed'
 
   const handleEmptyTrash = () => {
     onEmptyTrash?.()
@@ -114,9 +117,11 @@ export function Toolbar({
             onMarkRead={onMarkRead}
             isTrash={isTrash}
             isSpam={isSpam}
+            isSnoozed={isSnoozed}
             onMarkAsSpam={onMarkAsSpam}
             onMarkNotSpam={onMarkNotSpam}
             onMoveToFolder={onMoveToFolder}
+            onSnooze={onSnooze}
           />
         </div>
 

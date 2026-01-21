@@ -6,6 +6,7 @@ import { ContactsProvider } from '@/context/ContactsContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { RepositoryProvider } from '@/context/RepositoryContext'
 import { OrganizationProvider } from '@/context/OrganizationContext'
+import { FeaturesProvider } from '@/context/FeaturesContext'
 import { AppLayout } from '@/components/layout/AppLayout/AppLayout'
 import { ToastContainer } from '@/components/common/Toast/ToastContainer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -21,8 +22,10 @@ function App() {
                 <ContactsProvider>
                   <OrganizationProvider>
                     <EmailProvider>
-                      <AppLayout />
-                      <ToastContainer />
+                      <FeaturesProvider>
+                        <AppLayout />
+                        <ToastContainer />
+                      </FeaturesProvider>
                     </EmailProvider>
                   </OrganizationProvider>
                 </ContactsProvider>

@@ -8,17 +8,8 @@ import { useToast } from '@/context/ToastContext'
 import { useUndoStack } from './useUndoStack'
 import { UNDO_STACK } from '@/constants'
 import type { FolderType } from '@/types/email'
-
-/** Folder display names for toast messages */
-const FOLDER_NAMES: Record<string, string> = {
-  inbox: 'Inbox',
-  sent: 'Sent',
-  drafts: 'Drafts',
-  trash: 'Trash',
-  spam: 'Spam',
-  archive: 'Archive',
-  starred: 'Starred',
-}
+import { FOLDER_LABELS } from '@/types'
+import { formatPresetDate } from '@/utils'
 
 export function useEmailActions() {
   const {
@@ -36,6 +27,8 @@ export function useEmailActions() {
     sendEmail,
     saveDraft,
     clearSelection,
+    snoozeEmails,
+    unsnoozeEmail,
   } = useEmail()
 
   const toast = useToast()
@@ -162,7 +155,7 @@ export function useEmailActions() {
       moveToFolder(ids, folder)
       clearSelection()
 
-      const folderName = FOLDER_NAMES[folder] ?? folder
+      const folderName = FOLDER_LABELS[folder as keyof typeof FOLDER_LABELS] ?? folder
       const message = ids.length === 1
         ? `Moved to ${folderName}`
         : `${ids.length} emails moved to ${folderName}`
@@ -255,6 +248,43 @@ export function useEmailActions() {
     [markNotSpam, clearSelection, toast]
   )
 
+  const handleSnoozeEmails = useCallback(
+    (ids: string[], snoozeUntil: Date) => {
+      if (ids.length === 0) return
+
+      const emailsToSnooze = emails.filter((e) => ids.includes(e.id))
+      const previousFolders = new Map(emailsToSnooze.map((e) => [e.id, e.folder]))
+
+      snoozeEmails(ids, snoozeUntil)
+      clearSelection()
+
+      // Format the snooze time using shared utility
+      const snoozeTimeStr = formatPresetDate(snoozeUntil)
+
+      const message = ids.length === 1
+        ? `Snoozed until ${snoozeTimeStr}`
+        : `${ids.length} emails snoozed until ${snoozeTimeStr}`
+
+      const undoAction = undoStack.push(
+        'snooze',
+        message,
+        () => {
+          // Unsnooze each email
+          ids.forEach((id) => {
+            unsnoozeEmail(id)
+          })
+        },
+        { ids, previousFolders, snoozeUntil }
+      )
+
+      toast.info(message, {
+        label: 'Undo',
+        onClick: () => undoStack.undoById(undoAction.id),
+      })
+    },
+    [emails, snoozeEmails, unsnoozeEmail, clearSelection, toast, undoStack]
+  )
+
   return {
     deleteEmails: handleDelete,
     deletePermanently: handleDeletePermanently,
@@ -269,6 +299,7 @@ export function useEmailActions() {
     moveToFolder: handleMoveToFolder,
     markAsSpam: handleMarkAsSpam,
     markNotSpam: handleMarkNotSpam,
+    snoozeEmails: handleSnoozeEmails,
     // Expose undo stack for advanced usage
     undoStack,
   }
