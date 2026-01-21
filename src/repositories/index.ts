@@ -31,22 +31,3 @@ export function createMockRepositories(): IRepositories {
   }
 }
 
-/**
- * Singleton instance of repositories
- * In a real app, this would be replaced with API-backed repositories
- */
-let repositoriesInstance: IRepositories | null = null
-
-export function getRepositories(): IRepositories {
-  if (!repositoriesInstance) {
-    repositoriesInstance = createMockRepositories()
-  }
-  return repositoriesInstance
-}
-
-/**
- * Reset repositories (useful for testing)
- */
-export function resetRepositories(): void {
-  repositoriesInstance = null
-}

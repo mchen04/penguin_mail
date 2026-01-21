@@ -94,7 +94,7 @@ export function CustomFoldersSection() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.expandButton} onClick={handleToggleExpand}>
-          <Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={ICON_SIZE.SMALL} />
+          <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} size={ICON_SIZE.SMALL} />
           <span className={styles.title}>Folders</span>
         </button>
         <button

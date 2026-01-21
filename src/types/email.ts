@@ -61,32 +61,6 @@ export interface Email {
   scheduledSendAt?: Date
 }
 
-export interface Thread {
-  id: string
-  emails: Email[]
-  subject: string
-  lastMessageDate: Date
-  participants: EmailAddress[]
-  unreadCount: number
-  hasAttachment: boolean
-  isStarred: boolean
-  labels: string[]
-}
-
-export interface EmailDraft {
-  id: string
-  accountId: string
-  to: EmailAddress[]
-  cc?: EmailAddress[]
-  bcc?: EmailAddress[]
-  subject: string
-  body: string
-  attachments: Attachment[]
-  replyToId?: string
-  forwardedFromId?: string
-  savedAt: Date
-}
-
 export interface EmailCreateInput {
   accountId: string
   to: EmailAddress[]

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { COMPOSE_WINDOW, STORAGE_KEYS } from '@/constants'
+import { COMPOSE_WINDOW } from '@/constants'
+import { STORAGE_KEYS } from '@/services/storage'
 
 interface Size {
   width: number

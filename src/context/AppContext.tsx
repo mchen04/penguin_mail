@@ -2,7 +2,8 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useMemo,
 import DOMPurify from 'dompurify'
 import type { Theme, Density } from '@/types/settings'
 import type { Email, EmailAddress } from '@/types/email'
-import { STORAGE_KEYS, DATA_ATTRIBUTES } from '@/constants'
+import { DATA_ATTRIBUTES } from '@/constants'
+import { STORAGE_KEYS } from '@/services/storage'
 
 // --------------------------------------------------------------------------
 // Types
