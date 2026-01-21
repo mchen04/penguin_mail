@@ -13,9 +13,14 @@
   height: 100%;
 }
 
-/* Open state - used with react-rnd, so no positioning needed here */
+/* Open state - fixed position at bottom-right like Gmail */
 .composeWindow.open {
-  /* react-rnd handles positioning */
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  width: 580px;
+  height: 560px;
+  z-index: var(--z-compose);
 }
 
 /* Minimized state - fixed positioning */
@@ -42,68 +47,63 @@
   z-index: var(--z-compose);
 }
 
-/* Content area */
+/* Content area - tight compact spacing */
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: var(--space-3);
-  gap: var(--space-2);
+  padding: 6px;
+  gap: 4px;
 }
 
-/* From field */
+/* From field - inline compact */
 .fromField {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .fieldLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  min-width: 40px;
+  min-width: 32px;
 }
 
 .accountSelect {
   flex: 1;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
   outline: none;
   cursor: pointer;
 }
 
 .accountSelect:focus {
-  border-color: var(--color-primary);
+  outline: none;
 }
 
-/* Recipients section */
+/* Recipients section - inline compact */
 .recipients {
   position: relative;
-  padding: var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .recipientActions {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-4);
+  top: 4px;
+  right: 10px;
   display: flex;
-  gap: var(--space-2);
+  gap: 4px;
 }
 
 .addFieldButton {
-  padding: var(--space-1) var(--space-2);
+  padding: 2px 6px;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
@@ -115,28 +115,10 @@
   color: var(--color-text);
 }
 
-.addCcButton {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-4);
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.addCcButton:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-}
-
-/* Subject field */
+/* Subject field - inline compact */
 .subjectField {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .subjectInput {
@@ -152,56 +134,61 @@
   color: var(--color-text-tertiary);
 }
 
-/* Body textarea */
+/* Body textarea - fills remaining space */
 .body {
   flex: 1;
-  min-height: 200px;
-  padding: var(--space-4);
+  min-height: 100px;
+  padding: 10px;
   font-size: var(--font-size-sm);
-  line-height: 1.6;
+  line-height: 1.5;
   font-family: inherit;
   color: var(--color-text);
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: none;
+  border-radius: 0;
   resize: none;
   overflow-y: auto;
   outline: none;
 }
 
 .body:focus {
-  border-color: var(--color-primary);
+  outline: none;
 }
 
 .body::placeholder {
   color: var(--color-text-tertiary);
 }
 
-/* Actions */
+/* Actions - compact footer bar with inline toolbar */
 .actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: 6px;
+  padding: 4px 8px;
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-height: 36px;
 }
 
 .secondaryActions {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .iconButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2);
+  width: 28px;
+  height: 28px;
+  padding: 0;
   color: var(--color-text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -214,7 +201,8 @@
 .primaryActions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 /* Auto-save status */
@@ -280,11 +268,11 @@
 .attachmentsList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  gap: var(--space-1);
+  padding: var(--space-2);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .attachmentItem {
@@ -331,13 +319,15 @@
    ========================================================================== */
 
 @media (max-width: 767px) {
-  .composeWindow {
+  .composeWindow,
+  .composeWindow.open {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
+    height: 100%;
     max-height: none;
     border-radius: 0;
     z-index: var(--z-compose);
@@ -352,8 +342,8 @@
   }
 
   .content {
-    padding: var(--space-3);
-    gap: var(--space-2);
+    padding: var(--space-2);
+    gap: var(--space-1);
   }
 
   .body {

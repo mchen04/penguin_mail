@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ComposeHeader - Draggable header with window controls
+   ComposeHeader - Header with window controls
    ========================================================================== */
 
 .header {
@@ -11,15 +11,6 @@
   color: white;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   user-select: none;
-}
-
-/* Drag handle for react-rnd */
-.dragHandle {
-  cursor: grab;
-}
-
-.dragHandle:active {
-  cursor: grabbing;
 }
 
 .title {

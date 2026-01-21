@@ -15,7 +15,7 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
-// Mock ResizeObserver for react-rnd and other components
+// Mock ResizeObserver for components that need it
 class MockResizeObserver {
   observe() {}
   unobserve() {}

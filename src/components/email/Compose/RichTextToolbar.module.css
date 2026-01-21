@@ -1,41 +1,44 @@
 /* ==========================================================================
-   Rich Text Toolbar - Formatting toolbar for compose window
+   Rich Text Toolbar - Compact formatting toolbar for compose window
    ========================================================================== */
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: 0;
+  background: transparent;
+  border: none;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
 }
 
 .group {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 2px;
 }
 
 .divider {
   width: 1px;
-  height: var(--space-5);
+  height: 20px;
   background: var(--color-border);
   margin: 0 var(--space-1);
+  flex-shrink: 0;
 }
 
 .button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-8);
-  height: var(--space-8);
-  border-radius: var(--radius-md);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
   background: transparent;
   transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
 }
 
 .button:hover {
@@ -53,14 +56,16 @@
 }
 
 .formatSelect {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-sm);
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
-  min-width: 80px;
+  min-width: 70px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .formatSelect:hover {
@@ -72,24 +77,24 @@
   border-color: var(--color-primary);
 }
 
-/* Mobile: hide some toolbar items */
+/* Mobile: scrollable toolbar */
 @media (max-width: 480px) {
   .toolbar {
-    gap: var(--space-0-5);
+    gap: 2px;
     padding: var(--space-1);
   }
 
   .button {
-    width: var(--space-7);
-    height: var(--space-7);
+    width: 26px;
+    height: 26px;
   }
 
   .formatSelect {
     min-width: 60px;
-    font-size: var(--font-size-xs);
+    height: 26px;
   }
 
   .divider {
-    height: var(--space-4);
+    height: 18px;
   }
 }

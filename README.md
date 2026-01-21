@@ -14,7 +14,7 @@ A Gmail-style email client built with React, TypeScript, and Vite.
 - **Search** - Search emails with advanced filtering options
 - **Bulk actions** - Select and manage multiple emails at once
 - **Keyboard shortcuts** - Customizable shortcuts for power users
-- **Resizable compose window** - Drag-and-drop compose with react-rnd
+- **Compact compose window** - Gmail-style fixed compose window
 
 ### Settings
 

@@ -149,8 +149,6 @@ export const STORAGE_KEYS = {
   DENSITY: 'density',
   DRAFTS: 'drafts',
   INITIALIZED: 'initialized',
-  COMPOSE_SIZE: 'compose-size',
-  COMPOSE_POSITION: 'compose-position',
 } as const
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]

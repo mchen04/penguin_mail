@@ -1,5 +1,4 @@
 export { useKeyboardShortcuts } from './useKeyboardShortcuts'
 export { useEmailActions } from './useEmailActions'
 export { useUndoStack, type UndoableAction } from './useUndoStack'
-export { useComposeWindowState } from './useComposeWindowState'
 export { useSidebarSection, type SidebarItem } from './useSidebarSection'

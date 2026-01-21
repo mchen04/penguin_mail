@@ -1,16 +1,14 @@
 import { useState, useCallback, useEffect, useRef, useMemo, type DragEvent, type ChangeEvent } from 'react'
-import { Rnd } from 'react-rnd'
 import { useApp } from '@/context/AppContext'
 import { useAccounts } from '@/context/AccountContext'
 import { useEmail } from '@/context/EmailContext'
 import { useSettings } from '@/context/SettingsContext'
-import { useComposeWindowState } from '@/hooks/useComposeWindowState'
 import { Button } from '@/components/common/Button/Button'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
 import { RichTextToolbar } from './RichTextToolbar'
-import { PLACEHOLDERS, COMPOSE_WINDOW, ICON_SIZE, AUTO_SAVE, RANDOM_ID } from '@/constants'
+import { PLACEHOLDERS, ICON_SIZE, AUTO_SAVE, RANDOM_ID } from '@/constants'
 import { cn } from '@/utils/cn'
 import { formatBytes } from '@/utils'
 import type { EmailAddress, Attachment } from '@/types/email'
@@ -26,7 +24,6 @@ export function ComposeWindow() {
   const { accounts } = useAccounts()
   const { sendEmail, saveDraft, deleteEmails } = useEmail()
   const { signatures } = useSettings()
-  const { size, setSize } = useComposeWindowState()
 
   // Get the default signature (or first signature if none is default)
   const defaultSignature = useMemo(() => {
@@ -473,8 +470,6 @@ export function ComposeWindow() {
             />
           </div>
 
-          <RichTextToolbar editorRef={editorRef} />
-
           <div
             ref={editorRef}
             className={styles.body}
@@ -508,8 +503,8 @@ export function ComposeWindow() {
 
           <div className={styles.actions}>
             <div className={styles.primaryActions}>
-              <Button variant="primary" onClick={handleSend} disabled={to.length === 0 || isSending}>
-                <Icon name="send" size={ICON_SIZE.SMALL} />
+              <Button variant="primary" size="small" onClick={handleSend} disabled={to.length === 0 || isSending}>
+                <Icon name="send" size={ICON_SIZE.XSMALL} />
                 {isSending ? 'Sending...' : 'Send'}
               </Button>
               <button
@@ -521,6 +516,8 @@ export function ComposeWindow() {
                 <Icon name="attachment" size={ICON_SIZE.DEFAULT} />
               </button>
             </div>
+
+            <RichTextToolbar editorRef={editorRef} />
 
             {/* Auto-save status indicator */}
             {autoSaveStatus !== 'idle' && (
@@ -571,50 +568,10 @@ export function ComposeWindow() {
     )
   }
 
-  // Open state: use react-rnd for resize and drag
-  const maxWidth = typeof window !== 'undefined'
-    ? window.innerWidth * COMPOSE_WINDOW.MAX_WIDTH_PERCENT
-    : COMPOSE_WINDOW.DEFAULT_WIDTH
-  const maxHeight = typeof window !== 'undefined'
-    ? window.innerHeight * COMPOSE_WINDOW.MAX_HEIGHT_PERCENT
-    : COMPOSE_WINDOW.DEFAULT_HEIGHT
-
-  // Calculate position to anchor at bottom-right
-  const anchoredPosition = {
-    x: typeof window !== 'undefined' ? window.innerWidth - size.width - COMPOSE_WINDOW.DEFAULT_RIGHT : 0,
-    y: typeof window !== 'undefined' ? window.innerHeight - size.height - COMPOSE_WINDOW.DEFAULT_BOTTOM : 0,
-  }
-
+  // Open state: fixed position at bottom-right
   return (
-    <Rnd
-      size={{ width: size.width, height: size.height }}
-      position={anchoredPosition}
-      minWidth={COMPOSE_WINDOW.MIN_WIDTH}
-      minHeight={COMPOSE_WINDOW.MIN_HEIGHT}
-      maxWidth={maxWidth}
-      maxHeight={maxHeight}
-      bounds="window"
-      disableDragging={true}
-      enableResizing={{
-        top: true,
-        left: true,
-        topLeft: true,
-        bottom: false,
-        right: false,
-        bottomRight: false,
-        bottomLeft: false,
-        topRight: false,
-      }}
-      onResizeStop={(_e, _direction, ref) => {
-        setSize({
-          width: parseInt(ref.style.width, 10),
-          height: parseInt(ref.style.height, 10),
-        })
-      }}
-      className={cn(styles.composeWindow, styles.open)}
-      style={{ zIndex: 'var(--z-compose)' }}
-    >
+    <div className={cn(styles.composeWindow, styles.open)}>
       {composeContent}
-    </Rnd>
+    </div>
   )
 }
