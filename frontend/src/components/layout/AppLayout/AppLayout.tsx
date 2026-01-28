@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useCallback } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -14,6 +14,23 @@ const SettingsModal = lazy(() =>
   import('@/components/settings/SettingsModal/SettingsModal').then((m) => ({ default: m.SettingsModal }))
 )
 
+function SkipToContent() {
+  const handleClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const mainContent = document.getElementById('main-content')
+    if (mainContent) {
+      mainContent.focus()
+      mainContent.scrollIntoView()
+    }
+  }, [])
+
+  return (
+    <a href="#main-content" className={styles.skipLink} onClick={handleClick}>
+      Skip to main content
+    </a>
+  )
+}
+
 export function AppLayout() {
   const { sidebarCollapsed, settingsOpen, closeSettings } = useApp()
 
@@ -21,21 +38,24 @@ export function AppLayout() {
   useKeyboardShortcuts()
 
   return (
-    <div className={styles.layout} data-sidebar-collapsed={sidebarCollapsed}>
-      <ErrorBoundary inline section="Sidebar">
-        <Sidebar />
-      </ErrorBoundary>
-      <ErrorBoundary inline section="Email">
-        <MainPanel />
-      </ErrorBoundary>
-      <Suspense fallback={null}>
-        <ErrorBoundary inline section="Compose">
-          <ComposeWindow />
+    <>
+      <SkipToContent />
+      <div className={styles.layout} data-sidebar-collapsed={sidebarCollapsed}>
+        <ErrorBoundary inline section="Sidebar">
+          <Sidebar />
         </ErrorBoundary>
-        <ErrorBoundary inline section="Settings">
-          <SettingsModal isOpen={settingsOpen} onClose={closeSettings} />
+        <ErrorBoundary inline section="Email">
+          <MainPanel />
         </ErrorBoundary>
-      </Suspense>
-    </div>
+        <Suspense fallback={null}>
+          <ErrorBoundary inline section="Compose">
+            <ComposeWindow />
+          </ErrorBoundary>
+          <ErrorBoundary inline section="Settings">
+            <SettingsModal isOpen={settingsOpen} onClose={closeSettings} />
+          </ErrorBoundary>
+        </Suspense>
+      </div>
+    </>
   )
 }

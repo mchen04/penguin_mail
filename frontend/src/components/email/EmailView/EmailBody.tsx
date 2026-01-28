@@ -10,11 +10,11 @@ export function EmailBody({ html }: EmailBodyProps) {
   const sanitizedHtml = useMemo(() => DOMPurify.sanitize(html), [html])
 
   return (
-    <div className={styles.body}>
+    <article className={styles.body} aria-label="Email content">
       <div
         className={styles.content}
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
-    </div>
+    </article>
   )
 }

@@ -2,6 +2,27 @@
    AppLayout - Main application layout
    ========================================================================== */
 
+/* Skip to content link for keyboard/screen reader users */
+.skipLink {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  z-index: 9999;
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 0 0 var(--radius-md) 0;
+  transition: top 0.2s ease;
+}
+
+.skipLink:focus {
+  top: 0;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;

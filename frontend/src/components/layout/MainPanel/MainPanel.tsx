@@ -1,14 +1,20 @@
-import { useEffect, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useCallback, lazy, Suspense } from 'react'
 import { useEmail } from '@/context/EmailContext'
 import { useAccounts } from '@/context/AccountContext'
 import { useApp } from '@/context/AppContext'
 import { useEmailActions } from '@/hooks/useEmailActions'
 import { Toolbar } from '@/components/layout/Toolbar/Toolbar'
 import { EmailList } from '@/components/email/EmailList/EmailList'
-import { EmailView } from '@/components/email/EmailView/EmailView'
-import { ContactsPanel } from '@/components/contacts/ContactsPanel'
 import type { FolderType } from '@/types/email'
 import styles from './MainPanel.module.css'
+
+// Lazy load components that are not on the initial view
+const ContactsPanel = lazy(() =>
+  import('@/components/contacts/ContactsPanel').then((m) => ({ default: m.ContactsPanel }))
+)
+const EmailView = lazy(() =>
+  import('@/components/email/EmailView/EmailView').then((m) => ({ default: m.EmailView }))
+)
 
 export function MainPanel() {
   const { currentView, showMail, openDraft } = useApp()
@@ -133,9 +139,11 @@ export function MainPanel() {
   // Show contacts view
   if (currentView === 'contacts') {
     return (
-      <main className={styles.mainPanel}>
+      <main id="main-content" tabIndex={-1} className={styles.mainPanel}>
         <div className={styles.content}>
-          <ContactsPanel onClose={showMail} />
+          <Suspense fallback={<div className={styles.loading}>Loading contacts...</div>}>
+            <ContactsPanel onClose={showMail} />
+          </Suspense>
         </div>
       </main>
     )
@@ -144,21 +152,23 @@ export function MainPanel() {
   // Show email view if an email is selected
   if (selectedEmail) {
     return (
-      <main className={styles.mainPanel}>
+      <main id="main-content" tabIndex={-1} className={styles.mainPanel}>
         <div className={styles.content}>
-          <EmailView
-            email={selectedEmail}
-            onBack={() => selectEmail(null)}
-            onToggleStar={() => toggleStar(selectedEmail.id)}
-            onArchive={() => {
-              archiveEmails([selectedEmail.id])
-              selectEmail(null)
-            }}
-            onDelete={() => {
-              deleteEmails([selectedEmail.id])
-              selectEmail(null)
-            }}
-          />
+          <Suspense fallback={<div className={styles.loading}>Loading email...</div>}>
+            <EmailView
+              email={selectedEmail}
+              onBack={() => selectEmail(null)}
+              onToggleStar={() => toggleStar(selectedEmail.id)}
+              onArchive={() => {
+                archiveEmails([selectedEmail.id])
+                selectEmail(null)
+              }}
+              onDelete={() => {
+                deleteEmails([selectedEmail.id])
+                selectEmail(null)
+              }}
+            />
+          </Suspense>
         </div>
       </main>
     )
@@ -166,7 +176,7 @@ export function MainPanel() {
 
   // Show email list
   return (
-    <main className={styles.mainPanel}>
+    <main id="main-content" tabIndex={-1} className={styles.mainPanel}>
       <Toolbar
         selectedCount={selectedCount}
         totalCount={totalCount}

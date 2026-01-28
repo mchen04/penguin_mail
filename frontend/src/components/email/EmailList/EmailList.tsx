@@ -172,9 +172,10 @@ export function EmailList({ onOpenEmail }: EmailListProps) {
   // Show loading skeleton while loading
   if (isLoading) {
     return (
-      <div className={styles.list} role="grid" aria-label="Loading emails">
+      <div className={styles.list} role="grid" aria-label="Email list" aria-busy="true">
+        <div className={styles.srOnly} aria-live="polite">Loading emails...</div>
         {Array.from({ length: EMAIL_LIST.SKELETON_COUNT }).map((_, i) => (
-          <div key={i} className={styles.skeleton}>
+          <div key={i} className={styles.skeleton} aria-hidden="true">
             <div className={styles.skeletonCheckbox} />
             <div className={styles.skeletonAvatar} />
             <div className={styles.skeletonContent}>
