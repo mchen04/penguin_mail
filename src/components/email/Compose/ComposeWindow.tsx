@@ -309,6 +309,7 @@ export function ComposeWindow() {
     setIsSending(true)
     try {
       await sendEmail({
+        // Everything should be base64 encoded in the backend
         id: draftId, // Include draft ID if editing a draft
         accountId: fromAccountId,
         accountColor: selectedAccount?.color as 'blue' | 'green' | 'purple' | 'orange' | 'red',

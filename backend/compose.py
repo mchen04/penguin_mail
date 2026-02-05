@@ -1,3 +1,5 @@
+# Reference: https://www.geeksforgeeks.org/data-science/how-to-send-automated-email-messages-in-python/
+
 # Import libraries
 
 # Compose should output into a json format?
@@ -11,4 +13,8 @@
 
 # subject, body
 
+# Attachments[]
+
 # Then actually send the email via SMTP server
+
+# Include error handling for invalid email addresses, failed connections, authentication errors, etc.
