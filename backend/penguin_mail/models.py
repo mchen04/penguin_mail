@@ -15,17 +15,35 @@ class User(models.Model):
 
 class Email(models.Model):
     email_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_column='EmailID')
+    subject = models.CharField(max_length=255, db_column='Subject')
     message = models.TextField(db_column='Message')
     sender = models.EmailField(max_length=254, db_column='From')
-    to = models.TextField(blank=True, db_column='To')
-    cc = models.TextField(blank=True, db_column='CC')
-    bcc = models.TextField(blank=True, db_column='BCC')
+    to = models.JSONField(blank=True, db_column='To')
+    cc = models.JSONField(blank=True, db_column='CC')
+    bcc = models.JSONField(blank=True, db_column='BCC')
+    timestamp = models.DateTimeField(auto_now_add=True, db_column='Timestamp')
+#   embedded email content (e.g., HTML) can be added as needed # Figure this out
 
     class Meta:
         db_table = 'Emails'
 
     def __str__(self):
         return str(self.email_id)
+
+# Not sure if we need Receipients table if we are storing To, CC, BCC as JSON in Emails table. 
+# But if we want to keep track of individual recipients for querying purposes, we can use this model.
+class Recipient(models.Model):
+    email = models.ForeignKey(Email, on_delete=models.CASCADE, related_name='recipients')
+    address = models.EmailField(max_length=254)
+    kind = models.CharField(max_length=3, choices=[('TO','TO'),('CC','CC'),('BCC','BCC')])
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = 'Recipients'
+        unique_together = ('email', 'address', 'kind')
+
+    def __str__(self):
+        return f"{self.address} ({self.kind}) for email {self.email.email_id}"
 
 
 class UserEmail(models.Model):
