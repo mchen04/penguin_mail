@@ -144,7 +144,7 @@ class Recipient(models.Model):
 # ---------------------------------------------------------------------------
 
 class Attachment(models.Model):
-    email = models.ForeignKey(Email, on_delete=models.CASCADE, related_name='attachments')
+    email = models.ForeignKey(Email, on_delete=models.CASCADE, related_name='attachments', null=True, blank=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=255)
     size = models.PositiveIntegerField()
@@ -162,6 +162,7 @@ class Attachment(models.Model):
 
 class Label(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='labels')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=100)
     color = models.CharField(max_length=30, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -181,6 +182,7 @@ class Label(models.Model):
 
 class CustomFolder(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='custom_folders')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=100)
     color = models.CharField(max_length=30, blank=True, default='')
     icon = models.CharField(max_length=50, blank=True, default='')
@@ -204,6 +206,7 @@ class CustomFolder(models.Model):
 
 class Contact(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contacts')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=254)
     phone = models.CharField(max_length=50, blank=True, default='')
@@ -220,6 +223,7 @@ class Contact(models.Model):
 
 class ContactGroup(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contact_groups')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=100)
     color = models.CharField(max_length=30, blank=True, default='')
     contacts = models.ManyToManyField(Contact, blank=True, related_name='groups')

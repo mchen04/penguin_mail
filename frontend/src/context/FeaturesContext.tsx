@@ -160,14 +160,14 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
   // Persist saved searches
   useEffect(() => {
     if (!state.isLoading) {
-      storage.set(STORAGE_KEYS.SAVED_SEARCHES, state.savedSearches, { simulateDelay: false })
+      storage.set(STORAGE_KEYS.SAVED_SEARCHES, state.savedSearches)
     }
   }, [state.savedSearches, state.isLoading])
 
   // Persist templates
   useEffect(() => {
     if (!state.isLoading) {
-      storage.set(STORAGE_KEYS.EMAIL_TEMPLATES, state.templates, { simulateDelay: false })
+      storage.set(STORAGE_KEYS.EMAIL_TEMPLATES, state.templates)
     }
   }, [state.templates, state.isLoading])
 

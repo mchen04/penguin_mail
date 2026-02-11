@@ -1,19 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useSettings } from '@/context/SettingsContext'
 import { useFeatures } from '@/context/FeaturesContext'
-import { useToast } from '@/context/ToastContext'
 import { Modal } from '@/components/common/Modal/Modal'
 import { Icon, type IconName } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
 import { ICON_SIZE, TEXT } from '@/constants'
-import { stripHtml, getTodayDateString } from '@/utils'
-import {
-  exportAllData,
-  exportContactsToCSV,
-  importData,
-  importContactsFromCSV,
-  downloadFile,
-} from '@/services/exportImport'
+import { stripHtml } from '@/utils'
 import type { Theme, Density, ReadingPanePosition, DateFormat, TimeFormat, Signature, VacationResponder, FilterRule } from '@/types/settings'
 import type { EmailTemplate } from '@/types/email'
 import styles from './SettingsModal.module.css'
@@ -218,74 +210,6 @@ function GeneralSettings({
   onTimeFormatChange,
   onResetSettings,
 }: GeneralSettingsProps) {
-  const toast = useToast()
-  const importJsonRef = useRef<HTMLInputElement>(null)
-  const importCsvRef = useRef<HTMLInputElement>(null)
-
-  const handleExportAll = async () => {
-    try {
-      const data = await exportAllData()
-      downloadFile(data, `penguin-mail-backup-${getTodayDateString()}.json`, 'application/json')
-      toast.success('Data exported successfully')
-    } catch {
-      toast.error('Failed to export data')
-    }
-  }
-
-  const handleExportContacts = async () => {
-    try {
-      const csv = await exportContactsToCSV()
-      downloadFile(csv, `contacts-${getTodayDateString()}.csv`, 'text/csv')
-      toast.success('Contacts exported to CSV')
-    } catch {
-      toast.error('Failed to export contacts')
-    }
-  }
-
-  const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      const text = await file.text()
-      const result = await importData(text)
-      if (result.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
-      }
-    } catch {
-      toast.error('Failed to read import file')
-    }
-
-    // Reset input
-    if (importJsonRef.current) {
-      importJsonRef.current.value = ''
-    }
-  }
-
-  const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      const text = await file.text()
-      const result = await importContactsFromCSV(text)
-      if (result.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
-      }
-    } catch {
-      toast.error('Failed to read CSV file')
-    }
-
-    // Reset input
-    if (importCsvRef.current) {
-      importCsvRef.current.value = ''
-    }
-  }
-
   return (
     <div className={styles.settings}>
       <section className={styles.section}>
@@ -392,60 +316,6 @@ function GeneralSettings({
               active={timeFormat === '24h'}
               onClick={() => onTimeFormatChange('24h')}
             />
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Data</h3>
-
-        <div className={styles.setting}>
-          <label className={styles.label}>Export</label>
-          <p className={styles.description}>
-            Download a backup of your data
-          </p>
-          <div className={styles.buttonGroup}>
-            <Button variant="secondary" onClick={handleExportAll}>
-              <Icon name="download" size={ICON_SIZE.SMALL} />
-              Export All Data
-            </Button>
-            <Button variant="secondary" onClick={handleExportContacts}>
-              <Icon name="download" size={ICON_SIZE.SMALL} />
-              Export Contacts (CSV)
-            </Button>
-          </div>
-        </div>
-
-        <div className={styles.setting}>
-          <label className={styles.label}>Import</label>
-          <p className={styles.description}>
-            Restore data from a backup file
-          </p>
-          <div className={styles.buttonGroup}>
-            <input
-              ref={importJsonRef}
-              type="file"
-              accept=".json"
-              onChange={handleImportJson}
-              className={styles.hiddenInput}
-              id="import-json"
-            />
-            <Button variant="secondary" onClick={() => importJsonRef.current?.click()}>
-              <Icon name="upload" size={ICON_SIZE.SMALL} />
-              Import JSON Backup
-            </Button>
-            <input
-              ref={importCsvRef}
-              type="file"
-              accept=".csv"
-              onChange={handleImportCsv}
-              className={styles.hiddenInput}
-              id="import-csv"
-            />
-            <Button variant="secondary" onClick={() => importCsvRef.current?.click()}>
-              <Icon name="upload" size={ICON_SIZE.SMALL} />
-              Import Contacts (CSV)
-            </Button>
           </div>
         </div>
       </section>

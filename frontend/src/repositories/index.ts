@@ -3,31 +3,30 @@
  */
 
 export * from './types'
-export { MockEmailRepository } from './MockEmailRepository'
-export { MockAccountRepository } from './MockAccountRepository'
-export { MockContactRepository, MockContactGroupRepository } from './MockContactRepository'
-export { MockSettingsRepository } from './MockSettingsRepository'
-export { MockFolderRepository, MockLabelRepository } from './MockFolderRepository'
+export { ApiEmailRepository } from './ApiEmailRepository'
+export { ApiAccountRepository } from './ApiAccountRepository'
+export { ApiContactRepository, ApiContactGroupRepository } from './ApiContactRepository'
+export { ApiFolderRepository, ApiLabelRepository } from './ApiFolderRepository'
+export { ApiSettingsRepository } from './ApiSettingsRepository'
 
 import type { IRepositories } from './types'
-import { MockEmailRepository } from './MockEmailRepository'
-import { MockAccountRepository } from './MockAccountRepository'
-import { MockContactRepository, MockContactGroupRepository } from './MockContactRepository'
-import { MockSettingsRepository } from './MockSettingsRepository'
-import { MockFolderRepository, MockLabelRepository } from './MockFolderRepository'
+import { ApiEmailRepository } from './ApiEmailRepository'
+import { ApiAccountRepository } from './ApiAccountRepository'
+import { ApiContactRepository, ApiContactGroupRepository } from './ApiContactRepository'
+import { ApiFolderRepository, ApiLabelRepository } from './ApiFolderRepository'
+import { ApiSettingsRepository } from './ApiSettingsRepository'
 
 /**
- * Create mock repositories for development and testing
+ * Create API repositories for production use with backend
  */
-export function createMockRepositories(): IRepositories {
+export function createApiRepositories(): IRepositories {
   return {
-    emails: new MockEmailRepository(),
-    folders: new MockFolderRepository(),
-    labels: new MockLabelRepository(),
-    accounts: new MockAccountRepository(),
-    contacts: new MockContactRepository(),
-    contactGroups: new MockContactGroupRepository(),
-    settings: new MockSettingsRepository(),
+    emails: new ApiEmailRepository(),
+    folders: new ApiFolderRepository(),
+    labels: new ApiLabelRepository(),
+    accounts: new ApiAccountRepository(),
+    contacts: new ApiContactRepository(),
+    contactGroups: new ApiContactGroupRepository(),
+    settings: new ApiSettingsRepository(),
   }
 }
-

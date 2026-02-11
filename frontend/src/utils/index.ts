@@ -1,7 +1,6 @@
 export { cn } from './cn'
 export { formatDate, formatFullDate } from './formatDate'
 export { formatBytes } from './formatBytes'
-export { simulateNetworkDelay } from './delay'
 export { stripHtml } from './text'
 export * from './errors'
 export * from './datePresets'

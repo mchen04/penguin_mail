@@ -6,23 +6,19 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import type { IRepositories } from '@/repositories/types'
-import { createMockRepositories } from '@/repositories'
 
 const RepositoryContext = createContext<IRepositories | null>(null)
 
 interface RepositoryProviderProps {
   children: ReactNode
-  repositories?: IRepositories
+  repositories: IRepositories
 }
 
 /**
  * Provides repository instances to the application
- * Can accept custom repositories for testing or different backends
  */
 export function RepositoryProvider({ children, repositories }: RepositoryProviderProps) {
-  const repos = useMemo(() => {
-    return repositories ?? createMockRepositories()
-  }, [repositories])
+  const repos = useMemo(() => repositories, [repositories])
 
   return (
     <RepositoryContext.Provider value={repos}>

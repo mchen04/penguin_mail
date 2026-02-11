@@ -1,36 +1,11 @@
 /**
  * Storage Service
- * Provides localStorage persistence with JSON serialization and simulated delays
+ * Provides localStorage persistence with JSON serialization
  */
 
-import { STORAGE_SIMULATION, RANDOM_ID } from '@/constants'
+import { RANDOM_ID } from '@/constants'
 
 const STORAGE_PREFIX = 'penguin_mail_'
-
-export interface StorageOptions {
-  simulateDelay?: boolean
-  minDelay?: number
-  maxDelay?: number
-}
-
-const defaultOptions: StorageOptions = {
-  simulateDelay: true,
-  minDelay: STORAGE_SIMULATION.MIN_DELAY,
-  maxDelay: STORAGE_SIMULATION.MAX_DELAY,
-}
-
-/**
- * Simulates network delay for realistic UX
- */
-async function delay(options: StorageOptions = defaultOptions): Promise<void> {
-  if (!options.simulateDelay) return
-
-  const min = options.minDelay ?? STORAGE_SIMULATION.MIN_DELAY
-  const max = options.maxDelay ?? STORAGE_SIMULATION.MAX_DELAY
-  const ms = Math.floor(Math.random() * (max - min + 1)) + min
-
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
 
 /**
  * Generate a unique ID
@@ -51,7 +26,6 @@ function getKey(key: string): string {
  */
 function reviver(_key: string, value: unknown): unknown {
   if (typeof value === 'string') {
-    // Check if string is an ISO date format
     const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
     if (isoDateRegex.test(value)) {
       return new Date(value)
@@ -77,9 +51,7 @@ export const storage = {
   /**
    * Get item from storage
    */
-  async get<T>(key: string, options: StorageOptions = defaultOptions): Promise<T | null> {
-    await delay(options)
-
+  async get<T>(key: string): Promise<T | null> {
     try {
       const item = localStorage.getItem(getKey(key))
       if (item === null) return null
@@ -93,9 +65,7 @@ export const storage = {
   /**
    * Set item in storage
    */
-  async set<T>(key: string, value: T, options: StorageOptions = defaultOptions): Promise<void> {
-    await delay(options)
-
+  async set<T>(key: string, value: T): Promise<void> {
     try {
       const serialized = JSON.stringify(value, replacer)
       localStorage.setItem(getKey(key), serialized)
@@ -108,9 +78,7 @@ export const storage = {
   /**
    * Clear all app storage
    */
-  async clear(options: StorageOptions = defaultOptions): Promise<void> {
-    await delay(options)
-
+  async clear(): Promise<void> {
     try {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
@@ -128,8 +96,7 @@ export const storage = {
   /**
    * Check if key exists
    */
-  async has(key: string, options: StorageOptions = defaultOptions): Promise<boolean> {
-    await delay(options)
+  async has(key: string): Promise<boolean> {
     return localStorage.getItem(getKey(key)) !== null
   },
 }
@@ -138,21 +105,10 @@ export const storage = {
  * Storage keys used by the application
  */
 export const STORAGE_KEYS = {
-  EMAILS: 'emails',
-  ACCOUNTS: 'accounts',
-  CONTACTS: 'contacts',
-  CONTACT_GROUPS: 'contact_groups',
-  CUSTOM_FOLDERS: 'custom_folders',
-  LABELS: 'labels',
-  SETTINGS: 'settings',
   THEME: 'theme',
   DENSITY: 'density',
-  DRAFTS: 'drafts',
-  INITIALIZED: 'initialized',
   SAVED_SEARCHES: 'saved_searches',
   EMAIL_TEMPLATES: 'email_templates',
-  SCHEDULED_EMAILS: 'scheduled_emails',
-  SNOOZED_EMAILS: 'snoozed_emails',
 } as const
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]

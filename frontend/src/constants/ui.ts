@@ -88,13 +88,6 @@ export const TOAST = {
   ERROR_DURATION: 8000,
 } as const;
 
-export const STORAGE_SIMULATION = {
-  /** Minimum simulated delay in ms */
-  MIN_DELAY: 50,
-  /** Maximum simulated delay in ms */
-  MAX_DELAY: 200,
-} as const;
-
 export const TEXT = {
   /** Maximum length for email preview text */
   EMAIL_PREVIEW_LENGTH: 100,
@@ -128,23 +121,6 @@ export const BYTES = {
   PER_KB: 1024,
   /** Bytes per megabyte */
   PER_MB: 1024 * 1024,
-} as const;
-
-export const SIMULATED_DELAY = {
-  /** Base delay for standard operations in ms */
-  BASE_MS: 200,
-  /** Variance for standard operations in ms */
-  VARIANCE: 100,
-  /** Fast delay base in ms */
-  FAST_BASE_MS: 50,
-  /** Fast delay variance in ms */
-  FAST_VARIANCE: 100,
-  /** Slow delay base in ms */
-  SLOW_BASE_MS: 300,
-  /** Slow delay variance in ms */
-  SLOW_VARIANCE: 200,
-  /** Probability of slow response (0-1) */
-  SLOW_CHANCE: 0.1,
 } as const;
 
 export const NOTIFICATION = {
