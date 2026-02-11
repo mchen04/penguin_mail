@@ -275,7 +275,6 @@ Global keyboard shortcuts for power users.
 
 - Category tabs (Primary, Social, Promotions, etc.)
 - Inbox sorting options (unread first, starred first, etc.)
-- Snooze
 - Browser notifications
 - Pop-out compose to separate window
 - Multiple compose drafts open simultaneously

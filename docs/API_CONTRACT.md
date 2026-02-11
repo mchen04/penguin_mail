@@ -1,42 +1,44 @@
 # Backend API Contract
 
-This document describes the expected backend API contract for the Penguin Mail email client. The current implementation uses mock repositories with localStorage persistence. Switching to a real backend requires implementing these endpoints.
+This document describes the Penguin Mail REST API. The backend is built with Django Ninja and serves all endpoints under `/api/v1/`.
 
-## Architecture Overview
-
-The application uses a **Repository Pattern** for data access:
+## Architecture
 
 ```
-Component → Context → Repository Interface → Mock/Real Implementation
+React Component → Context → Repository Interface → ApiRepository → Django Ninja API
 ```
 
-Repository interfaces are defined in `src/repositories/types.ts`. To switch to a real backend:
-1. Create new repository implementations that call your API
-2. Update `src/repositories/index.ts` to use the new implementations
-3. Update `createMockRepositories()` to `createRepositories()` with your implementations
+Repository interfaces are defined in `frontend/src/repositories/types.ts`. API repository implementations live in `frontend/src/repositories/Api*.ts`. The API client (`frontend/src/services/apiClient.ts`) handles JWT token management, automatic refresh, and error handling.
 
 ## Base URL
 
-All endpoints should be prefixed with your API base URL:
 ```
-const API_BASE = process.env.VITE_API_URL || 'https://api.example.com/v1'
+VITE_API_URL=http://localhost:8000/api/v1
 ```
+
+Interactive API docs (Swagger UI) are available at `/api/v1/docs`.
 
 ---
 
 ## Authentication
 
 ### Headers
-All authenticated requests should include:
+
+All authenticated requests include:
 ```
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
-### Endpoints
+### Token Lifecycle
 
-#### POST /auth/login
-Login and receive tokens.
+- **Access token**: 15-minute expiry, HS256 JWT
+- **Refresh token**: 7-day expiry, HS256 JWT
+- The frontend automatically refreshes expired access tokens via the refresh endpoint
+
+### POST /auth/login
+
+Login and receive tokens. **No auth required.**
 
 **Request:**
 ```json
@@ -46,106 +48,98 @@ Login and receive tokens.
 }
 ```
 
-**Response:**
+**Response (200):**
 ```json
 {
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 3600,
-  "user": {
-    "id": "string",
-    "email": "string",
-    "name": "string"
-  }
+  "access_token": "string",
+  "refresh_token": "string",
+  "expires_in": 900,
+  "token_type": "Bearer"
 }
 ```
 
-#### POST /auth/refresh
-Refresh access token.
+**Error (401):** `{ "detail": "Invalid credentials" }`
+
+### POST /auth/refresh
+
+Refresh an expired access token. **No auth required.**
 
 **Request:**
 ```json
 {
-  "refreshToken": "string"
+  "refresh_token": "string"
 }
 ```
 
-**Response:**
+**Response (200):**
 ```json
 {
-  "accessToken": "string",
-  "expiresIn": 3600
+  "access_token": "string",
+  "expires_in": 900,
+  "token_type": "Bearer"
 }
 ```
 
-#### POST /auth/logout
-Invalidate tokens.
+### POST /auth/logout
+
+Logout current user. **Auth required.**
+
+**Response (200):** `{ "success": true }`
 
 ---
 
 ## Email Endpoints
 
+All email endpoints require authentication.
+
 ### GET /emails
-Fetch emails with filtering and pagination.
+
+List emails with filtering and pagination.
 
 **Query Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| folder | string | Filter by folder (inbox, sent, drafts, trash, spam, archive) |
-| accountId | string | Filter by account ID |
-| isRead | boolean | Filter by read status |
-| isStarred | boolean | Filter by starred status |
-| hasAttachment | boolean | Filter by attachment presence |
-| search | string | Full-text search in subject, from, body |
-| from | string | Filter by sender email/name |
-| to | string | Filter by recipient email/name |
-| subject | string | Filter by subject content |
-| labelIds | string[] | Filter by label IDs |
-| threadId | string | Get emails in a thread |
-| dateRange | string | Date filter: any, today, week, month, year, custom |
-| dateFrom | ISO 8601 date | Custom date range start (with dateRange=custom) |
-| dateTo | ISO 8601 date | Custom date range end (with dateRange=custom) |
-| page | number | Page number (1-indexed) |
-| pageSize | number | Items per page (default: 50) |
-| sortField | string | Sort field (date, from, subject) |
-| sortDirection | string | Sort direction (asc, desc) |
 
-**Response:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| folder | string | — | Filter by folder (inbox, sent, drafts, trash, spam, archive, starred, snoozed, scheduled) |
+| accountId | string | — | Filter by account ID |
+| isRead | boolean | — | Filter by read status |
+| isStarred | boolean | — | Filter by starred status |
+| hasAttachment | boolean | — | Filter by attachment presence |
+| search | string | — | Full-text search in subject, sender, body |
+| threadId | string | — | Get all emails in a thread |
+| labelIds | string | — | Comma-separated label IDs |
+| page | number | 1 | Page number (1-indexed) |
+| pageSize | number | 50 | Items per page (max 200) |
+
+**Response (200):**
 ```json
 {
   "data": [
     {
       "id": "string",
       "accountId": "string",
-      "accountColor": "blue|green|purple|orange|pink|teal|red|indigo",
-      "threadId": "string|null",
-      "from": {
-        "name": "string",
-        "email": "string"
-      },
+      "accountColor": "blue",
+      "from_": { "name": "string", "email": "string" },
       "to": [{ "name": "string", "email": "string" }],
-      "cc": [{ "name": "string", "email": "string" }],
-      "bcc": [{ "name": "string", "email": "string" }],
+      "cc": [],
+      "bcc": [],
       "subject": "string",
       "preview": "string",
-      "body": "string",
-      "date": "ISO 8601 datetime",
-      "isRead": "boolean",
-      "isStarred": "boolean",
-      "isDraft": "boolean",
-      "folder": "inbox|sent|drafts|trash|spam|archive",
-      "labels": ["string"],
-      "attachments": [
-        {
-          "id": "string",
-          "name": "string",
-          "size": "number",
-          "mimeType": "string",
-          "url": "string"
-        }
-      ],
+      "body": "string (HTML)",
+      "date": "2025-01-15T10:30:00Z",
+      "isRead": false,
+      "isStarred": false,
+      "hasAttachment": false,
+      "attachments": [],
+      "folder": "inbox",
+      "labels": ["label-uuid"],
+      "threadId": "string|null",
       "replyToId": "string|null",
-      "forwardedFromId": "string|null"
+      "forwardedFromId": "string|null",
+      "isDraft": false,
+      "scheduledSendAt": null,
+      "snoozeUntil": null,
+      "snoozedFromFolder": null
     }
   ],
   "pagination": {
@@ -157,632 +151,549 @@ Fetch emails with filtering and pagination.
 }
 ```
 
-### GET /emails/:id
-Fetch single email by ID.
+### GET /emails/{id}
+
+Get a single email by ID.
+
+**Response (200):** Single email object (same shape as list items).
+
+**Error (404):** `{ "detail": "Email not found" }`
 
 ### POST /emails
-Create and send a new email.
+
+Create and send an email.
 
 **Request:**
 ```json
 {
   "accountId": "string",
   "to": [{ "name": "string", "email": "string" }],
-  "cc": [{ "name": "string", "email": "string" }],
-  "bcc": [{ "name": "string", "email": "string" }],
+  "cc": [],
+  "bcc": [],
   "subject": "string",
   "body": "string",
-  "replyToId": "string|null",
-  "forwardedFromId": "string|null",
-  "attachments": ["file IDs"]
+  "replyToId": null,
+  "forwardedFromId": null,
+  "scheduledSendAt": null
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": { /* created email object */ }
-}
-```
+**Response (201):** Created email object.
 
 ### POST /emails/draft
-Save email as draft.
 
-**Request:** Same as POST /emails
+Save an email as a draft. Same request body as POST /emails.
 
-### PATCH /emails/:id
+**Response (201):** Created draft email object (with `isDraft: true`, `folder: "drafts"`).
+
+### PATCH /emails/{id}
+
 Update email properties.
 
-**Request:**
+**Request (all fields optional):**
 ```json
 {
-  "isRead": "boolean",
-  "isStarred": "boolean",
-  "folder": "string",
-  "labels": ["string"]
+  "isRead": true,
+  "isStarred": false,
+  "folder": "archive",
+  "labels": ["label-uuid-1", "label-uuid-2"]
 }
 ```
 
-### DELETE /emails/:id
+**Response (200):** Updated email object.
+
+### DELETE /emails/{id}
+
 Move email to trash (soft delete).
 
-### DELETE /emails/:id/permanent
-Permanently delete email.
+**Response (200):** `{ "success": true }`
+
+### DELETE /emails/{id}/permanent
+
+Permanently delete an email.
+
+**Response (200):** `{ "success": true }`
 
 ### POST /emails/bulk
+
 Bulk operations on multiple emails.
 
 **Request:**
 ```json
 {
-  "ids": ["string"],
+  "ids": ["email-id-1", "email-id-2"],
   "operation": "markRead|markUnread|star|unstar|archive|delete|deletePermanent|move|addLabel|removeLabel",
-  "folder": "string (for move operation)",
-  "labelId": "string (for label operations)"
+  "folder": "string (required for 'move' operation)",
+  "labelIds": ["string (for addLabel/removeLabel operations)"]
 }
 ```
 
-### POST /emails/:id/labels
+**Response (200):** `{ "success": true }`
+
+### POST /emails/{id}/labels
+
 Add labels to an email.
 
 **Request:**
 ```json
 {
-  "labelIds": ["string"]
+  "labelIds": ["label-uuid-1"]
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": { /* updated email object */ }
-}
-```
+**Response (200):** `{ "success": true }`
 
-### DELETE /emails/:id/labels
-Remove labels from an email.
+### DELETE /emails/{id}/labels
 
-**Request:**
-```json
-{
-  "labelIds": ["string"]
-}
-```
+Remove labels from an email. Same request body as add.
+
+**Response (200):** `{ "success": true }`
 
 ---
 
 ## Account Endpoints
 
-### GET /accounts
-Fetch user's email accounts.
+All account endpoints require authentication.
 
-**Response:**
+### GET /accounts
+
+List all accounts for the current user.
+
+**Response (200):**
+```json
+[
+  {
+    "id": "string",
+    "email": "string",
+    "name": "string",
+    "color": "blue",
+    "displayName": "",
+    "signature": "",
+    "defaultSignatureId": "",
+    "avatar": "",
+    "isDefault": true,
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z"
+  }
+]
+```
+
+### GET /accounts/{id}
+
+Get a single account.
+
+### POST /accounts
+
+Create a new email account.
+
+**Request:**
 ```json
 {
-  "data": [
-    {
-      "id": "string",
-      "email": "string",
-      "name": "string",
-      "color": "blue|green|purple|orange|pink|teal|red|indigo",
-      "isActive": "boolean",
-      "signature": "string|null",
-      "provider": "gmail|outlook|custom",
-      "lastSyncAt": "ISO 8601 datetime"
-    }
-  ]
+  "email": "string",
+  "name": "string",
+  "color": "blue",
+  "displayName": "",
+  "signature": ""
 }
 ```
 
-### POST /accounts
-Add new email account.
+**Response (201):** Created account object.
 
-### PATCH /accounts/:id
-Update account settings.
+### PATCH /accounts/{id}
 
-### DELETE /accounts/:id
-Remove email account.
+Update account settings. All fields optional.
+
+**Request:**
+```json
+{
+  "name": "string",
+  "color": "green",
+  "displayName": "string",
+  "signature": "string",
+  "defaultSignatureId": "string",
+  "avatar": "string",
+  "isDefault": true
+}
+```
+
+### DELETE /accounts/{id}
+
+Delete an account.
+
+**Response (200):** `{ "success": true }`
+
+### POST /accounts/{id}/set-default
+
+Set an account as the default.
+
+**Response (200):** `{ "success": true }`
 
 ---
 
 ## Contact Endpoints
 
+All contact endpoints require authentication.
+
 ### GET /contacts
-Fetch contacts with pagination.
 
-**Query Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| search | string | Search by name, email, company |
-| groupId | string | Filter by contact group |
-| isFavorite | boolean | Filter favorites |
-| page | number | Page number |
-| pageSize | number | Items per page |
+List contacts with pagination.
 
-**Response:**
+**Query Parameters:** `page` (default 1), `pageSize` (default 50)
+
+**Response (200):** `{ "data": [ContactOut], "pagination": {...} }`
+
+### GET /contacts/search
+
+Search contacts by name, email, or company.
+
+**Query Parameters:** `q` (search query), `page`, `pageSize`
+
+### GET /contacts/favorites
+
+Get all favorite contacts.
+
+**Response (200):** `[ContactOut]`
+
+### GET /contacts/by-group/{group_id}
+
+Get contacts belonging to a specific group.
+
+### GET /contacts/{id}
+
+Get a single contact.
+
+**Contact object:**
 ```json
 {
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "email": "string",
-      "phone": "string|null",
-      "company": "string|null",
-      "avatar": "string|null",
-      "notes": "string|null",
-      "isFavorite": "boolean",
-      "groups": ["groupId"],
-      "createdAt": "ISO 8601 datetime",
-      "updatedAt": "ISO 8601 datetime"
-    }
-  ],
-  "pagination": { /* ... */ }
+  "id": "string",
+  "email": "string",
+  "name": "string",
+  "avatar": "",
+  "phone": "",
+  "company": "",
+  "notes": "",
+  "isFavorite": false,
+  "groups": ["group-uuid"],
+  "createdAt": "2025-01-15T10:30:00Z",
+  "updatedAt": "2025-01-15T10:30:00Z"
 }
 ```
 
+### GET /contacts/by-email/{email}
+
+Look up a contact by email address.
+
 ### POST /contacts
-Create contact.
 
-### PATCH /contacts/:id
-Update contact.
+Create a contact.
 
-### DELETE /contacts/:id
-Delete contact.
+**Request:**
+```json
+{
+  "email": "string",
+  "name": "string",
+  "avatar": "",
+  "phone": "",
+  "company": "",
+  "notes": "",
+  "groups": []
+}
+```
 
-### POST /contacts/:id/favorite
-Toggle favorite status.
+### PATCH /contacts/{id}
+
+Update a contact. All fields optional.
+
+### DELETE /contacts/{id}
+
+Delete a contact.
+
+### POST /contacts/{id}/toggle-favorite
+
+Toggle the favorite status of a contact.
+
+### POST /contacts/{id}/add-to-group/{group_id}
+
+Add a contact to a group.
+
+### POST /contacts/{id}/remove-from-group/{group_id}
+
+Remove a contact from a group.
 
 ---
 
-## Contact Groups Endpoints
+## Contact Group Endpoints
 
 ### GET /contact-groups
-Fetch all contact groups.
 
-**Response:**
+List all contact groups.
+
+**Response (200):**
 ```json
-{
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "color": "string (hex)",
-      "contactIds": ["string"],
-      "createdAt": "ISO 8601 datetime",
-      "updatedAt": "ISO 8601 datetime"
-    }
-  ]
-}
+[
+  {
+    "id": "string",
+    "name": "string",
+    "color": "",
+    "contactIds": ["contact-uuid"],
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z"
+  }
+]
 ```
 
 ### POST /contact-groups
-Create group.
 
-### PATCH /contact-groups/:id
-Update group.
+**Request:** `{ "name": "string", "color": "" }`
 
-### DELETE /contact-groups/:id
-Delete group.
+### PATCH /contact-groups/{id}
+
+**Request:** `{ "name": "string", "color": "string" }` (all optional)
+
+### DELETE /contact-groups/{id}
 
 ---
 
 ## Folder Endpoints
 
 ### GET /folders
-Fetch custom folders.
 
-**Response:**
+List custom folders for the current user.
+
+**Response (200):**
 ```json
-{
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "color": "string (hex)",
-      "icon": "string|null",
-      "parentId": "string|null",
-      "order": "number",
-      "createdAt": "ISO 8601 datetime"
-    }
-  ]
-}
+[
+  {
+    "id": "string",
+    "name": "string",
+    "color": "",
+    "parentId": null,
+    "order": 0,
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z"
+  }
+]
 ```
 
 ### POST /folders
-Create custom folder.
 
-### PATCH /folders/:id
-Update folder.
+**Request:** `{ "name": "string", "color": "", "parentId": null }`
 
-### DELETE /folders/:id
-Delete folder.
+### PATCH /folders/{id}
+
+**Request:** `{ "name": "string", "color": "string" }` (all optional)
+
+### DELETE /folders/{id}
+
+### POST /folders/{id}/reorder
+
+Reorder a folder. **Query parameter:** `newOrder` (default 0).
 
 ---
 
 ## Label Endpoints
 
 ### GET /labels
-Fetch all labels.
 
-**Response:**
+List all labels.
+
+**Response (200):**
 ```json
-{
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "color": "string (hex)",
-      "createdAt": "ISO 8601 datetime"
-    }
-  ]
-}
+[
+  {
+    "id": "string",
+    "name": "string",
+    "color": ""
+  }
+]
 ```
 
 ### POST /labels
-Create label.
 
-### PATCH /labels/:id
-Update label.
+**Request:** `{ "name": "string", "color": "" }`
 
-### DELETE /labels/:id
-Delete label.
+### PATCH /labels/{id}
+
+**Request:** `{ "name": "string", "color": "string" }` (all optional)
+
+### DELETE /labels/{id}
 
 ---
 
 ## Settings Endpoints
 
 ### GET /settings
-Fetch user settings.
 
-**Response:**
+Fetch all user settings. Creates default settings on first access.
+
+**Response (200):**
 ```json
 {
   "appearance": {
-    "theme": "light|dark|system",
-    "density": "compact|default|comfortable",
-    "fontSize": "small|medium|large"
+    "theme": "system",
+    "density": "default",
+    "fontSize": "medium"
   },
   "notifications": {
-    "emailNotifications": "boolean",
-    "desktopNotifications": "boolean",
-    "soundEnabled": "boolean",
-    "notifyOnNewEmail": "boolean",
-    "notifyOnMention": "boolean"
+    "emailNotifications": true,
+    "desktopNotifications": false,
+    "soundEnabled": true,
+    "notifyOnNewEmail": true,
+    "notifyOnMention": true
   },
   "inboxBehavior": {
-    "defaultReplyBehavior": "reply|replyAll",
-    "sendBehavior": "immediately|delay30s|delay60s",
-    "conversationView": "boolean",
-    "readingPanePosition": "right|bottom|hidden",
-    "autoAdvance": "next|previous|list",
-    "markAsReadDelay": "number (ms)"
+    "defaultReplyBehavior": "reply",
+    "sendBehavior": "immediately",
+    "conversationView": true,
+    "readingPanePosition": "right",
+    "autoAdvance": "next",
+    "markAsReadDelay": 0
   },
   "language": {
-    "language": "string (locale)",
-    "timezone": "string",
-    "dateFormat": "MM/DD/YYYY|DD/MM/YYYY|YYYY-MM-DD",
-    "timeFormat": "12h|24h"
+    "language": "en",
+    "timezone": "UTC",
+    "dateFormat": "MM/DD/YYYY",
+    "timeFormat": "12h"
   },
-  "signatures": [
-    {
-      "id": "string",
-      "name": "string",
-      "content": "string (HTML)",
-      "isDefault": "boolean"
-    }
-  ],
+  "signatures": [],
   "vacationResponder": {
-    "enabled": "boolean",
-    "subject": "string",
-    "message": "string",
-    "startDate": "ISO 8601 date|null",
-    "endDate": "ISO 8601 date|null",
-    "sendToContacts": "boolean",
-    "sendToEveryone": "boolean"
+    "enabled": false,
+    "subject": "",
+    "message": "",
+    "startDate": null,
+    "endDate": null,
+    "sendToContacts": false,
+    "sendToEveryone": true
   },
-  "keyboardShortcuts": [
-    {
-      "id": "string",
-      "action": "string",
-      "key": "string",
-      "modifiers": ["ctrl"|"alt"|"shift"|"meta"],
-      "enabled": "boolean"
-    }
-  ],
-  "filters": [
-    {
-      "id": "string",
-      "name": "string",
-      "enabled": "boolean",
-      "conditions": [
-        {
-          "field": "from|to|subject|body|hasAttachment",
-          "operator": "contains|equals|startsWith|endsWith|notContains",
-          "value": "string"
-        }
-      ],
-      "matchAll": "boolean",
-      "actions": [
-        {
-          "type": "moveTo|addLabel|markAsRead|markAsStarred|delete|archive",
-          "value": "string|null"
-        }
-      ],
-      "createdAt": "ISO 8601 datetime",
-      "updatedAt": "ISO 8601 datetime"
-    }
-  ],
-  "blockedAddresses": [
-    {
-      "id": "string",
-      "email": "string",
-      "createdAt": "ISO 8601 datetime"
-    }
-  ]
+  "keyboardShortcuts": [],
+  "filters": [],
+  "blockedAddresses": []
 }
 ```
 
 ### PATCH /settings
-Update settings (partial update supported).
+
+Update settings (partial update). Only send the fields you want to change.
+
+**Request:**
+```json
+{
+  "appearance": { "theme": "dark" },
+  "notifications": { "soundEnabled": false }
+}
+```
 
 ### POST /settings/reset
-Reset settings to defaults.
+
+Reset all settings to defaults.
+
+### POST /settings/signatures
+
+Create a signature. **Request:** `{ "name": "string", "content": "", "isDefault": false }`
+
+### PATCH /settings/signatures/{id}
+
+Update a signature. All fields optional.
+
+### DELETE /settings/signatures/{id}
+
+### POST /settings/filters
+
+Create a filter rule.
+
+**Request:**
+```json
+{
+  "name": "string",
+  "enabled": true,
+  "conditions": [{ "field": "from", "operator": "contains", "value": "string" }],
+  "matchAll": true,
+  "actions": [{ "type": "moveTo", "value": "folder-name" }]
+}
+```
+
+### PATCH /settings/filters/{id}
+
+### DELETE /settings/filters/{id}
+
+### POST /settings/blocked-addresses
+
+Block an email address. **Request:** `{ "email": "string" }`
+
+### DELETE /settings/blocked-addresses/{email}
+
+Unblock an email address.
+
+### PATCH /settings/keyboard-shortcuts/{id}
+
+Update a keyboard shortcut. **Query params:** `enabled`, `key`, `modifiers`.
 
 ---
 
-## File Upload Endpoints
+## Attachment Endpoints
 
 ### POST /attachments/upload
-Upload file attachment.
 
-**Request:** multipart/form-data
-- file: Binary file data
+Upload a file attachment. Uses `multipart/form-data`.
 
-**Response:**
+**Request:** Form field `file` with the binary file data.
+
+**Response (201):**
 ```json
 {
   "id": "string",
-  "name": "string",
-  "size": "number",
-  "mimeType": "string",
-  "url": "string"
+  "name": "original-filename.pdf",
+  "size": 12345,
+  "mimeType": "application/pdf",
+  "url": "/media/attachments/2025/01/file.pdf"
 }
 ```
 
-### GET /attachments/:id
-Download attachment.
+### GET /attachments/{id}
 
----
+Get attachment metadata.
 
-## WebSocket Events (Real-time Updates)
+### GET /attachments/{id}/download
 
-For real-time sync, implement WebSocket connections.
-
-### Connection
-
-```
-ws://api.example.com/ws?token=<access_token>
-```
-
-The WebSocket connection requires authentication via the access token passed as a query parameter.
-
-### Events from Server
-
-#### `email:new`
-Triggered when a new email is received.
-
-```json
-{
-  "event": "email:new",
-  "data": {
-    "email": { /* full email object */ },
-    "accountId": "string"
-  }
-}
-```
-
-#### `email:updated`
-Triggered when an email is updated (read status, labels, folder, etc.).
-
-```json
-{
-  "event": "email:updated",
-  "data": {
-    "emailId": "string",
-    "updates": {
-      "isRead": "boolean|undefined",
-      "isStarred": "boolean|undefined",
-      "folder": "string|undefined",
-      "labels": "string[]|undefined"
-    }
-  }
-}
-```
-
-#### `email:deleted`
-Triggered when an email is permanently deleted.
-
-```json
-{
-  "event": "email:deleted",
-  "data": {
-    "emailId": "string"
-  }
-}
-```
-
-#### `sync:complete`
-Triggered when initial sync or resync is complete.
-
-```json
-{
-  "event": "sync:complete",
-  "data": {
-    "accountId": "string",
-    "timestamp": "ISO 8601 datetime"
-  }
-}
-```
-
-#### `connection:error`
-Triggered when a connection error occurs.
-
-```json
-{
-  "event": "connection:error",
-  "data": {
-    "code": "string",
-    "message": "string"
-  }
-}
-```
-
-### Events from Client
-
-#### `subscribe:account`
-Subscribe to updates for a specific account.
-
-```json
-{
-  "event": "subscribe:account",
-  "data": {
-    "accountId": "string"
-  }
-}
-```
-
-#### `unsubscribe:account`
-Unsubscribe from account updates.
-
-```json
-{
-  "event": "unsubscribe:account",
-  "data": {
-    "accountId": "string"
-  }
-}
-```
-
-#### `ping`
-Keep-alive ping (server responds with `pong`).
-
-```json
-{
-  "event": "ping"
-}
-```
-
-### Connection Lifecycle
-
-1. **Connect**: Client connects with access token
-2. **Subscribe**: Client subscribes to relevant accounts
-3. **Receive**: Server pushes real-time updates
-4. **Reconnect**: On disconnect, client should reconnect with exponential backoff
-5. **Resubscribe**: After reconnect, client should resubscribe to accounts
-
-### Reconnection Strategy
-
-```typescript
-const reconnect = (attempt: number) => {
-  const delay = Math.min(1000 * Math.pow(2, attempt), 30000)
-  setTimeout(() => connect(), delay)
-}
-```
+Download the attachment file (returns binary file response).
 
 ---
 
 ## Error Responses
 
-All error responses follow this format:
+Errors return a JSON object with a `detail` field:
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "string",
-    "message": "string",
-    "details": {}
+  "detail": "Error message here"
+}
+```
+
+### HTTP Status Codes
+
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created |
+| 401 | Unauthorized (invalid/expired token) |
+| 404 | Resource not found |
+| 422 | Validation error (bad request body) |
+| 500 | Internal server error |
+
+## Pagination
+
+Paginated endpoints return:
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "pageSize": 50,
+    "total": 150,
+    "totalPages": 3
   }
 }
 ```
 
-### Common Error Codes:
-- `UNAUTHORIZED` - Invalid or expired token
-- `FORBIDDEN` - Insufficient permissions
-- `NOT_FOUND` - Resource not found
-- `VALIDATION_ERROR` - Request validation failed
-- `RATE_LIMITED` - Too many requests
-- `SERVER_ERROR` - Internal server error
-
----
-
-## Implementation Notes
-
-### Switching to Real Backend
-
-1. **Create API Client:**
-```typescript
-// src/services/api.ts
-const api = {
-  get: (url: string) => fetch(`${API_BASE}${url}`, { headers: authHeaders() }),
-  post: (url: string, body: any) => fetch(`${API_BASE}${url}`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(body)
-  }),
-  // ... patch, delete
-}
-```
-
-2. **Create Real Repository:**
-```typescript
-// src/repositories/ApiEmailRepository.ts
-export class ApiEmailRepository implements IEmailRepository {
-  async search(filters, pagination) {
-    const params = new URLSearchParams(/* ... */)
-    const response = await api.get(`/emails?${params}`)
-    return response.json()
-  }
-  // ... implement all methods
-}
-```
-
-3. **Update Repository Factory:**
-```typescript
-// src/repositories/index.ts
-export function createRepositories(): Repositories {
-  return {
-    emails: new ApiEmailRepository(),
-    accounts: new ApiAccountRepository(),
-    // ...
-  }
-}
-```
-
-4. **Environment Variables:**
-```env
-VITE_API_URL=https://api.yourbackend.com/v1
-VITE_WS_URL=wss://api.yourbackend.com/ws
-```
-
-### Data Synchronization
-
-The current mock implementation uses optimistic updates:
-1. Update local state immediately
-2. Persist to storage asynchronously
-
-For real backend:
-1. Update local state optimistically
-2. Send API request
-3. On failure, revert local state and show error toast
-
-### Offline Support
-
-Consider implementing:
-1. Service Worker for caching
-2. IndexedDB for offline email storage
-3. Queue for pending operations
-4. Sync on reconnection
+Maximum page size is 200. Default is 50.
