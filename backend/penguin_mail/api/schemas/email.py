@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from ninja import Schema
+from pydantic import model_serializer
+from ninja import Schema, Field
 
 
 class EmailAddressOut(Schema):
@@ -21,7 +22,7 @@ class EmailOut(Schema):
     id: str
     accountId: str
     accountColor: str
-    from_: EmailAddressOut
+    from_: EmailAddressOut = Field(serialization_alias='from')
     to: list[EmailAddressOut]
     cc: list[EmailAddressOut] = []
     bcc: list[EmailAddressOut] = []
@@ -44,8 +45,14 @@ class EmailOut(Schema):
     snoozedFromFolder: Optional[str] = None
 
     class Config:
-        # 'from' is a Python keyword — alias it
         json_schema_extra = {"properties": {"from": {"$ref": "#/$defs/EmailAddressOut"}}}
+
+    @model_serializer(mode='wrap')
+    def _serialize(self, handler):
+        d = handler(self)
+        if 'from_' in d:
+            d['from'] = d.pop('from_')
+        return d
 
     @staticmethod
     def from_model(email) -> "EmailOut":

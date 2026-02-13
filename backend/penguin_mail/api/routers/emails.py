@@ -34,6 +34,17 @@ def _strip_html(html: str, max_length: int = 200) -> str:
     return text[:max_length]
 
 
+def _create_recipients(email, addresses, kind):
+    for i, addr in enumerate(addresses):
+        Recipient.objects.create(
+            email=email,
+            address=addr.email,
+            name=addr.name,
+            kind=kind,
+            order=i,
+        )
+
+
 @router.get("/", response=dict)
 def list_emails(
     request,
@@ -79,15 +90,6 @@ def list_emails(
         "data": [EmailOut.from_model(e) for e in result["items"]],
         **result["pagination"],
     }
-
-
-@router.get("/{email_id}", response=EmailOut)
-def get_email(request, email_id: str):
-    try:
-        email = _base_qs(request.auth).get(uuid=email_id)
-    except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
-    return EmailOut.from_model(email)
 
 
 @router.post("/", response={201: EmailOut})
@@ -147,6 +149,7 @@ def create_email(request, payload: EmailCreateIn):
     return 201, EmailOut.from_model(email)
 
 
+# Literal paths MUST be defined before /{email_id} to avoid parameter capture
 @router.post("/draft", response={201: EmailOut})
 def create_draft(request, payload: EmailCreateIn):
     user = request.auth
@@ -175,6 +178,50 @@ def create_draft(request, payload: EmailCreateIn):
 
     email = _base_qs(user).get(pk=email.pk)
     return 201, EmailOut.from_model(email)
+
+
+@router.post("/bulk", response=SuccessOut)
+def bulk_operation(request, payload: BulkOpIn):
+    user = request.auth
+    emails = Email.objects.filter(uuid__in=payload.ids, account__user=user)
+
+    op = payload.operation
+    if op == "markRead":
+        emails.update(is_read=True)
+    elif op == "markUnread":
+        emails.update(is_read=False)
+    elif op == "star":
+        emails.update(is_starred=True)
+    elif op == "unstar":
+        emails.update(is_starred=False)
+    elif op == "archive":
+        emails.update(folder="archive")
+    elif op == "delete":
+        emails.update(folder="trash")
+    elif op == "deletePermanent":
+        emails.delete()
+    elif op == "move" and payload.folder:
+        emails.update(folder=payload.folder)
+    elif op == "addLabel" and payload.labelIds:
+        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
+        for email in emails:
+            email.labels.add(*labels)
+    elif op == "removeLabel" and payload.labelIds:
+        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
+        for email in emails:
+            email.labels.remove(*labels)
+
+    return SuccessOut()
+
+
+# Parameterized routes after literal ones
+@router.get("/{email_id}", response=EmailOut)
+def get_email(request, email_id: str):
+    try:
+        email = _base_qs(request.auth).get(uuid=email_id)
+    except Email.DoesNotExist:
+        return router.create_response(request, {"detail": "Not found"}, status=404)
+    return EmailOut.from_model(email)
 
 
 @router.patch("/{email_id}", response=EmailOut)
@@ -226,40 +273,6 @@ def delete_email_permanent(request, email_id: str):
     return SuccessOut()
 
 
-@router.post("/bulk", response=SuccessOut)
-def bulk_operation(request, payload: BulkOpIn):
-    user = request.auth
-    emails = Email.objects.filter(uuid__in=payload.ids, account__user=user)
-
-    op = payload.operation
-    if op == "markRead":
-        emails.update(is_read=True)
-    elif op == "markUnread":
-        emails.update(is_read=False)
-    elif op == "star":
-        emails.update(is_starred=True)
-    elif op == "unstar":
-        emails.update(is_starred=False)
-    elif op == "archive":
-        emails.update(folder="archive")
-    elif op == "delete":
-        emails.update(folder="trash")
-    elif op == "deletePermanent":
-        emails.delete()
-    elif op == "move" and payload.folder:
-        emails.update(folder=payload.folder)
-    elif op == "addLabel" and payload.labelIds:
-        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
-        for email in emails:
-            email.labels.add(*labels)
-    elif op == "removeLabel" and payload.labelIds:
-        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
-        for email in emails:
-            email.labels.remove(*labels)
-
-    return SuccessOut()
-
-
 @router.post("/{email_id}/labels", response=SuccessOut)
 def add_labels(request, email_id: str, payload: LabelOpIn):
     user = request.auth
@@ -284,14 +297,3 @@ def remove_labels(request, email_id: str, payload: LabelOpIn):
     labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
     email.labels.remove(*labels)
     return SuccessOut()
-
-
-def _create_recipients(email, addresses, kind):
-    for i, addr in enumerate(addresses):
-        Recipient.objects.create(
-            email=email,
-            address=addr.email,
-            name=addr.name,
-            kind=kind,
-            order=i,
-        )

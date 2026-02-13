@@ -10,7 +10,6 @@ import {
 } from 'react'
 import type { Email, FolderType, ComposeEmailInput, SearchFilters } from '@/types/email'
 import { useRepositories } from './RepositoryContext'
-import { postEmail } from '@/services/api'
 import { stripHtml } from '@/utils'
 import { ALL_ACCOUNTS_ID, DATE_RANGE_MS, REPOSITORY, TEXT } from '@/constants'
 
@@ -753,74 +752,44 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // For new sends, post to backend API and update local state
-    try {
-      const resp = await postEmail(email)
-      // resp should include id and timestamp
-      const created: Email = {
-        id: resp.id ?? `email-${Date.now()}`,
-        accountId: email.accountId,
-        accountColor: email.accountColor ?? 'green',
-        from: email.from ?? { name: 'User', email: 'user@example.com' },
-        to: email.to,
-        cc: email.cc,
-        bcc: email.bcc,
-        subject: email.subject,
-        preview: stripHtml(email.body).substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
-        body: email.body,
-        date: resp.timestamp ? new Date(resp.timestamp) : new Date(),
-        isRead: true,
-        isStarred: false,
-        hasAttachment: (email.attachments?.length ?? 0) > 0,
-        attachments: email.attachments ?? [],
-        folder: 'sent',
-        labels: [],
-        threadId: email.threadId ?? `thread-${Date.now()}`,
-        replyToId: email.replyToId,
-        forwardedFromId: email.forwardedFromId,
-        isDraft: false,
-      }
+    // Create email via repository (properly calls POST /api/v1/emails/ with JWT auth)
+    const result = await emailRepository.create({
+      accountId: email.accountId,
+      to: email.to,
+      cc: email.cc,
+      bcc: email.bcc,
+      subject: email.subject,
+      body: email.body,
+      attachments: email.attachments,
+      replyToId: email.replyToId,
+      forwardedFromId: email.forwardedFromId,
+    })
 
-      dispatch({ type: 'ADD_EMAIL', email: created })
-    } catch (err) {
-      // Fallback to local repository create when backend fails
-      const fallback: Email = {
-        id: email.id ?? `email-${Date.now()}`,
-        accountId: email.accountId,
-        accountColor: email.accountColor ?? 'green',
-        from: email.from ?? { name: 'User', email: 'user@example.com' },
-        to: email.to,
-        cc: email.cc,
-        bcc: email.bcc,
-        subject: email.subject,
-        preview: stripHtml(email.body).substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
-        body: email.body,
-        date: new Date(),
-        isRead: true,
-        isStarred: false,
-        hasAttachment: (email.attachments?.length ?? 0) > 0,
-        attachments: email.attachments ?? [],
-        folder: 'sent',
-        labels: [],
-        threadId: email.threadId ?? `thread-${Date.now()}`,
-        replyToId: email.replyToId,
-        forwardedFromId: email.forwardedFromId,
-        isDraft: false,
-      }
-
-      dispatch({ type: 'ADD_EMAIL', email: fallback })
-      await emailRepository.create({
-        accountId: fallback.accountId,
-        to: fallback.to,
-        cc: fallback.cc,
-        bcc: fallback.bcc,
-        subject: fallback.subject,
-        body: fallback.body,
-        attachments: fallback.attachments,
-        replyToId: fallback.replyToId,
-        forwardedFromId: fallback.forwardedFromId,
-      })
+    const created: Email = {
+      id: result.data?.id ?? `email-${Date.now()}`,
+      accountId: email.accountId,
+      accountColor: email.accountColor ?? 'green',
+      from: email.from ?? { name: 'User', email: 'user@example.com' },
+      to: email.to,
+      cc: email.cc,
+      bcc: email.bcc,
+      subject: email.subject,
+      preview: stripHtml(email.body).substring(0, TEXT.EMAIL_PREVIEW_LENGTH),
+      body: email.body,
+      date: new Date(),
+      isRead: true,
+      isStarred: false,
+      hasAttachment: (email.attachments?.length ?? 0) > 0,
+      attachments: email.attachments ?? [],
+      folder: 'sent',
+      labels: [],
+      threadId: email.threadId ?? `thread-${Date.now()}`,
+      replyToId: email.replyToId,
+      forwardedFromId: email.forwardedFromId,
+      isDraft: false,
     }
+
+    dispatch({ type: 'ADD_EMAIL', email: created })
   }, [emailRepository])
 
   // Save draft

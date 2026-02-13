@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import { apiClient, setTokens, loadTokens, clearTokens, isAuthenticated as checkAuth, setOnUnauthorized } from '@/services/apiClient'
+import { apiClient, setTokens, clearTokens, isAuthenticated as checkAuth, setOnUnauthorized } from '@/services/apiClient'
 
 interface AuthUser {
   email: string

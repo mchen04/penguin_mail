@@ -9,12 +9,13 @@ import { ContactsProvider } from '@/context/ContactsContext'
 import { OrganizationProvider } from '@/context/OrganizationContext'
 import { RepositoryProvider } from '@/context/RepositoryContext'
 import { ToastProvider } from '@/context/ToastContext'
+import { createMockRepositories } from './mock-repositories'
 
 // Wrapper that provides all context providers in the correct order
 function AllProviders({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <RepositoryProvider>
+      <RepositoryProvider repositories={createMockRepositories()}>
         <SettingsProvider>
           <AppProvider>
             <AccountProvider>

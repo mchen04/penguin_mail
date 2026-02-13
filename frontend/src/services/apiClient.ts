@@ -82,7 +82,7 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${access}`
   }
 
-  let fetchOptions: RequestInit = { method, headers }
+  const fetchOptions: RequestInit = { method, headers }
 
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'

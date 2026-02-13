@@ -1,40 +1,8 @@
-import { createContext, useContext, useReducer, useCallback, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, type ReactNode } from 'react'
 import type { Account } from '@/types/account'
 import type { SystemFolderType } from '@/types/email'
 import { ALL_ACCOUNTS_ID } from '@/constants'
-
-// --------------------------------------------------------------------------
-// Mock Data
-// --------------------------------------------------------------------------
-
-const now = new Date()
-const daysAgo = (days: number): Date => {
-  const date = new Date(now)
-  date.setDate(date.getDate() - days)
-  return date
-}
-
-// Accounts without hardcoded folderCounts - counts come from EmailContext now
-const MOCK_ACCOUNTS: Account[] = [
-  {
-    id: 'ucr',
-    email: 'mchen023@ucr.edu',
-    name: 'UCR',
-    color: 'blue',
-    isDefault: true,
-    createdAt: daysAgo(365),
-    updatedAt: daysAgo(30),
-  },
-  {
-    id: 'personal',
-    email: 'm.chen.dev@gmail.com',
-    name: 'Personal',
-    color: 'green',
-    isDefault: false,
-    createdAt: daysAgo(365),
-    updatedAt: daysAgo(30),
-  },
-]
+import { useRepositories } from './RepositoryContext'
 
 // --------------------------------------------------------------------------
 // Types
@@ -48,6 +16,7 @@ interface AccountState {
 }
 
 type AccountAction =
+  | { type: 'SET_ACCOUNTS'; payload: Account[] }
   | { type: 'TOGGLE_ACCOUNT_EXPANDED'; payload: string }
   | { type: 'SET_SELECTED_ACCOUNT'; payload: string | null }
   | { type: 'SET_SELECTED_FOLDER'; payload: SystemFolderType }
@@ -65,8 +34,8 @@ interface AccountContextValue extends AccountState {
 // --------------------------------------------------------------------------
 
 const initialState: AccountState = {
-  accounts: MOCK_ACCOUNTS,
-  expandedAccountIds: new Set([ALL_ACCOUNTS_ID, 'ucr']), // "All accounts" and first account expanded by default
+  accounts: [],
+  expandedAccountIds: new Set([ALL_ACCOUNTS_ID]),
   selectedAccountId: null, // "All accounts" selected by default
   selectedFolder: 'inbox',
 }
@@ -77,6 +46,10 @@ const initialState: AccountState = {
 
 function accountReducer(state: AccountState, action: AccountAction): AccountState {
   switch (action.type) {
+    case 'SET_ACCOUNTS': {
+      const ids = new Set([ALL_ACCOUNTS_ID, ...action.payload.map((a) => a.id)])
+      return { ...state, accounts: action.payload, expandedAccountIds: ids }
+    }
     case 'TOGGLE_ACCOUNT_EXPANDED': {
       const newExpanded = new Set(state.expandedAccountIds)
       if (newExpanded.has(action.payload)) {
@@ -109,6 +82,24 @@ const AccountContext = createContext<AccountContextValue | null>(null)
 
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(accountReducer, initialState)
+  const { accounts: accountRepository } = useRepositories()
+
+  // Fetch accounts from API on mount
+  useEffect(() => {
+    let cancelled = false
+    async function loadAccounts() {
+      try {
+        const accounts = await accountRepository.getAll()
+        if (!cancelled) {
+          dispatch({ type: 'SET_ACCOUNTS', payload: accounts })
+        }
+      } catch {
+        // Silently fail — accounts will remain empty
+      }
+    }
+    loadAccounts()
+    return () => { cancelled = true }
+  }, [accountRepository])
 
   // Memoized action creators
   const toggleAccountExpanded = useCallback(

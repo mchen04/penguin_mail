@@ -90,9 +90,7 @@ export class ApiFolderRepository implements IFolderRepository {
 
   async reorder(folderId: string, newOrder: number): Promise<RepositoryResponse<void>> {
     try {
-      await apiClient.post(`/folders/${folderId}/reorder`, undefined)
-      // Pass newOrder as query param since the backend expects it
-      await apiClient.get(`/folders/`) // refresh
+      await apiClient.post(`/folders/${folderId}/reorder?newOrder=${newOrder}`, undefined)
       return { success: true, data: undefined }
     } catch (e) {
       return { success: false, error: (e as Error).message }
