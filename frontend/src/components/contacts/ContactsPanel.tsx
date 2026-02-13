@@ -4,6 +4,7 @@
 
 import { useState } from 'react'
 import { useContacts } from '@/context/ContactsContext'
+import { useApp } from '@/context/AppContext'
 import { useToast } from '@/context/ToastContext'
 import { Icon } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
@@ -29,6 +30,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
     addContact,
     updateContact,
   } = useContacts()
+  const { openCompose } = useApp()
   const toast = useToast()
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
@@ -359,6 +361,10 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
               )}
 
               <div className={styles.detailsActions}>
+                <Button variant="secondary" onClick={() => openCompose({ mode: 'new', to: [{ name: selectedContact.name, email: selectedContact.email }] })}>
+                  <Icon name="compose" size={ICON_SIZE.SMALL} />
+                  Compose
+                </Button>
                 <Button variant="secondary" onClick={startEditing}>
                   <Icon name="edit" size={ICON_SIZE.SMALL} />
                   Edit
