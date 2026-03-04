@@ -49,7 +49,18 @@ The frontend communicates with the backend via a REST API with JWT authenticatio
 - Node.js 18+
 - npm
 
-### Backend Setup
+### Backend Setup (Quick)
+
+One command does everything — creates a venv, installs deps, generates `.env`, runs migrations, and creates a default superuser (`admin` / `admin`):
+
+```bash
+cd backend
+./setup.sh
+source venv/bin/activate
+python manage.py runserver
+```
+
+### Backend Setup (Manual)
 
 ```bash
 cd backend
@@ -62,6 +73,11 @@ source venv/bin/activate  # macOS/Linux
 # Install dependencies
 pip install -r requirements.txt
 
+# Set up environment variables
+cp .env.example .env
+# Edit .env and set a unique SECRET_KEY (or generate one):
+#   python -c "import secrets; print(secrets.token_urlsafe(50))"
+
 # Run migrations
 python manage.py migrate
 
@@ -71,6 +87,16 @@ python manage.py createsuperuser
 # Start the backend server
 python manage.py runserver
 ```
+
+### Environment Variables
+
+The backend requires a `backend/.env` file (not committed to git). See `.env.example` for the template.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SECRET_KEY` | Yes | Django cryptographic key for sessions, CSRF, tokens. Must be unique and secret. |
+| `DEBUG` | No | `True` for local dev, `False` for production. Defaults to `False`. |
+| `ALLOWED_HOSTS` | No | Comma-separated hostnames the server responds to. Defaults to empty. |
 
 The API will be available at `http://localhost:8000/api/v1/` with interactive docs at `http://localhost:8000/api/v1/docs`.
 
