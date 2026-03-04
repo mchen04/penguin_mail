@@ -8,7 +8,7 @@ import { useApp } from '@/context/AppContext'
 import { useToast } from '@/context/ToastContext'
 import { Icon } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
-import { ICON_SIZE, LABEL_COLORS } from '@/constants'
+import { ICON_SIZE, LABEL_COLORS, type LabelColor } from '@/constants'
 import type { Contact, ContactCreateInput } from '@/types/contact'
 import styles from './ContactsPanel.module.css'
 
@@ -41,7 +41,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isCreatingGroup, setIsCreatingGroup] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
-  const [newGroupColor, setNewGroupColor] = useState(LABEL_COLORS[0])
+  const [newGroupColor, setNewGroupColor] = useState<LabelColor>(LABEL_COLORS[0])
   const [formData, setFormData] = useState<ContactCreateInput>({
     name: '',
     email: '',
