@@ -124,6 +124,10 @@ cd backend && source venv/bin/activate && python manage.py runserver
 
 # Terminal 2 — Frontend
 cd frontend && npm run dev
+
+# Terminal 2 (for servers)
+cd frontend && npm run dev -- --host 0.0.0.0
+
 ```
 
 ## Project Structure
