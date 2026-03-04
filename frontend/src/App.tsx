@@ -16,14 +16,14 @@ import { createApiRepositories } from '@/repositories'
 import { useMemo } from 'react'
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isInitializing } = useAuth()
 
   const apiRepos = useMemo(() => {
     if (!isAuthenticated) return null
     return createApiRepositories()
   }, [isAuthenticated])
 
-  if (isLoading) {
+  if (isInitializing) {
     return null
   }
 

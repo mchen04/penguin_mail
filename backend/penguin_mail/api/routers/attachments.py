@@ -1,5 +1,6 @@
 from django.http import FileResponse
 from ninja import Router, File, UploadedFile
+from ninja.errors import HttpError
 
 from penguin_mail.models import Attachment, Email
 from penguin_mail.api.auth import JWTAuth
@@ -25,11 +26,11 @@ def get_attachment(request, attachment_id: str):
     try:
         attachment = Attachment.objects.get(uuid=attachment_id)
     except Attachment.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     # Verify ownership
     if attachment.email and attachment.email.account.user != request.auth:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     return AttachmentOut.from_model(attachment)
 
@@ -39,10 +40,10 @@ def download_attachment(request, attachment_id: str):
     try:
         attachment = Attachment.objects.get(uuid=attachment_id)
     except Attachment.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     # Verify ownership
     if attachment.email and attachment.email.account.user != request.auth:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     return FileResponse(attachment.file.open(), as_attachment=True, filename=attachment.name)

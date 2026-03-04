@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import ContactGroup
 from penguin_mail.api.auth import JWTAuth
@@ -19,7 +20,7 @@ def get_group(request, group_id: str):
     try:
         group = ContactGroup.objects.prefetch_related("contacts").get(uuid=group_id, user=request.auth)
     except ContactGroup.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return ContactGroupOut.from_model(group)
 
 
@@ -39,7 +40,7 @@ def update_group(request, group_id: str, payload: ContactGroupUpdateIn):
     try:
         group = ContactGroup.objects.get(uuid=group_id, user=request.auth)
     except ContactGroup.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         group.name = payload.name
@@ -56,6 +57,6 @@ def delete_group(request, group_id: str):
     try:
         group = ContactGroup.objects.get(uuid=group_id, user=request.auth)
     except ContactGroup.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     group.delete()
     return SuccessOut()

@@ -115,23 +115,57 @@
 .groupItem {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
-  text-align: left;
 }
 
 .groupItem:hover {
   background: var(--color-surface-hover);
-  color: var(--color-text);
 }
 
 .groupItem.active {
   background: var(--color-primary-bg);
+}
+
+.groupItemButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.groupItem:hover .groupItemButton {
+  color: var(--color-text);
+}
+
+.groupItem.active .groupItemButton {
   color: var(--color-primary);
+}
+
+.groupDeleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.groupItem:hover .groupDeleteBtn {
+  opacity: 1;
+}
+
+.groupDeleteBtn:hover {
+  color: var(--color-error);
+  background: var(--color-error-bg, rgba(220, 38, 38, 0.1));
 }
 
 .groupColor {
@@ -148,12 +182,114 @@
 }
 
 .groupDivider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-3) var(--space-3) var(--space-1);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.addGroupButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.addGroupButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.groupCreateForm {
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-1) var(--space-2);
+  background: var(--color-surface-raised, var(--color-bg));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.groupColorPicker {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-2);
+}
+
+.groupColorOption {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.groupColorOption:hover {
+  transform: scale(1.15);
+}
+
+.groupColorOption[data-selected='true'] {
+  border-color: var(--color-text);
+}
+
+.groupNameInput {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+
+.groupNameInput:focus {
+  border-color: var(--color-primary);
+}
+
+.groupFormActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.groupCancelBtn,
+.groupSaveBtn {
+  padding: var(--space-0-5) var(--space-2);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.groupCancelBtn {
+  color: var(--color-text-secondary);
+}
+
+.groupCancelBtn:hover {
+  background: var(--color-surface-hover);
+}
+
+.groupSaveBtn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.groupSaveBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.groupSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Contact list */

@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import CustomFolder
 from penguin_mail.api.auth import JWTAuth
@@ -19,7 +20,7 @@ def get_folder(request, folder_id: str):
     try:
         folder = CustomFolder.objects.select_related("parent").get(uuid=folder_id, user=request.auth)
     except CustomFolder.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return FolderOut.from_model(folder)
 
 
@@ -31,7 +32,7 @@ def create_folder(request, payload: FolderCreateIn):
         try:
             parent = CustomFolder.objects.get(uuid=payload.parentId, user=user)
         except CustomFolder.DoesNotExist:
-            return router.create_response(request, {"detail": "Parent folder not found"}, status=404)
+            raise HttpError(404, "Parent folder not found")
 
     # Set order to be at the end
     max_order = CustomFolder.objects.filter(user=user, parent=parent).count()
@@ -52,7 +53,7 @@ def update_folder(request, folder_id: str, payload: FolderUpdateIn):
     try:
         folder = CustomFolder.objects.get(uuid=folder_id, user=request.auth)
     except CustomFolder.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         folder.name = payload.name
@@ -69,7 +70,7 @@ def delete_folder(request, folder_id: str):
     try:
         folder = CustomFolder.objects.get(uuid=folder_id, user=request.auth)
     except CustomFolder.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     folder.delete()
     return SuccessOut()
 
@@ -80,7 +81,7 @@ def reorder_folder(request, folder_id: str, newOrder: int = 0):
     try:
         folder = CustomFolder.objects.get(uuid=folder_id, user=user)
     except CustomFolder.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     siblings = list(
         CustomFolder.objects.filter(user=user, parent=folder.parent)

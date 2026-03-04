@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import UserSettings, Signature, FilterRule, BlockedAddress, KeyboardShortcut
 from penguin_mail.api.auth import JWTAuth
@@ -82,7 +83,7 @@ def update_signature(request, sig_id: int, payload: SignatureUpdateIn):
     try:
         sig = Signature.objects.get(pk=sig_id, user=user)
     except Signature.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         sig.name = payload.name
@@ -103,7 +104,7 @@ def delete_signature(request, sig_id: int):
     try:
         sig = Signature.objects.get(pk=sig_id, user=request.auth)
     except Signature.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     sig.delete()
     return SuccessOut()
 
@@ -132,7 +133,7 @@ def update_filter(request, filter_id: int, payload: FilterUpdateIn):
     try:
         f = FilterRule.objects.get(pk=filter_id, user=user)
     except FilterRule.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         f.name = payload.name
@@ -154,7 +155,7 @@ def delete_filter(request, filter_id: int):
     try:
         f = FilterRule.objects.get(pk=filter_id, user=request.auth)
     except FilterRule.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     f.delete()
     return SuccessOut()
 
@@ -175,7 +176,7 @@ def unblock_address(request, email: str):
     try:
         ba = BlockedAddress.objects.get(email=email.lower(), user=request.auth)
     except BlockedAddress.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     ba.delete()
     return SuccessOut()
 
@@ -190,7 +191,7 @@ def update_shortcut(request, shortcut_id: int, enabled: bool = None, key: str = 
     try:
         ks = KeyboardShortcut.objects.get(pk=shortcut_id, user=user)
     except KeyboardShortcut.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if enabled is not None:
         ks.enabled = enabled

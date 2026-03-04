@@ -3,6 +3,7 @@
  * Displays and manages custom email folders in the sidebar
  */
 
+import { useRef } from 'react'
 import { useFolders } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { useSidebarSection } from '@/hooks'
@@ -43,6 +44,8 @@ export function CustomFoldersSection() {
     onDelete: deleteFolder,
     onSelect: setFolder,
   })
+
+  const editInputRef = useRef<HTMLInputElement>(null)
 
   if (folders.length === 0 && !isCreating) {
     return null
@@ -136,6 +139,7 @@ export function CustomFoldersSection() {
                     ))}
                   </div>
                   <input
+                    ref={editInputRef}
                     type="text"
                     className={styles.input}
                     defaultValue={folder.name}
@@ -157,6 +161,17 @@ export function CustomFoldersSection() {
                       onClick={(e) => handleDelete(e, folder.id)}
                     >
                       Delete
+                    </button>
+                    <button
+                      className={styles.saveButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (editInputRef.current) {
+                          handleSaveEdit(folder.id, editInputRef.current.value)
+                        }
+                      }}
+                    >
+                      Save
                     </button>
                   </div>
                 </div>

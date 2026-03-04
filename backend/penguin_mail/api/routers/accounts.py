@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import Account
 from penguin_mail.api.auth import JWTAuth
@@ -19,7 +20,7 @@ def get_account(request, account_id: str):
     try:
         account = Account.objects.get(uuid=account_id, user=request.auth)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return AccountOut.from_model(account)
 
 
@@ -47,7 +48,7 @@ def update_account(request, account_id: str, payload: AccountUpdateIn):
     try:
         account = Account.objects.get(uuid=account_id, user=user)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         account.name = payload.name
@@ -74,7 +75,7 @@ def delete_account(request, account_id: str):
     try:
         account = Account.objects.get(uuid=account_id, user=request.auth)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     account.delete()
     return SuccessOut()
@@ -86,7 +87,7 @@ def set_default(request, account_id: str):
     try:
         account = Account.objects.get(uuid=account_id, user=user)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     Account.objects.filter(user=user).update(is_default=False)
     account.is_default = True

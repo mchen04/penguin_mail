@@ -1,15 +1,20 @@
+import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useAccounts } from '@/context/AccountContext'
 import { AccountSection } from './AccountSection'
 import { LabelsSection } from './LabelsSection'
 import { CustomFoldersSection } from './CustomFoldersSection'
+import { HelpDialog } from './HelpDialog'
+import { AddAccountDialog } from './AddAccountDialog'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ICON_SIZE } from '@/constants'
 import styles from './Sidebar.module.css'
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed, showContacts, currentView } = useApp()
-  const { accounts } = useAccounts()
+  const { accounts, addAccount } = useAccounts()
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [addAccountOpen, setAddAccountOpen] = useState(false)
 
   return (
     <>
@@ -100,16 +105,23 @@ export function Sidebar() {
             <Icon name="users" size={ICON_SIZE.DEFAULT} />
             Contacts
           </button>
-          <button className={styles.footerButton}>
+          <button className={styles.footerButton} onClick={() => setAddAccountOpen(true)}>
             <Icon name="plus" size={ICON_SIZE.DEFAULT} />
             Add account
           </button>
-          <button className={styles.footerButton}>
+          <button className={styles.footerButton} onClick={() => setHelpOpen(true)}>
             <Icon name="help" size={ICON_SIZE.DEFAULT} />
             Help
           </button>
         </div>
       </aside>
+
+      <HelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+      <AddAccountDialog
+        isOpen={addAccountOpen}
+        onClose={() => setAddAccountOpen(false)}
+        onSubmit={addAccount}
+      />
     </>
   )
 }

@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import Label
 from penguin_mail.api.auth import JWTAuth
@@ -19,7 +20,7 @@ def get_label(request, label_id: str):
     try:
         label = Label.objects.get(uuid=label_id, user=request.auth)
     except Label.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return LabelOut.from_model(label)
 
 
@@ -38,7 +39,7 @@ def update_label(request, label_id: str, payload: LabelUpdateIn):
     try:
         label = Label.objects.get(uuid=label_id, user=request.auth)
     except Label.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.name is not None:
         label.name = payload.name
@@ -53,6 +54,6 @@ def delete_label(request, label_id: str):
     try:
         label = Label.objects.get(uuid=label_id, user=request.auth)
     except Label.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     label.delete()
     return SuccessOut()

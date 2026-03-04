@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, type ReactNode } from 'react'
-import type { Account } from '@/types/account'
+import type { Account, AccountCreateInput } from '@/types/account'
 import type { SystemFolderType } from '@/types/email'
 import { ALL_ACCOUNTS_ID } from '@/constants'
 import { useRepositories } from './RepositoryContext'
@@ -27,6 +27,7 @@ interface AccountContextValue extends AccountState {
   selectAccount: (accountId: string | null) => void
   selectFolder: (accountId: string | null, folder: SystemFolderType) => void
   getAccountById: (id: string) => Account | undefined
+  addAccount: (input: AccountCreateInput) => Promise<void>
 }
 
 // --------------------------------------------------------------------------
@@ -120,6 +121,17 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     [state.accounts]
   )
 
+  const addAccount = useCallback(async (input: AccountCreateInput) => {
+    const result = await accountRepository.create(input)
+    if (result.success) {
+      // Reload all accounts to get fresh state from server
+      const accounts = await accountRepository.getAll()
+      dispatch({ type: 'SET_ACCOUNTS', payload: accounts })
+    } else {
+      throw new Error(result.error ?? 'Failed to add account')
+    }
+  }, [accountRepository])
+
   // Memoized context value
   const value = useMemo<AccountContextValue>(
     () => ({
@@ -128,8 +140,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       selectAccount,
       selectFolder,
       getAccountById,
+      addAccount,
     }),
-    [state, toggleAccountExpanded, selectAccount, selectFolder, getAccountById]
+    [state, toggleAccountExpanded, selectAccount, selectFolder, getAccountById, addAccount]
   )
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>

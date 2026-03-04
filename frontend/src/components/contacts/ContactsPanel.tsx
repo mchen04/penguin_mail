@@ -8,7 +8,7 @@ import { useApp } from '@/context/AppContext'
 import { useToast } from '@/context/ToastContext'
 import { Icon } from '@/components/common/Icon/Icon'
 import { Button } from '@/components/common/Button/Button'
-import { ICON_SIZE } from '@/constants'
+import { ICON_SIZE, LABEL_COLORS } from '@/constants'
 import type { Contact, ContactCreateInput } from '@/types/contact'
 import styles from './ContactsPanel.module.css'
 
@@ -29,6 +29,8 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
     deleteContact,
     addContact,
     updateContact,
+    addGroup,
+    deleteGroup,
   } = useContacts()
   const { openCompose } = useApp()
   const toast = useToast()
@@ -36,6 +38,9 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newGroupColor, setNewGroupColor] = useState(LABEL_COLORS[0])
   const [formData, setFormData] = useState<ContactCreateInput>({
     name: '',
     email: '',
@@ -103,6 +108,24 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
     resetForm()
   }
 
+  const handleCreateGroup = async () => {
+    if (!newGroupName.trim()) {
+      toast.error('Group name is required')
+      return
+    }
+    await addGroup(newGroupName.trim(), newGroupColor)
+    toast.success('Group created')
+    setNewGroupName('')
+    setNewGroupColor(LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)])
+    setIsCreatingGroup(false)
+  }
+
+  const handleDeleteGroup = async (groupId: string) => {
+    await deleteGroup(groupId)
+    if (selectedGroupId === groupId) setSelectedGroup(null)
+    toast.success('Group deleted')
+  }
+
   return (
     <div className={styles.panel}>
       {/* Header */}
@@ -158,24 +181,94 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
 
             <div className={styles.groupDivider}>
               <span>Groups</span>
+              <button
+                type="button"
+                className={styles.addGroupButton}
+                onClick={() => {
+                  setIsCreatingGroup(true)
+                  setNewGroupName('')
+                  setNewGroupColor(LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)])
+                }}
+                title="Create new group"
+              >
+                <Icon name="plus" size={ICON_SIZE.SMALL} />
+              </button>
             </div>
 
-            {groups.map((group) => (
-              <button
-                key={group.id}
-                type="button"
-                className={`${styles.groupItem} ${selectedGroupId === group.id ? styles.active : ''}`}
-                onClick={() => setSelectedGroup(group.id)}
-              >
-                <span
-                  className={styles.groupColor}
-                  style={{ background: group.color }}
+            {isCreatingGroup && (
+              <div className={styles.groupCreateForm}>
+                <div className={styles.groupColorPicker}>
+                  {LABEL_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={styles.groupColorOption}
+                      style={{ backgroundColor: c }}
+                      data-selected={c === newGroupColor}
+                      onClick={() => setNewGroupColor(c)}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  className={styles.groupNameInput}
+                  placeholder="Group name"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateGroup()
+                    if (e.key === 'Escape') setIsCreatingGroup(false)
+                  }}
+                  autoFocus
                 />
-                <span>{group.name}</span>
-                <span className={styles.groupCount}>
-                  {group.contactIds.length}
-                </span>
-              </button>
+                <div className={styles.groupFormActions}>
+                  <button
+                    type="button"
+                    className={styles.groupCancelBtn}
+                    onClick={() => setIsCreatingGroup(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.groupSaveBtn}
+                    onClick={handleCreateGroup}
+                    disabled={!newGroupName.trim()}
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {groups.map((group) => (
+              <div
+                key={group.id}
+                className={`${styles.groupItem} ${selectedGroupId === group.id ? styles.active : ''}`}
+              >
+                <button
+                  type="button"
+                  className={styles.groupItemButton}
+                  onClick={() => setSelectedGroup(group.id)}
+                >
+                  <span
+                    className={styles.groupColor}
+                    style={{ background: group.color }}
+                  />
+                  <span>{group.name}</span>
+                  <span className={styles.groupCount}>
+                    {group.contactIds.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.groupDeleteBtn}
+                  onClick={() => handleDeleteGroup(group.id)}
+                  title="Delete group"
+                >
+                  <Icon name="close" size={ICON_SIZE.XSMALL} />
+                </button>
+              </div>
             ))}
           </nav>
         </div>

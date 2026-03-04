@@ -2,6 +2,7 @@ import uuid as uuid_mod
 
 from django.db.models import Q
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import Account, Email, Recipient, Label
 from penguin_mail.api.auth import JWTAuth
@@ -98,7 +99,7 @@ def create_email(request, payload: EmailCreateIn):
     try:
         account = Account.objects.get(uuid=payload.accountId, user=user)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Account not found"}, status=404)
+        raise HttpError(404, "Account not found")
 
     # Determine sender
     sender_name = account.display_name or account.name
@@ -156,7 +157,7 @@ def create_draft(request, payload: EmailCreateIn):
     try:
         account = Account.objects.get(uuid=payload.accountId, user=user)
     except Account.DoesNotExist:
-        return router.create_response(request, {"detail": "Account not found"}, status=404)
+        raise HttpError(404, "Account not found")
 
     sender_name = account.display_name or account.name
 
@@ -220,7 +221,7 @@ def get_email(request, email_id: str):
     try:
         email = _base_qs(request.auth).get(uuid=email_id)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return EmailOut.from_model(email)
 
 
@@ -230,7 +231,7 @@ def update_email(request, email_id: str, payload: EmailUpdateIn):
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.isRead is not None:
         email.is_read = payload.isRead
@@ -254,7 +255,7 @@ def delete_email(request, email_id: str):
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     email.folder = "trash"
     email.save(update_fields=["folder"])
@@ -267,7 +268,7 @@ def delete_email_permanent(request, email_id: str):
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     email.delete()
     return SuccessOut()
@@ -279,7 +280,7 @@ def add_labels(request, email_id: str, payload: LabelOpIn):
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
     email.labels.add(*labels)
@@ -292,7 +293,7 @@ def remove_labels(request, email_id: str, payload: LabelOpIn):
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
     except Email.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
     email.labels.remove(*labels)

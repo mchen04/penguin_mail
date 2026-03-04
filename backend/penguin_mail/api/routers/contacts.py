@@ -1,5 +1,6 @@
 from django.db.models import Q
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import Contact, ContactGroup
 from penguin_mail.api.auth import JWTAuth
@@ -44,7 +45,7 @@ def get_by_group(request, group_id: str):
     try:
         group = ContactGroup.objects.get(uuid=group_id, user=request.auth)
     except ContactGroup.DoesNotExist:
-        return router.create_response(request, {"detail": "Group not found"}, status=404)
+        raise HttpError(404, "Group not found")
     contacts = group.contacts.prefetch_related("groups").order_by("name")
     return [ContactOut.from_model(c) for c in contacts]
 
@@ -54,7 +55,7 @@ def get_contact(request, contact_id: str):
     try:
         contact = Contact.objects.prefetch_related("groups").get(uuid=contact_id, user=request.auth)
     except Contact.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return ContactOut.from_model(contact)
 
 
@@ -63,7 +64,7 @@ def get_by_email(request, email: str):
     try:
         contact = Contact.objects.prefetch_related("groups").get(email=email, user=request.auth)
     except Contact.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     return ContactOut.from_model(contact)
 
 
@@ -93,7 +94,7 @@ def update_contact(request, contact_id: str, payload: ContactUpdateIn):
     try:
         contact = Contact.objects.get(uuid=contact_id, user=user)
     except Contact.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
 
     if payload.email is not None:
         contact.email = payload.email
@@ -129,7 +130,7 @@ def delete_contact(request, contact_id: str):
     try:
         contact = Contact.objects.get(uuid=contact_id, user=request.auth)
     except Contact.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     contact.delete()
     return SuccessOut()
 
@@ -139,7 +140,7 @@ def toggle_favorite(request, contact_id: str):
     try:
         contact = Contact.objects.get(uuid=contact_id, user=request.auth)
     except Contact.DoesNotExist:
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     contact.is_favorite = not contact.is_favorite
     contact.save(update_fields=["is_favorite"])
     contact = Contact.objects.prefetch_related("groups").get(pk=contact.pk)
@@ -153,7 +154,7 @@ def add_to_group(request, contact_id: str, group_id: str):
         contact = Contact.objects.get(uuid=contact_id, user=user)
         group = ContactGroup.objects.get(uuid=group_id, user=user)
     except (Contact.DoesNotExist, ContactGroup.DoesNotExist):
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     group.contacts.add(contact)
     return SuccessOut()
 
@@ -165,6 +166,6 @@ def remove_from_group(request, contact_id: str, group_id: str):
         contact = Contact.objects.get(uuid=contact_id, user=user)
         group = ContactGroup.objects.get(uuid=group_id, user=user)
     except (Contact.DoesNotExist, ContactGroup.DoesNotExist):
-        return router.create_response(request, {"detail": "Not found"}, status=404)
+        raise HttpError(404, "Not found")
     group.contacts.remove(contact)
     return SuccessOut()

@@ -3,6 +3,7 @@
  * Displays and manages email labels in the sidebar
  */
 
+import { useRef } from 'react'
 import { useLabels } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { useSidebarSection } from '@/hooks'
@@ -43,6 +44,8 @@ export function LabelsSection() {
       setFolder('inbox')
     },
   })
+
+  const editInputRef = useRef<HTMLInputElement>(null)
 
   const handleLabelClick = (labelId: string) => {
     selectLabel(labelId)
@@ -141,6 +144,7 @@ export function LabelsSection() {
                     ))}
                   </div>
                   <input
+                    ref={editInputRef}
                     type="text"
                     className={styles.input}
                     defaultValue={label.name}
@@ -162,6 +166,17 @@ export function LabelsSection() {
                       onClick={(e) => handleDelete(e, label.id)}
                     >
                       Delete
+                    </button>
+                    <button
+                      className={styles.saveButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (editInputRef.current) {
+                          handleSaveEdit(label.id, editInputRef.current.value)
+                        }
+                      }}
+                    >
+                      Save
                     </button>
                   </div>
                 </div>

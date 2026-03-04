@@ -8,6 +8,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null
   isAuthenticated: boolean
+  isInitializing: boolean
   isLoading: boolean
   error: string | null
   login: (email: string, password: string) => Promise<void>
@@ -22,7 +23,8 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const logout = useCallback(() => {
@@ -41,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const storedEmail = localStorage.getItem('penguin_user_email')
       setUser(storedEmail ? { email: storedEmail } : { email: '' })
     }
-    setIsLoading(false)
+    setIsInitializing(false)
   }, [logout])
 
   const login = useCallback(async (email: string, password: string) => {
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         user,
         isAuthenticated: !!user,
+        isInitializing,
         isLoading,
         error,
         login,

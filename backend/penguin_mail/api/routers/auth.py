@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from ninja import Router
+from ninja.errors import HttpError
 
 from penguin_mail.models import User
 from penguin_mail.api.auth import JWTAuth, create_access_token, create_refresh_token, decode_token
@@ -14,11 +15,11 @@ def login(request, payload: LoginIn):
     try:
         user_obj = User.objects.get(email=payload.email)
     except User.DoesNotExist:
-        return router.create_response(request, {"detail": "Invalid credentials"}, status=401)
+        raise HttpError(401, "Invalid credentials")
 
     user = authenticate(request, username=user_obj.username, password=payload.password)
     if user is None:
-        return router.create_response(request, {"detail": "Invalid credentials"}, status=401)
+        raise HttpError(401, "Invalid credentials")
 
     access_token, expires_in = create_access_token(user)
     refresh_token = create_refresh_token(user)
@@ -33,12 +34,12 @@ def login(request, payload: LoginIn):
 def refresh(request, payload: RefreshIn):
     data = decode_token(payload.refresh_token)
     if data is None or data.get("type") != "refresh":
-        return router.create_response(request, {"detail": "Invalid refresh token"}, status=401)
+        raise HttpError(401, "Invalid refresh token")
 
     try:
         user = User.objects.get(uuid=data["sub"])
     except User.DoesNotExist:
-        return router.create_response(request, {"detail": "Invalid refresh token"}, status=401)
+        raise HttpError(401, "Invalid refresh token")
 
     access_token, expires_in = create_access_token(user)
     return RefreshOut(access_token=access_token, expires_in=expires_in)
