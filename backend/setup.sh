@@ -41,7 +41,7 @@ if [ "$HAS_SUPERUSER" = "False" ]; then
     python manage.py shell -c "
 from penguin_mail.models import User
 User.objects.create_superuser(username='admin', email='admin@penguin.mail', password='admin')
-print('Superuser created: admin / admin')
+print('Superuser created: admin@penguin.mail / admin')
 "
 else
     echo "Superuser already exists, skipping."
