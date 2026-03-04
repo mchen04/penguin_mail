@@ -36,6 +36,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
   const toast = useToast()
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isCreatingGroup, setIsCreatingGroup] = useState(false)
@@ -282,9 +283,10 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
             </div>
           ) : (
             displayContacts.map((contact) => (
-              <button
+              <div
                 key={contact.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 className={`${styles.contactItem} ${selectedContact?.id === contact.id ? styles.selected : ''}`}
                 onClick={() => setSelectedContact(contact)}
               >
@@ -312,7 +314,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
                     size={ICON_SIZE.SMALL}
                   />
                 </button>
-              </button>
+              </div>
             ))
           )}
         </div>
@@ -468,11 +470,7 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    deleteContact(selectedContact.id)
-                    setSelectedContact(null)
-                    toast.success('Contact deleted')
-                  }}
+                  onClick={() => setContactToDelete(selectedContact)}
                 >
                   <Icon name="trash" size={ICON_SIZE.SMALL} />
                   Delete
@@ -487,6 +485,32 @@ export function ContactsPanel({ onClose }: ContactsPanelProps) {
           )}
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      {contactToDelete && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmDialog}>
+            <h4>Delete contact?</h4>
+            <p>"{contactToDelete.name}" will be permanently deleted.</p>
+            <div className={styles.confirmActions}>
+              <Button variant="secondary" onClick={() => setContactToDelete(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  deleteContact(contactToDelete.id)
+                  if (selectedContact?.id === contactToDelete.id) setSelectedContact(null)
+                  toast.success('Contact deleted')
+                  setContactToDelete(null)
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

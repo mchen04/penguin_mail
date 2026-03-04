@@ -4,6 +4,7 @@ import { useAccounts } from '@/context/AccountContext'
 import { useEmail } from '@/context/EmailContext'
 import { useSettings } from '@/context/SettingsContext'
 import { useFeatures } from '@/context/FeaturesContext'
+import { useToast } from '@/context/ToastContext'
 import { Button } from '@/components/common/Button/Button'
 import { Icon } from '@/components/common/Icon/Icon'
 import { ComposeHeader } from './ComposeHeader'
@@ -21,6 +22,7 @@ export function ComposeWindow() {
   const { sendEmail, saveDraft, deleteEmails, scheduleEmail } = useEmail()
   const { signatures } = useSettings()
   const { templates } = useFeatures()
+  const toast = useToast()
 
   // Get the default signature (or first signature if none is default)
   const defaultSignature = useMemo(() => {
@@ -325,6 +327,7 @@ export function ComposeWindow() {
       replyToId,
       forwardedFromId,
     })
+    toast.success('Draft saved')
   }
 
   const handleDiscardDraft = () => {

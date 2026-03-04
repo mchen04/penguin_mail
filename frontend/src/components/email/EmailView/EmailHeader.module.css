@@ -50,6 +50,40 @@
   gap: var(--space-1);
 }
 
+.moreMenuWrapper {
+  position: relative;
+}
+
+.moreMenu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.moreMenuItem {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.moreMenuItem:hover {
+  background: var(--color-hover);
+}
+
 /* Sender row */
 .senderRow {
   display: flex;

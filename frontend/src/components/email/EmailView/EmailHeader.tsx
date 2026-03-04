@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Email } from '@/types/email'
 import { useLabels } from '@/context/OrganizationContext'
 import { useEmail } from '@/context/EmailContext'
 import { useContacts } from '@/context/ContactsContext'
+import { useClickOutside } from '@/hooks'
 import { IconButton } from '@/components/common/IconButton/IconButton'
 import { LabelPicker } from '../LabelPicker'
 import { formatFullDate } from '@/utils/formatDate'
@@ -33,8 +34,11 @@ export function EmailHeader({
   onPrint,
 }: EmailHeaderProps) {
   const { getLabelById } = useLabels()
-  const { addLabels, removeLabels } = useEmail()
+  const { addLabels, removeLabels, markRead, markUnread, markAsSpam } = useEmail()
   const { getContactByEmail } = useContacts()
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+  useClickOutside(moreMenuRef, () => setShowMoreMenu(false), showMoreMenu)
 
   // Get label objects for this email
   const emailLabels = email.labels
@@ -110,10 +114,50 @@ export function EmailHeader({
               onClick={onPrint}
             />
           )}
-          <IconButton
-            icon="moreVertical"
-            label="More actions"
-          />
+          <div className={styles.moreMenuWrapper} ref={moreMenuRef}>
+            <IconButton
+              icon="moreVertical"
+              label="More actions"
+              onClick={() => setShowMoreMenu((v) => !v)}
+            />
+            {showMoreMenu && (
+              <div className={styles.moreMenu}>
+                <button
+                  type="button"
+                  className={styles.moreMenuItem}
+                  onClick={() => {
+                    email.isRead ? markUnread([email.id]) : markRead([email.id])
+                    setShowMoreMenu(false)
+                  }}
+                >
+                  {email.isRead ? 'Mark as unread' : 'Mark as read'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.moreMenuItem}
+                  onClick={() => {
+                    markAsSpam([email.id])
+                    onBack()
+                    setShowMoreMenu(false)
+                  }}
+                >
+                  Report spam
+                </button>
+                {onPrint && (
+                  <button
+                    type="button"
+                    className={styles.moreMenuItem}
+                    onClick={() => {
+                      onPrint()
+                      setShowMoreMenu(false)
+                    }}
+                  >
+                    Print
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

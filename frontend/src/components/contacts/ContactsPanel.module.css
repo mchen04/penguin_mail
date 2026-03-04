@@ -3,6 +3,7 @@
    ========================================================================== */
 
 .panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -597,4 +598,45 @@
   .detailsActions {
     flex-direction: column;
   }
+}
+
+/* Delete confirmation dialog */
+.confirmOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: inherit;
+}
+
+.confirmDialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 320px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.confirmDialog h4 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.confirmDialog p {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
 }

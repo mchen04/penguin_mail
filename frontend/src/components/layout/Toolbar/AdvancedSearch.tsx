@@ -64,6 +64,7 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
     const clearedFilters = { ...defaultFilters }
     setFilters(clearedFilters)
     onSearch(clearedFilters)
+    setIsExpanded(false)
   }, [onSearch])
 
   const hasActiveFilters = filters.from || filters.to || filters.subject ||
