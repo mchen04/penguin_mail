@@ -9,7 +9,16 @@ import styles from './AddAccountDialog.module.css'
 interface AddAccountDialogProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: { email: string; name: string; color: AccountColor }) => Promise<void>
+  onSubmit: (data: {
+    email: string;
+    name: string;
+    color: AccountColor;
+
+    smtp_url: string;
+    smtp_password: string;
+    imap_url: string;
+    imap_password: string
+  }) => Promise<void>
 }
 
 const ACCOUNT_COLORS: { value: AccountColor; label: string; hex: string }[] = [
@@ -27,6 +36,11 @@ export function AddAccountDialog({ isOpen, onClose, onSubmit }: AddAccountDialog
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [color, setColor] = useState<AccountColor>('blue')
+  const [smtp_url, setSmtpUrl] = useState('')
+  const [smtp_password, setSmtpPassword] = useState('')
+  const [imap_url, setImapUrl] = useState('')
+  const [imap_password, setImapPassword] = useState('')
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,6 +69,10 @@ export function AddAccountDialog({ isOpen, onClose, onSubmit }: AddAccountDialog
       setName('')
       setColor('blue')
       setError(null)
+      setSmtpUrl('')
+      setSmtpPassword('')
+      setImapUrl('')
+      setImapPassword('')
     }
   }, [isOpen])
 
@@ -66,7 +84,13 @@ export function AddAccountDialog({ isOpen, onClose, onSubmit }: AddAccountDialog
     setError(null)
     setIsSubmitting(true)
     try {
-      await onSubmit({ email: email.trim(), name: name.trim(), color })
+      await onSubmit({
+        email: email.trim(), name: name.trim(), color,
+        smtp_url,
+        smtp_password,
+        imap_url,
+        imap_password
+      })
       onClose()
     } catch (e) {
       setError((e as Error).message || 'Failed to add account')
@@ -145,6 +169,54 @@ export function AddAccountDialog({ isOpen, onClose, onSubmit }: AddAccountDialog
                 />
               ))}
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="account-smtp-url">SMTP server URL for this account</label>
+            <input
+              id="account-smtp-url"
+              type="text"
+              value={smtp_url}
+              onChange={(e) => setSmtpUrl(e.target.value)}
+              placeholder="e.g. smtp.gmail.com"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="account-smtp-password">SMTP password for this account</label>
+            <input
+              id="account-smtp-password"
+              type="text"
+              value={smtp_password}
+              onChange={(e) => setSmtpPassword(e.target.value)}
+              placeholder="Personal, Work, etc."
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="account-imap-url">IMAP server URL for this account</label>
+            <input
+              id="account-imap-url"
+              type="text"
+              value={imap_url}
+              onChange={(e) => setImapUrl(e.target.value)}
+              placeholder="e.g. imap.gmail.com"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="account-imap-password">IMAP password for this account</label>
+            <input
+              id="account-smtp-password"
+              type="text"
+              value={imap_password}
+              onChange={(e) => setImapPassword(e.target.value)}
+              placeholder="Personal, Work, etc."
+              disabled={isSubmitting}
+            />
           </div>
         </div>
 

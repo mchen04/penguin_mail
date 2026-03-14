@@ -41,6 +41,12 @@ class AccountCreateIn(Schema):
     displayName: str = ""
     signature: str = ""
 
+    # SMTP and IMAP credentials
+    smtp_url: str
+    smtp_password: str
+    imap_url: str
+    imap_password: str
+
 
 class AccountUpdateIn(Schema):
     name: Optional[str] = None

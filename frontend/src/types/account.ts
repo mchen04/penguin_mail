@@ -34,6 +34,11 @@ export interface AccountCreateInput {
   color?: AccountColor
   displayName?: string
   signature?: string
+
+  smtp_url: string
+  smtp_password: string
+  imap_url: string
+  imap_password: string
 }
 
 export interface AccountUpdateInput {

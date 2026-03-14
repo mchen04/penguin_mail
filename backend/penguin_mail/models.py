@@ -30,13 +30,6 @@ class AccountColor(models.TextChoices):
     RED = 'red'
     INDIGO = 'indigo'
 
-
-class AccountProvider(models.TextChoices):
-    GMAIL = 'gmail'
-    OUTLOOK = 'outlook'
-    CUSTOM = 'custom'
-
-
 class Account(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='accounts')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
@@ -48,11 +41,14 @@ class Account(models.Model):
     default_signature_id = models.CharField(max_length=36, blank=True, default='')
     avatar = models.URLField(blank=True, default='')
     is_default = models.BooleanField(default=False)
-    provider = models.CharField(max_length=10, choices=AccountProvider.choices, default=AccountProvider.GMAIL)
-    oauth_token = models.TextField(blank=True, default='')
     last_sync_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    smtp_url = models.TextField()
+    smtp_password = models.TextField()
+    imap_url = models.TextField()
+    imap_password = models.TextField()
 
     class Meta:
         constraints = [
@@ -79,8 +75,11 @@ class FolderType(models.TextChoices):
     SCHEDULED = 'scheduled'
 
 
+# Database table for emails
 class Email(models.Model):
+    # Foreign key to the account that owns this email
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='emails')
+
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     subject = models.CharField(max_length=255, blank=True, default='')
     body = models.TextField(blank=True, default='')
@@ -102,6 +101,20 @@ class Email(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # # Indicates the delivery status of the email. The send queue queries this database table
+    # # for emails with STATUS_QUEUED and uses SMTP to send them. If the SMTP connection finishes
+    # # with no errors, the send queue sets the delivery status to STATUS_DELIVERED. In the event
+    # # of an error, the send queue sets the delivery status to STATUS_FAILED
+    # STATUS_QUEUED = 'q'
+    # STATUS_DELIVERED = 'd'
+    # STATUS_FAILED = 'f'
+    # DELIVERY_STATUS_CHOICES = {
+    #     STATUS_QUEUED: 'Queued for delivery',
+    #     STATUS_DELIVERED: 'Delivered successfully',
+    #     STATUS_FAILED: 'Failed to deliver'
+    # }
+    # delivery_status = models.CharField(max_length=1, choices=DELIVERY_STATUS_CHOICES, default=STATUS_QUEUED)
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -111,7 +124,6 @@ class Email(models.Model):
 
     def __str__(self):
         return f"{self.subject} ({self.uuid})"
-
 
 # ---------------------------------------------------------------------------
 # Recipient (normalized — no JSON duplication on Email)
