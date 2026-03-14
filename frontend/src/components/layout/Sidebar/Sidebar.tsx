@@ -67,7 +67,7 @@ export function Sidebar() {
               {/* "Penguin Mail" text */}
               <text
                 x="28"
-                y="19"
+                y="21.3"
                 fill="currentColor"
                 fontFamily="var(--font-family-sans)"
                 fontSize="16"
