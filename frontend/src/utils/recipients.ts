@@ -14,8 +14,12 @@ import type { EmailAddress } from '@/types/email'
 export function parseRecipient(recipient: string): EmailAddress {
   const emailMatch = recipient.match(/<(.+)>/)
   if (emailMatch) {
+    const email = emailMatch[1].includes('@') ? emailMatch[1] : ''
     const name = recipient.replace(/<.+>/, '').trim()
-    return { name, email: emailMatch[1] }
+    return { name, email }
+  }
+  if (!recipient.includes('@')) {
+    return { name: recipient, email: '' }
   }
   return { name: recipient.split('@')[0], email: recipient }
 }

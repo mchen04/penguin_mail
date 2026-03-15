@@ -212,11 +212,13 @@ export function emailReducer(state: EmailState, action: EmailAction): EmailState
         lastSelectedId: null,
       }
 
-    case 'SET_SELECTION':
+    case 'SET_SELECTION': {
+      const emailIds = new Set(state.emails.map((e) => e.id))
       return {
         ...state,
-        selectedIds: action.ids,
+        selectedIds: new Set([...action.ids].filter((id) => emailIds.has(id))),
       }
+    }
 
     case 'CLEAR_SELECTION':
       return {

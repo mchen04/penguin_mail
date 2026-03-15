@@ -29,6 +29,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(() => {
     clearTokens()
+    localStorage.removeItem('penguin_user_email')
     setUser(null)
     setError(null)
   }, [])

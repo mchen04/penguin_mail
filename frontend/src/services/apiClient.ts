@@ -26,10 +26,14 @@ export function loadTokens(): { access: string | null; refresh: string | null } 
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEYS.access)
   localStorage.removeItem(TOKEN_KEYS.refresh)
+  localStorage.removeItem('penguin_user_email')
 }
 
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem(TOKEN_KEYS.access)
+  const token = localStorage.getItem(TOKEN_KEYS.access)
+  if (!token) return false
+  // A well-formed JWT has exactly three base64url-encoded segments separated by dots.
+  return token.split('.').length === 3
 }
 
 async function refreshAccessToken(): Promise<string | null> {
