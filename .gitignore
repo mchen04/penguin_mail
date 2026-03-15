@@ -25,6 +25,7 @@ coverage/
 coverage.xml
 .pytest_cache/
 *.lcov
+.hypothesis/
 
 # ─── Linter / formatter caches ───────────────────────────────────────────────
 .ruff_cache/

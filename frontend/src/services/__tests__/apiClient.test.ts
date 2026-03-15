@@ -47,8 +47,8 @@ describe('Token management', () => {
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('penguin_refresh_token')
   })
 
-  it('isAuthenticated returns true when access token exists', () => {
-    setTokens('token', 'refresh')
+  it('isAuthenticated returns true when a valid JWT-shaped token exists', () => {
+    setTokens('header.payload.signature', 'refresh')
     expect(isAuthenticated()).toBe(true)
   })
 

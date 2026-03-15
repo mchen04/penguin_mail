@@ -204,8 +204,10 @@ describe('emailReducer', () => {
   })
 
   describe('selection actions', () => {
-    it('SET_SELECTION sets selected ids', () => {
-      const state = makeState()
+    it('SET_SELECTION sets selected ids that exist in emails', () => {
+      const email1 = makeEmail({ id: 'e1' })
+      const email2 = makeEmail({ id: 'e2' })
+      const state = makeState({ emails: [email1, email2] })
       const next = emailReducer(state, {
         type: 'SET_SELECTION',
         ids: new Set(['e1', 'e2']),

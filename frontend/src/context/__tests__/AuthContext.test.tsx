@@ -162,6 +162,36 @@ describe('AuthContext', () => {
     expect(result.current.user).toBeNull()
   })
 
+  it('logout removes penguin_user_email from localStorage (Bug F4)', async () => {
+    mockPost.mockResolvedValue({
+      access_token: 'token-access',
+      refresh_token: 'token-refresh',
+      expires_in: 3600,
+    })
+
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await waitFor(() => {
+      expect(result.current.isInitializing).toBe(false)
+    })
+
+    await act(async () => {
+      await result.current.login('user@example.com', 'password123')
+    })
+
+    // Login stores penguin_user_email
+    expect(localStorage.getItem('penguin_user_email')).toBe('user@example.com')
+
+    act(() => {
+      result.current.logout()
+    })
+
+    // Bug F4: logout() calls clearTokens() but clearTokens() does NOT remove
+    // penguin_user_email — so this assertion WILL FAIL until the bug is fixed.
+    expect(localStorage.getItem('penguin_user_email')).toBeNull()
+  })
+
   it('isAuthenticated tracks user state correctly through login/logout cycle', async () => {
     mockPost.mockResolvedValue({
       access_token: 'a',
