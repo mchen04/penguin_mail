@@ -24,7 +24,7 @@ async function getAccessToken(
   if (!resp.ok()) {
     throw new Error(`Login failed: ${resp.status()} ${await resp.text()}`)
   }
-  const { access } = await resp.json()
+  const { access_token: access } = await resp.json()
   return access
 }
 

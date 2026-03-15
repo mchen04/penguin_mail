@@ -7,7 +7,7 @@ async function getToken(request: APIRequestContext): Promise<string> {
   const resp = await request.post('http://localhost:8000/api/v1/auth/login', {
     data: { email: TEST_USER.email, password: TEST_USER.password },
   })
-  const { access } = await resp.json()
+  const { access_token: access } = await resp.json()
   return access
 }
 
@@ -45,7 +45,7 @@ test.describe('Compose', () => {
     await page.getByRole('button', { name: /compose/i }).click()
     await expect(page.getByPlaceholder(/subject/i)).toBeVisible({ timeout: 5000 })
 
-    const closeBtn = page.getByRole('button', { name: /close/i }).first()
+    const closeBtn = page.getByRole('button', { name: 'Close', exact: true })
     await expect(closeBtn).toBeVisible()
     await closeBtn.click()
 
@@ -70,8 +70,8 @@ test.describe('Compose', () => {
       await page.getByPlaceholder(/subject/i).fill(subject)
 
       // Send — button should be enabled now that there's a recipient
-      await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled()
-      await page.getByRole('button', { name: 'Send' }).click()
+      await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeEnabled()
+      await page.getByRole('button', { name: 'Send', exact: true }).click()
 
       // Compose window closes after successful send
       await expect(page.getByPlaceholder(/subject/i)).not.toBeVisible({ timeout: 5000 })

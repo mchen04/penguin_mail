@@ -67,9 +67,9 @@ class TestStripHtmlProperties:
         """CDATA sections containing '>' must be fully stripped — documents Bug B2."""
         result = _strip_html(html_input)
         # Bug B2: <[^>]+> stops at the first > inside CDATA, leaving ']]>' in output.
-        assert "]]>" not in result and ">" not in result, (
-            f"CDATA residue found in output: {result!r}. " "Bug B2: regex stops at first > inside CDATA."
-        )
+        assert (
+            "]]>" not in result and ">" not in result
+        ), f"CDATA residue found in output: {result!r}. Bug B2: regex stops at first > inside CDATA."
 
 
 # ---------------------------------------------------------------------------

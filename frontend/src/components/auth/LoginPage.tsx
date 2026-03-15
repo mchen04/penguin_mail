@@ -25,7 +25,7 @@ export function LoginPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+          {error && <div className={styles.error} role="alert">{error}</div>}
 
           <div className={styles.field}>
             <label className={styles.label} htmlFor="email">

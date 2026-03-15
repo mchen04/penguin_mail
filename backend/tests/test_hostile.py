@@ -32,9 +32,10 @@ class TestFolderValidation:
             data=json.dumps({"folder": "hacked"}),
         )
         # Bug B1: currently returns 200 and stores the value. Should be 400/422.
-        assert resp.status_code in (400, 422), (
-            f"Expected validation error, got {resp.status_code}. " "Bug B1: folder field accepts arbitrary strings."
-        )
+        assert resp.status_code in (
+            400,
+            422,
+        ), f"Expected validation error, got {resp.status_code}. Bug B1: folder field accepts arbitrary strings."
 
     def test_patch_email_oversized_folder_rejected(self, authed_client, account):
         """A 1 000-char folder string should not be accepted."""
@@ -87,9 +88,10 @@ class TestAttachmentHostile:
             **authed_client._headers,
         )
         # Bug B3: currently returns 201 and stores the file. Should be 400/415.
-        assert resp.status_code in (400, 415), (
-            f"Expected rejection of executable upload, got {resp.status_code}. " "Bug B3: no MIME-type whitelist."
-        )
+        assert resp.status_code in (
+            400,
+            415,
+        ), f"Expected rejection of executable upload, got {resp.status_code}. Bug B3: no MIME-type whitelist."
 
     def test_upload_path_traversal_filename(self, authed_client):
         """Filename with path traversal should be sanitised or rejected."""
@@ -118,9 +120,10 @@ class TestAttachmentHostile:
             **authed_client._headers,
         )
         # Bug B3: currently returns 201 regardless of file size. Should be 400/413.
-        assert resp.status_code in (400, 413), (
-            f"Expected rejection of oversized file, got {resp.status_code}. " "Bug B3: no size limit."
-        )
+        assert resp.status_code in (
+            400,
+            413,
+        ), f"Expected rejection of oversized file, got {resp.status_code}. Bug B3: no size limit."
 
     def test_upload_zero_byte_file_succeeds(self, authed_client):
         """A zero-byte file is an edge case but should not crash the server."""
@@ -197,9 +200,10 @@ class TestBulkAddLabelSilentSkip:
             ),
         )
         # Bug B5: currently returns 200 (silently does nothing). Should be 400/422.
-        assert resp.status_code in (400, 422), (
-            f"Expected error for addLabel with empty labelIds, got {resp.status_code}. " "Bug B5: silent skip."
-        )
+        assert resp.status_code in (
+            400,
+            422,
+        ), f"Expected error for addLabel with empty labelIds, got {resp.status_code}. Bug B5: silent skip."
 
     def test_addlabel_with_null_labelids_returns_error(self, authed_client, account):
         """addLabel with labelIds=null should be rejected (400/422)."""
@@ -215,9 +219,10 @@ class TestBulkAddLabelSilentSkip:
             ),
         )
         # Bug B5 variant: labelIds omitted entirely.
-        assert resp.status_code in (400, 422), (
-            f"Expected error for addLabel with null labelIds, got {resp.status_code}. " "Bug B5: silent skip."
-        )
+        assert resp.status_code in (
+            400,
+            422,
+        ), f"Expected error for addLabel with null labelIds, got {resp.status_code}. Bug B5: silent skip."
 
 
 # ---------------------------------------------------------------------------
