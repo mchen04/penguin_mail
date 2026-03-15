@@ -1,4 +1,7 @@
 import '@testing-library/jest-dom'
+import * as axeMatchers from 'vitest-axe/matchers'
+import { expect } from 'vitest'
+expect.extend(axeMatchers)
 
 // Mock window.matchMedia for responsive tests
 Object.defineProperty(window, 'matchMedia', {

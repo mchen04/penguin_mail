@@ -9,7 +9,9 @@ import { ContactsProvider } from '@/context/ContactsContext'
 import { OrganizationProvider } from '@/context/OrganizationContext'
 import { RepositoryProvider } from '@/context/RepositoryContext'
 import { ToastProvider } from '@/context/ToastContext'
+import { FeaturesProvider } from '@/context/FeaturesContext'
 import { createMockRepositories } from './mock-repositories'
+import type { IRepositories } from '@/repositories/types'
 
 // Wrapper that provides all context providers in the correct order
 function AllProviders({ children }: { children: ReactNode }) {
@@ -21,9 +23,11 @@ function AllProviders({ children }: { children: ReactNode }) {
             <AccountProvider>
               <ContactsProvider>
                 <OrganizationProvider>
-                  <EmailProvider>
-                    {children}
-                  </EmailProvider>
+                  <FeaturesProvider>
+                    <EmailProvider>
+                      {children}
+                    </EmailProvider>
+                  </FeaturesProvider>
                 </OrganizationProvider>
               </ContactsProvider>
             </AccountProvider>
@@ -34,12 +38,44 @@ function AllProviders({ children }: { children: ReactNode }) {
   )
 }
 
-// Custom render function that wraps components with all providers
+// Custom render function that wraps components with all providers.
+// Pass `repos` to inject custom mock repositories (e.g. to seed specific emails or accounts).
 function customRender(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  options?: Omit<RenderOptions, 'wrapper'> & { repos?: IRepositories }
 ) {
-  return render(ui, { wrapper: AllProviders, ...options })
+  const { repos, ...renderOptions } = options ?? {}
+  const wrapper = repos ? createWrapper(repos) : AllProviders
+  return render(ui, { wrapper, ...renderOptions })
+}
+
+/**
+ * Creates a wrapper component that injects the given repositories (or fresh mocks
+ * if none provided). Use this in renderHook calls that need custom mock repos.
+ */
+export function createWrapper(repos?: IRepositories) {
+  const mockRepos = repos ?? createMockRepositories()
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <ToastProvider>
+        <RepositoryProvider repositories={mockRepos}>
+          <SettingsProvider>
+            <AppProvider>
+              <AccountProvider>
+                <ContactsProvider>
+                  <OrganizationProvider>
+                    <FeaturesProvider>
+                      <EmailProvider>{children}</EmailProvider>
+                    </FeaturesProvider>
+                  </OrganizationProvider>
+                </ContactsProvider>
+              </AccountProvider>
+            </AppProvider>
+          </SettingsProvider>
+        </RepositoryProvider>
+      </ToastProvider>
+    )
+  }
 }
 
 // Re-export everything from testing-library

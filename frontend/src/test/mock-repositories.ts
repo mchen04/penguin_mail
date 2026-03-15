@@ -4,11 +4,36 @@
  * can be rendered without hitting the network.
  */
 import type { IRepositories } from '@/repositories/types'
+import type { Email } from '@/types/email'
 import { vi } from 'vitest'
 
 const emptyPaginated = { data: [], total: 0, page: 1, pageSize: 50, totalPages: 0 }
 const ok = <T>(data: T) => Promise.resolve({ success: true as const, data })
 const okVoid = () => ok<void>(undefined)
+
+/** Returns a fully-typed Email object with sensible defaults. */
+export function makeEmail(overrides: Partial<Email> = {}): Email {
+  return {
+    id: 'mock-email',
+    accountId: 'mock-account',
+    accountColor: 'blue',
+    from: { name: 'Sender', email: 'sender@example.com' },
+    to: [{ name: 'Recipient', email: 'recipient@example.com' }],
+    subject: 'Mock Subject',
+    preview: 'Mock preview text',
+    body: '<p>Mock body</p>',
+    date: new Date('2026-01-01T00:00:00Z'),
+    isRead: true,
+    isStarred: false,
+    hasAttachment: false,
+    attachments: [],
+    folder: 'sent',
+    labels: [],
+    threadId: 'mock-thread',
+    isDraft: false,
+    ...overrides,
+  }
+}
 
 export function createMockRepositories(): IRepositories {
   return {
@@ -20,8 +45,8 @@ export function createMockRepositories(): IRepositories {
       getUnreadCount: vi.fn().mockResolvedValue(0),
       getFolderCount: vi.fn().mockResolvedValue(0),
       getStarred: vi.fn().mockResolvedValue(emptyPaginated),
-      create: vi.fn().mockImplementation(() => ok({ id: 'mock-email', folder: 'sent', labels: [] })),
-      update: vi.fn().mockImplementation(() => ok({ id: 'mock-email' })),
+      create: vi.fn().mockImplementation(() => ok(makeEmail({ id: 'mock-email', folder: 'sent' }))),
+      update: vi.fn().mockImplementation(() => ok(makeEmail({ id: 'mock-email' }))),
       updateMany: vi.fn().mockImplementation(() => ok([])),
       delete: vi.fn().mockImplementation(okVoid),
       deleteMany: vi.fn().mockImplementation(okVoid),
@@ -30,7 +55,7 @@ export function createMockRepositories(): IRepositories {
       moveToFolder: vi.fn().mockImplementation(okVoid),
       archive: vi.fn().mockImplementation(okVoid),
       markAsSpam: vi.fn().mockImplementation(okVoid),
-      saveDraft: vi.fn().mockImplementation(() => ok({ id: 'mock-draft', folder: 'drafts', labels: [] })),
+      saveDraft: vi.fn().mockImplementation(() => ok(makeEmail({ id: 'mock-draft', folder: 'drafts', isDraft: true }))),
       markAsRead: vi.fn().mockImplementation(okVoid),
       markAsUnread: vi.fn().mockImplementation(okVoid),
       toggleStar: vi.fn().mockImplementation(okVoid),
