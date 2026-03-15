@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ninja import Schema
 
 
@@ -23,5 +21,5 @@ class LabelCreateIn(Schema):
 
 
 class LabelUpdateIn(Schema):
-    name: Optional[str] = None
-    color: Optional[str] = None
+    name: str | None = None
+    color: str | None = None

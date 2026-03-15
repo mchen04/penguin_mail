@@ -1,10 +1,10 @@
 from ninja import Router
-from ninja.errors import HttpError
 
-from penguin_mail.models import Label
 from penguin_mail.api.auth import JWTAuth
-from penguin_mail.api.schemas.label import LabelOut, LabelCreateIn, LabelUpdateIn
 from penguin_mail.api.schemas.auth import SuccessOut
+from penguin_mail.api.schemas.label import LabelCreateIn, LabelOut, LabelUpdateIn
+from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.models import Label
 
 router = Router(auth=JWTAuth())
 
@@ -17,10 +17,7 @@ def list_labels(request):
 
 @router.get("/{label_id}", response=LabelOut)
 def get_label(request, label_id: str):
-    try:
-        label = Label.objects.get(uuid=label_id, user=request.auth)
-    except Label.DoesNotExist:
-        raise HttpError(404, "Not found")
+    label = get_object_or_404(Label, user=request.auth, uuid=label_id)
     return LabelOut.from_model(label)
 
 
@@ -36,10 +33,7 @@ def create_label(request, payload: LabelCreateIn):
 
 @router.patch("/{label_id}", response=LabelOut)
 def update_label(request, label_id: str, payload: LabelUpdateIn):
-    try:
-        label = Label.objects.get(uuid=label_id, user=request.auth)
-    except Label.DoesNotExist:
-        raise HttpError(404, "Not found")
+    label = get_object_or_404(Label, user=request.auth, uuid=label_id)
 
     if payload.name is not None:
         label.name = payload.name
@@ -51,9 +45,6 @@ def update_label(request, label_id: str, payload: LabelUpdateIn):
 
 @router.delete("/{label_id}", response=SuccessOut)
 def delete_label(request, label_id: str):
-    try:
-        label = Label.objects.get(uuid=label_id, user=request.auth)
-    except Label.DoesNotExist:
-        raise HttpError(404, "Not found")
+    label = get_object_or_404(Label, user=request.auth, uuid=label_id)
     label.delete()
     return SuccessOut()

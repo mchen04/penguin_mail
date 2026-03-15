@@ -1,16 +1,15 @@
 from ninja import NinjaAPI
 
-from .auth import JWTAuth
 from .routers import (
-    auth_router,
-    emails_router,
     accounts_router,
-    contacts_router,
+    attachments_router,
+    auth_router,
     contact_groups_router,
+    contacts_router,
+    emails_router,
     folders_router,
     labels_router,
     settings_router,
-    attachments_router,
 )
 
 api = NinjaAPI(title="Penguin Mail API", version="1.0.0")

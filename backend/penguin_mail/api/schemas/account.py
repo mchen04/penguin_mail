@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from ninja import Schema
 
@@ -43,10 +42,10 @@ class AccountCreateIn(Schema):
 
 
 class AccountUpdateIn(Schema):
-    name: Optional[str] = None
-    color: Optional[str] = None
-    displayName: Optional[str] = None
-    signature: Optional[str] = None
-    defaultSignatureId: Optional[str] = None
-    avatar: Optional[str] = None
-    isDefault: Optional[bool] = None
+    name: str | None = None
+    color: str | None = None
+    displayName: str | None = None
+    signature: str | None = None
+    defaultSignatureId: str | None = None
+    avatar: str | None = None
+    isDefault: bool | None = None

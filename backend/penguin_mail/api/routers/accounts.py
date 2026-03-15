@@ -1,10 +1,10 @@
 from ninja import Router
-from ninja.errors import HttpError
 
-from penguin_mail.models import Account
 from penguin_mail.api.auth import JWTAuth
-from penguin_mail.api.schemas.account import AccountOut, AccountCreateIn, AccountUpdateIn
+from penguin_mail.api.schemas.account import AccountCreateIn, AccountOut, AccountUpdateIn
 from penguin_mail.api.schemas.auth import SuccessOut
+from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.models import Account
 
 router = Router(auth=JWTAuth())
 
@@ -17,10 +17,7 @@ def list_accounts(request):
 
 @router.get("/{account_id}", response=AccountOut)
 def get_account(request, account_id: str):
-    try:
-        account = Account.objects.get(uuid=account_id, user=request.auth)
-    except Account.DoesNotExist:
-        raise HttpError(404, "Not found")
+    account = get_object_or_404(Account, user=request.auth, uuid=account_id)
     return AccountOut.from_model(account)
 
 
@@ -45,10 +42,7 @@ def create_account(request, payload: AccountCreateIn):
 @router.patch("/{account_id}", response=AccountOut)
 def update_account(request, account_id: str, payload: AccountUpdateIn):
     user = request.auth
-    try:
-        account = Account.objects.get(uuid=account_id, user=user)
-    except Account.DoesNotExist:
-        raise HttpError(404, "Not found")
+    account = get_object_or_404(Account, user=user, uuid=account_id)
 
     if payload.name is not None:
         account.name = payload.name
@@ -72,10 +66,7 @@ def update_account(request, account_id: str, payload: AccountUpdateIn):
 
 @router.delete("/{account_id}", response=SuccessOut)
 def delete_account(request, account_id: str):
-    try:
-        account = Account.objects.get(uuid=account_id, user=request.auth)
-    except Account.DoesNotExist:
-        raise HttpError(404, "Not found")
+    account = get_object_or_404(Account, user=request.auth, uuid=account_id)
 
     account.delete()
     return SuccessOut()
@@ -84,10 +75,7 @@ def delete_account(request, account_id: str):
 @router.post("/{account_id}/set-default", response=SuccessOut)
 def set_default(request, account_id: str):
     user = request.auth
-    try:
-        account = Account.objects.get(uuid=account_id, user=user)
-    except Account.DoesNotExist:
-        raise HttpError(404, "Not found")
+    account = get_object_or_404(Account, user=user, uuid=account_id)
 
     Account.objects.filter(user=user).update(is_default=False)
     account.is_default = True

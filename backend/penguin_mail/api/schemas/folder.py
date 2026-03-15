@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from ninja import Schema
 
@@ -8,7 +7,7 @@ class FolderOut(Schema):
     id: str
     name: str
     color: str
-    parentId: Optional[str]
+    parentId: str | None
     order: int
     createdAt: datetime
     updatedAt: datetime
@@ -29,9 +28,9 @@ class FolderOut(Schema):
 class FolderCreateIn(Schema):
     name: str
     color: str = ""
-    parentId: Optional[str] = None
+    parentId: str | None = None
 
 
 class FolderUpdateIn(Schema):
-    name: Optional[str] = None
-    color: Optional[str] = None
+    name: str | None = None
+    color: str | None = None

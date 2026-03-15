@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal
 
+from ninja import Field, Schema
 from pydantic import model_serializer
-from ninja import Schema, Field
 
 
 class EmailAddressOut(Schema):
@@ -15,14 +15,14 @@ class AttachmentBrief(Schema):
     name: str
     size: int
     mimeType: str
-    url: Optional[str] = None
+    url: str | None = None
 
 
 class EmailOut(Schema):
     id: str
     accountId: str
     accountColor: str
-    from_: EmailAddressOut = Field(serialization_alias='from')
+    from_: EmailAddressOut = Field(serialization_alias="from")
     to: list[EmailAddressOut]
     cc: list[EmailAddressOut] = []
     bcc: list[EmailAddressOut] = []
@@ -36,22 +36,22 @@ class EmailOut(Schema):
     attachments: list[AttachmentBrief] = []
     folder: str
     labels: list[str] = []
-    threadId: Optional[str] = None
-    replyToId: Optional[str] = None
-    forwardedFromId: Optional[str] = None
+    threadId: str | None = None
+    replyToId: str | None = None
+    forwardedFromId: str | None = None
     isDraft: bool
-    scheduledSendAt: Optional[datetime] = None
-    snoozeUntil: Optional[datetime] = None
-    snoozedFromFolder: Optional[str] = None
+    scheduledSendAt: datetime | None = None
+    snoozeUntil: datetime | None = None
+    snoozedFromFolder: str | None = None
 
     class Config:
         json_schema_extra = {"properties": {"from": {"$ref": "#/$defs/EmailAddressOut"}}}
 
-    @model_serializer(mode='wrap')
+    @model_serializer(mode="wrap")
     def _serialize(self, handler):
         d = handler(self)
-        if 'from_' in d:
-            d['from'] = d.pop('from_')
+        if "from_" in d:
+            d["from"] = d.pop("from_")
         return d
 
     @staticmethod
@@ -114,23 +114,37 @@ class EmailCreateIn(Schema):
     bcc: list[EmailAddressIn] = []
     subject: str = ""
     body: str = ""
-    replyToId: Optional[str] = None
-    forwardedFromId: Optional[str] = None
-    scheduledSendAt: Optional[datetime] = None
+    replyToId: str | None = None
+    forwardedFromId: str | None = None
+    scheduledSendAt: datetime | None = None
 
 
 class EmailUpdateIn(Schema):
-    isRead: Optional[bool] = None
-    isStarred: Optional[bool] = None
-    folder: Optional[str] = None
-    labels: Optional[list[str]] = None
+    isRead: bool | None = None
+    isStarred: bool | None = None
+    folder: str | None = None
+    labels: list[str] | None = None
+
+
+BulkOperation = Literal[
+    "markRead",
+    "markUnread",
+    "star",
+    "unstar",
+    "archive",
+    "delete",
+    "deletePermanent",
+    "move",
+    "addLabel",
+    "removeLabel",
+]
 
 
 class BulkOpIn(Schema):
     ids: list[str]
-    operation: str  # markRead, markUnread, star, unstar, archive, delete, deletePermanent, move, addLabel, removeLabel
-    folder: Optional[str] = None
-    labelIds: Optional[list[str]] = None
+    operation: BulkOperation
+    folder: str | None = None
+    labelIds: list[str] | None = None
 
 
 class LabelOpIn(Schema):

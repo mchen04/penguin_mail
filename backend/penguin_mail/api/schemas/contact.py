@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from ninja import Schema
 
@@ -46,14 +45,14 @@ class ContactCreateIn(Schema):
 
 
 class ContactUpdateIn(Schema):
-    email: Optional[str] = None
-    name: Optional[str] = None
-    avatar: Optional[str] = None
-    phone: Optional[str] = None
-    company: Optional[str] = None
-    notes: Optional[str] = None
-    isFavorite: Optional[bool] = None
-    groups: Optional[list[str]] = None
+    email: str | None = None
+    name: str | None = None
+    avatar: str | None = None
+    phone: str | None = None
+    company: str | None = None
+    notes: str | None = None
+    isFavorite: bool | None = None
+    groups: list[str] | None = None
 
 
 class ContactGroupOut(Schema):
@@ -83,5 +82,5 @@ class ContactGroupCreateIn(Schema):
 
 
 class ContactGroupUpdateIn(Schema):
-    name: Optional[str] = None
-    color: Optional[str] = None
+    name: str | None = None
+    color: str | None = None

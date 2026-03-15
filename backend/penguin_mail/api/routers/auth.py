@@ -2,9 +2,9 @@ from django.contrib.auth import authenticate
 from ninja import Router
 from ninja.errors import HttpError
 
-from penguin_mail.models import User
 from penguin_mail.api.auth import JWTAuth, create_access_token, create_refresh_token, decode_token
-from penguin_mail.api.schemas.auth import LoginIn, TokenOut, RefreshIn, RefreshOut, SuccessOut
+from penguin_mail.api.schemas.auth import LoginIn, RefreshIn, RefreshOut, SuccessOut, TokenOut
+from penguin_mail.models import User
 
 router = Router()
 

@@ -4,25 +4,24 @@ from django.db.models import Q
 from ninja import Router
 from ninja.errors import HttpError
 
-from penguin_mail.models import Account, Email, Recipient, Label
 from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.pagination import paginate_queryset
+from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.schemas.email import (
-    EmailOut,
-    EmailCreateIn,
-    EmailUpdateIn,
     BulkOpIn,
+    EmailCreateIn,
+    EmailOut,
+    EmailUpdateIn,
     LabelOpIn,
 )
-from penguin_mail.api.schemas.auth import SuccessOut
+from penguin_mail.models import Account, Email, Label, Recipient
 
 router = Router(auth=JWTAuth())
 
 
 def _base_qs(user):
     return (
-        Email.objects
-        .filter(account__user=user)
+        Email.objects.filter(account__user=user)
         .select_related("account", "reply_to", "forwarded_from")
         .prefetch_related("recipients", "attachments", "labels")
     )
@@ -30,6 +29,7 @@ def _base_qs(user):
 
 def _strip_html(html: str, max_length: int = 200) -> str:
     import re
+
     text = re.sub(r"<[^>]+>", "", html)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:max_length]
@@ -74,10 +74,10 @@ def list_emails(
         qs = qs.filter(has_attachment=hasAttachment)
     if search:
         qs = qs.filter(
-            Q(subject__icontains=search) |
-            Q(body__icontains=search) |
-            Q(sender_name__icontains=search) |
-            Q(sender_email__icontains=search)
+            Q(subject__icontains=search)
+            | Q(body__icontains=search)
+            | Q(sender_name__icontains=search)
+            | Q(sender_email__icontains=search)
         )
     if threadId:
         qs = qs.filter(thread_id=threadId)
@@ -201,7 +201,9 @@ def bulk_operation(request, payload: BulkOpIn):
         emails.update(folder="trash")
     elif op == "deletePermanent":
         emails.delete()
-    elif op == "move" and payload.folder:
+    elif op == "move":
+        if not payload.folder:
+            raise HttpError(400, "folder is required for move operation")
         emails.update(folder=payload.folder)
     elif op == "addLabel" and payload.labelIds:
         labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)

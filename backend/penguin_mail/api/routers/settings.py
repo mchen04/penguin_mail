@@ -1,18 +1,18 @@
 from ninja import Router
 from ninja.errors import HttpError
 
-from penguin_mail.models import UserSettings, Signature, FilterRule, BlockedAddress, KeyboardShortcut
 from penguin_mail.api.auth import JWTAuth
+from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.schemas.settings import (
+    BlockAddressIn,
+    FilterCreateIn,
+    FilterUpdateIn,
     SettingsOut,
     SettingsUpdateIn,
     SignatureCreateIn,
     SignatureUpdateIn,
-    FilterCreateIn,
-    FilterUpdateIn,
-    BlockAddressIn,
 )
-from penguin_mail.api.schemas.auth import SuccessOut
+from penguin_mail.models import BlockedAddress, FilterRule, KeyboardShortcut, Signature, UserSettings
 
 router = Router(auth=JWTAuth())
 
@@ -20,6 +20,7 @@ router = Router(auth=JWTAuth())
 # ---------------------------------------------------------------------------
 # Main settings
 # ---------------------------------------------------------------------------
+
 
 @router.get("/", response=SettingsOut)
 def get_settings(request):
@@ -62,6 +63,7 @@ def reset_settings(request):
 # ---------------------------------------------------------------------------
 # Signatures
 # ---------------------------------------------------------------------------
+
 
 @router.post("/signatures", response={201: SettingsOut})
 def create_signature(request, payload: SignatureCreateIn):
@@ -112,6 +114,7 @@ def delete_signature(request, sig_id: int):
 # ---------------------------------------------------------------------------
 # Filters
 # ---------------------------------------------------------------------------
+
 
 @router.post("/filters", response={201: SettingsOut})
 def create_filter(request, payload: FilterCreateIn):
@@ -164,6 +167,7 @@ def delete_filter(request, filter_id: int):
 # Blocked addresses
 # ---------------------------------------------------------------------------
 
+
 @router.post("/blocked-addresses", response={201: SettingsOut})
 def block_address(request, payload: BlockAddressIn):
     user = request.auth
@@ -184,6 +188,7 @@ def unblock_address(request, email: str):
 # ---------------------------------------------------------------------------
 # Keyboard shortcuts
 # ---------------------------------------------------------------------------
+
 
 @router.patch("/keyboard-shortcuts/{shortcut_id}", response=SettingsOut)
 def update_shortcut(request, shortcut_id: int, enabled: bool = None, key: str = None, modifiers: list[str] = None):

@@ -12,7 +12,7 @@ ALGORITHM = "HS256"
 
 
 def create_access_token(user: User) -> tuple[str, int]:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     expires = now + ACCESS_TOKEN_LIFETIME
     payload = {
         "sub": str(user.uuid),
@@ -25,7 +25,7 @@ def create_access_token(user: User) -> tuple[str, int]:
 
 
 def create_refresh_token(user: User) -> str:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     payload = {
         "sub": str(user.uuid),
         "type": "refresh",

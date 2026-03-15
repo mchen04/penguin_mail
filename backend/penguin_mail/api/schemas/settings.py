@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from ninja import Schema
 
@@ -19,7 +18,7 @@ class FilterConditionOut(Schema):
 
 class FilterActionOut(Schema):
     type: str
-    value: Optional[str] = None
+    value: str | None = None
 
 
 class FilterRuleOut(Schema):
@@ -51,8 +50,8 @@ class VacationResponderOut(Schema):
     enabled: bool = False
     subject: str = ""
     message: str = ""
-    startDate: Optional[datetime] = None
-    endDate: Optional[datetime] = None
+    startDate: datetime | None = None
+    endDate: datetime | None = None
     sendToContacts: bool = True
     sendToEveryone: bool = False
 
@@ -124,14 +123,16 @@ class SettingsOut(Schema):
         ]
 
         blocked = [
-            BlockedAddressOut(id=str(b.pk), email=b.email, createdAt=b.created_at)
-            for b in user.blocked_addresses.all()
+            BlockedAddressOut(id=str(b.pk), email=b.email, createdAt=b.created_at) for b in user.blocked_addresses.all()
         ]
 
         shortcuts = [
             KeyboardShortcutOut(
-                id=str(k.pk), action=k.action, key=k.key,
-                modifiers=k.modifiers or [], enabled=k.enabled,
+                id=str(k.pk),
+                action=k.action,
+                key=k.key,
+                modifiers=k.modifiers or [],
+                enabled=k.enabled,
             )
             for k in user.keyboard_shortcuts.all()
         ]
@@ -144,11 +145,17 @@ class SettingsOut(Schema):
 
         return SettingsOut(
             appearance=AppearanceOut(**{k: v for k, v in appearance_data.items() if k in AppearanceOut.model_fields}),
-            notifications=NotificationsOut(**{k: v for k, v in notifications_data.items() if k in NotificationsOut.model_fields}),
-            inboxBehavior=InboxBehaviorOut(**{k: v for k, v in inbox_data.items() if k in InboxBehaviorOut.model_fields}),
+            notifications=NotificationsOut(
+                **{k: v for k, v in notifications_data.items() if k in NotificationsOut.model_fields}
+            ),
+            inboxBehavior=InboxBehaviorOut(
+                **{k: v for k, v in inbox_data.items() if k in InboxBehaviorOut.model_fields}
+            ),
             language=LanguageOut(**{k: v for k, v in language_data.items() if k in LanguageOut.model_fields}),
             signatures=signatures,
-            vacationResponder=VacationResponderOut(**{k: v for k, v in vacation_data.items() if k in VacationResponderOut.model_fields}),
+            vacationResponder=VacationResponderOut(
+                **{k: v for k, v in vacation_data.items() if k in VacationResponderOut.model_fields}
+            ),
             keyboardShortcuts=shortcuts,
             filters=filters,
             blockedAddresses=blocked,
@@ -156,11 +163,11 @@ class SettingsOut(Schema):
 
 
 class SettingsUpdateIn(Schema):
-    appearance: Optional[dict] = None
-    notifications: Optional[dict] = None
-    inboxBehavior: Optional[dict] = None
-    language: Optional[dict] = None
-    vacationResponder: Optional[dict] = None
+    appearance: dict | None = None
+    notifications: dict | None = None
+    inboxBehavior: dict | None = None
+    language: dict | None = None
+    vacationResponder: dict | None = None
 
 
 class SignatureCreateIn(Schema):
@@ -170,9 +177,9 @@ class SignatureCreateIn(Schema):
 
 
 class SignatureUpdateIn(Schema):
-    name: Optional[str] = None
-    content: Optional[str] = None
-    isDefault: Optional[bool] = None
+    name: str | None = None
+    content: str | None = None
+    isDefault: bool | None = None
 
 
 class FilterCreateIn(Schema):
@@ -184,11 +191,11 @@ class FilterCreateIn(Schema):
 
 
 class FilterUpdateIn(Schema):
-    name: Optional[str] = None
-    enabled: Optional[bool] = None
-    conditions: Optional[list[dict]] = None
-    matchAll: Optional[bool] = None
-    actions: Optional[list[dict]] = None
+    name: str | None = None
+    enabled: bool | None = None
+    conditions: list[dict] | None = None
+    matchAll: bool | None = None
+    actions: list[dict] | None = None
 
 
 class BlockAddressIn(Schema):

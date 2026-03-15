@@ -2,11 +2,12 @@ from django.db.models import Q
 from ninja import Router
 from ninja.errors import HttpError
 
-from penguin_mail.models import Contact, ContactGroup
 from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.pagination import paginate_queryset
-from penguin_mail.api.schemas.contact import ContactOut, ContactCreateIn, ContactUpdateIn
 from penguin_mail.api.schemas.auth import SuccessOut
+from penguin_mail.api.schemas.contact import ContactCreateIn, ContactOut, ContactUpdateIn
+from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.models import Contact, ContactGroup
 
 router = Router(auth=JWTAuth())
 
@@ -42,28 +43,23 @@ def get_favorites(request):
 
 @router.get("/by-group/{group_id}", response=list[ContactOut])
 def get_by_group(request, group_id: str):
-    try:
-        group = ContactGroup.objects.get(uuid=group_id, user=request.auth)
-    except ContactGroup.DoesNotExist:
-        raise HttpError(404, "Group not found")
+    group = get_object_or_404(ContactGroup, user=request.auth, uuid=group_id)
     contacts = group.contacts.prefetch_related("groups").order_by("name")
     return [ContactOut.from_model(c) for c in contacts]
 
 
 @router.get("/{contact_id}", response=ContactOut)
 def get_contact(request, contact_id: str):
-    try:
-        contact = Contact.objects.prefetch_related("groups").get(uuid=contact_id, user=request.auth)
-    except Contact.DoesNotExist:
+    contact = Contact.objects.prefetch_related("groups").filter(uuid=contact_id, user=request.auth).first()
+    if not contact:
         raise HttpError(404, "Not found")
     return ContactOut.from_model(contact)
 
 
 @router.get("/by-email/{email}", response=ContactOut)
 def get_by_email(request, email: str):
-    try:
-        contact = Contact.objects.prefetch_related("groups").get(email=email, user=request.auth)
-    except Contact.DoesNotExist:
+    contact = Contact.objects.prefetch_related("groups").filter(email=email, user=request.auth).first()
+    if not contact:
         raise HttpError(404, "Not found")
     return ContactOut.from_model(contact)
 
@@ -91,10 +87,7 @@ def create_contact(request, payload: ContactCreateIn):
 @router.patch("/{contact_id}", response=ContactOut)
 def update_contact(request, contact_id: str, payload: ContactUpdateIn):
     user = request.auth
-    try:
-        contact = Contact.objects.get(uuid=contact_id, user=user)
-    except Contact.DoesNotExist:
-        raise HttpError(404, "Not found")
+    contact = get_object_or_404(Contact, user=user, uuid=contact_id)
 
     if payload.email is not None:
         contact.email = payload.email
@@ -127,20 +120,14 @@ def update_contact(request, contact_id: str, payload: ContactUpdateIn):
 
 @router.delete("/{contact_id}", response=SuccessOut)
 def delete_contact(request, contact_id: str):
-    try:
-        contact = Contact.objects.get(uuid=contact_id, user=request.auth)
-    except Contact.DoesNotExist:
-        raise HttpError(404, "Not found")
+    contact = get_object_or_404(Contact, user=request.auth, uuid=contact_id)
     contact.delete()
     return SuccessOut()
 
 
 @router.post("/{contact_id}/toggle-favorite", response=ContactOut)
 def toggle_favorite(request, contact_id: str):
-    try:
-        contact = Contact.objects.get(uuid=contact_id, user=request.auth)
-    except Contact.DoesNotExist:
-        raise HttpError(404, "Not found")
+    contact = get_object_or_404(Contact, user=request.auth, uuid=contact_id)
     contact.is_favorite = not contact.is_favorite
     contact.save(update_fields=["is_favorite"])
     contact = Contact.objects.prefetch_related("groups").get(pk=contact.pk)
@@ -150,11 +137,8 @@ def toggle_favorite(request, contact_id: str):
 @router.post("/{contact_id}/add-to-group/{group_id}", response=SuccessOut)
 def add_to_group(request, contact_id: str, group_id: str):
     user = request.auth
-    try:
-        contact = Contact.objects.get(uuid=contact_id, user=user)
-        group = ContactGroup.objects.get(uuid=group_id, user=user)
-    except (Contact.DoesNotExist, ContactGroup.DoesNotExist):
-        raise HttpError(404, "Not found")
+    contact = get_object_or_404(Contact, user=user, uuid=contact_id)
+    group = get_object_or_404(ContactGroup, user=user, uuid=group_id)
     group.contacts.add(contact)
     return SuccessOut()
 
@@ -162,10 +146,7 @@ def add_to_group(request, contact_id: str, group_id: str):
 @router.post("/{contact_id}/remove-from-group/{group_id}", response=SuccessOut)
 def remove_from_group(request, contact_id: str, group_id: str):
     user = request.auth
-    try:
-        contact = Contact.objects.get(uuid=contact_id, user=user)
-        group = ContactGroup.objects.get(uuid=group_id, user=user)
-    except (Contact.DoesNotExist, ContactGroup.DoesNotExist):
-        raise HttpError(404, "Not found")
+    contact = get_object_or_404(Contact, user=user, uuid=contact_id)
+    group = get_object_or_404(ContactGroup, user=user, uuid=group_id)
     group.contacts.remove(contact)
     return SuccessOut()
