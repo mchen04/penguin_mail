@@ -65,6 +65,7 @@ export const EmailRow = memo(function EmailRow({
       onClick={handleRowClick}
       role="row"
       tabIndex={0}
+      data-testid="email-row"
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -72,6 +73,7 @@ export const EmailRow = memo(function EmailRow({
         }
       }}
     >
+    <div role="gridcell" style={{ display: 'contents' }}>
       {/* Checkbox */}
       <div className={styles.checkbox}>
         <Checkbox
@@ -171,6 +173,7 @@ export const EmailRow = memo(function EmailRow({
           }}
         />
       </div>
+    </div>
     </div>
   )
 })

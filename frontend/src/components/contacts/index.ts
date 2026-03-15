@@ -1,1 +1,0 @@
-export { ContactsPanel } from './ContactsPanel'

@@ -83,7 +83,7 @@ export function Toolbar({
         />
 
         {/* Compose button */}
-        <Button variant="primary" onClick={() => openCompose()}>
+        <Button variant="primary" onClick={() => openCompose()} data-testid="compose-button">
           <Icon name="plus" size={ICON_SIZE.DEFAULT} />
           <span className={styles.composeText}>Compose</span>
         </Button>

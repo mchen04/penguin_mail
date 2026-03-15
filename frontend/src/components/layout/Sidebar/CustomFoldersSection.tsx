@@ -63,6 +63,8 @@ export function CustomFoldersSection() {
           className={styles.addButton}
           onClick={handleStartCreate}
           title="Create new folder"
+          aria-label="Add folder"
+          data-testid="add-folder-button"
         >
           <Icon name="plus" size={ICON_SIZE.SMALL} />
         </button>

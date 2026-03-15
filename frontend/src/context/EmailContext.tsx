@@ -30,7 +30,7 @@ const defaultSearchFilters: SearchFilters = {
   dateRange: 'any',
 }
 
-interface EmailState {
+export interface EmailState {
   emails: Email[]
   currentFolder: FolderType
   currentAccountId: string // ALL_ACCOUNTS_ID or specific account id
@@ -44,7 +44,7 @@ interface EmailState {
   isLoading: boolean
 }
 
-type EmailAction =
+export type EmailAction =
   | { type: 'SET_EMAILS'; emails: Email[] }
   | { type: 'SET_FOLDER'; folder: FolderType }
   | { type: 'SET_ACCOUNT'; accountId: string }
@@ -84,7 +84,8 @@ const initialState: EmailState = {
   isLoading: true,
 }
 
-function emailReducer(state: EmailState, action: EmailAction): EmailState {
+// eslint-disable-next-line react-refresh/only-export-components -- exported for direct unit testing
+export function emailReducer(state: EmailState, action: EmailAction): EmailState {
   switch (action.type) {
     case 'SET_EMAILS':
       return { ...state, emails: action.emails, isLoading: false }

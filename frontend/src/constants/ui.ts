@@ -19,9 +19,6 @@ export const ICON_SIZE = {
   XLARGE: 48,
 } as const;
 
-export const SVG_VIEWBOX = '0 0 24 24';
-
-
 export const EMAIL_LIST = {
   /** Number of emails to load per page */
   PAGE_SIZE: 25,
@@ -121,11 +118,6 @@ export const BYTES = {
   PER_KB: 1024,
   /** Bytes per megabyte */
   PER_MB: 1024 * 1024,
-} as const;
-
-export const NOTIFICATION = {
-  /** Time before notification auto-closes in ms */
-  AUTO_CLOSE_DELAY: 5000,
 } as const;
 
 export const AUTO_SAVE = {

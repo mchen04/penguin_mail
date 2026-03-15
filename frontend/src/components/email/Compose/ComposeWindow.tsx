@@ -420,8 +420,9 @@ export function ComposeWindow() {
 
           {/* From account selector */}
           <div className={styles.fromField}>
-            <label className={styles.fieldLabel}>From</label>
+            <label className={styles.fieldLabel} htmlFor="compose-from">From</label>
             <select
+              id="compose-from"
               className={styles.accountSelect}
               value={fromAccountId}
               onChange={(e) => setFromAccountId(e.target.value)}

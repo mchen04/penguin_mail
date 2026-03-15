@@ -101,6 +101,7 @@ export function Sidebar() {
           <button
             className={`${styles.footerButton} ${currentView === 'contacts' ? styles.active : ''}`}
             onClick={showContacts}
+            data-testid="contacts-button"
           >
             <Icon name="users" size={ICON_SIZE.DEFAULT} />
             Contacts

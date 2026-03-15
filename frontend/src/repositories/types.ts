@@ -30,20 +30,6 @@ export type RepositoryResponse<T> =
   | { success: false; data?: undefined; error: string }
 
 /**
- * Type guard to check if response is successful
- */
-export function isSuccess<T>(response: RepositoryResponse<T>): response is { success: true; data: T } {
-  return response.success === true
-}
-
-/**
- * Type guard to check if response is an error
- */
-export function isError<T>(response: RepositoryResponse<T>): response is { success: false; error: string } {
-  return response.success === false
-}
-
-/**
  * Pagination options
  */
 export interface PaginationOptions {

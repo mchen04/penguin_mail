@@ -126,7 +126,7 @@ export function EmailHeader({
                   type="button"
                   className={styles.moreMenuItem}
                   onClick={() => {
-                    email.isRead ? markUnread([email.id]) : markRead([email.id])
+                    if (email.isRead) { markUnread([email.id]); } else { markRead([email.id]); }
                     setShowMoreMenu(false)
                   }}
                 >

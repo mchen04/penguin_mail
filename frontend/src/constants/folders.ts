@@ -4,7 +4,7 @@
 
 import type { SystemFolderType } from '@/types/email'
 
-export const FOLDER_IDS = {
+const FOLDER_IDS = {
   INBOX: 'inbox',
   DRAFTS: 'drafts',
   SENT: 'sent',
@@ -15,8 +15,6 @@ export const FOLDER_IDS = {
   SNOOZED: 'snoozed',
   SCHEDULED: 'scheduled',
 } as const;
-
-export type FolderId = typeof FOLDER_IDS[keyof typeof FOLDER_IDS];
 
 /** Standard folders that appear for each account (sidebar) */
 export const STANDARD_FOLDERS: SystemFolderType[] = [

@@ -3,11 +3,6 @@
  */
 
 export * from './types'
-export { ApiEmailRepository } from './ApiEmailRepository'
-export { ApiAccountRepository } from './ApiAccountRepository'
-export { ApiContactRepository, ApiContactGroupRepository } from './ApiContactRepository'
-export { ApiFolderRepository, ApiLabelRepository } from './ApiFolderRepository'
-export { ApiSettingsRepository } from './ApiSettingsRepository'
 
 import type { IRepositories } from './types'
 import { ApiEmailRepository } from './ApiEmailRepository'

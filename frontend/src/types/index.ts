@@ -19,7 +19,6 @@ export type {
   EmailTemplate,
   SearchFilters,
 } from './email'
-export { SYSTEM_FOLDERS, isSystemFolder } from './email'
 
 // Account types
 export type {
@@ -28,7 +27,7 @@ export type {
   AccountCreateInput,
   AccountUpdateInput,
 } from './account'
-export { ACCOUNT_COLOR_VAR, FOLDER_LABELS } from './account'
+export { FOLDER_LABELS } from './account'
 
 // Settings types
 export type {
@@ -53,7 +52,6 @@ export type {
   LanguageSettings,
   Settings,
 } from './settings'
-export { createDefaultSettings, getDefaultKeyboardShortcuts } from './settings'
 
 // Contact types
 export type {

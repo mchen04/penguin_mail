@@ -1,5 +1,4 @@
 export { cn } from './cn'
-export { formatDate, formatFullDate } from './formatDate'
 export { formatBytes } from './formatBytes'
 export { stripHtml } from './text'
 export * from './errors'

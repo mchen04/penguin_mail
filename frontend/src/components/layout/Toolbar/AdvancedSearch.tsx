@@ -120,6 +120,7 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
           onChange={handleTextChange}
           onFocus={() => setIsExpanded(true)}
           aria-label="Search mail"
+          data-testid="search-input"
         />
         <button
           type="button"
@@ -127,6 +128,8 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
           onClick={() => setIsExpanded(!isExpanded)}
           data-active={hasActiveFilters}
           title="Advanced search"
+          aria-label="Advanced search"
+          data-testid="advanced-search-toggle"
         >
           <Icon name="settings" size={ICON_SIZE.SMALL} />
         </button>

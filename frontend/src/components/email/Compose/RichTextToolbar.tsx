@@ -177,6 +177,7 @@ export function RichTextToolbar({ editorRef }: RichTextToolbarProps) {
             e.target.value = ''
           }}
           title="Format"
+          aria-label="Format"
         >
           <option value="">Format</option>
           <option value="p">Paragraph</option>
