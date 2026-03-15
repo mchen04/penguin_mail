@@ -77,7 +77,7 @@ function settingsReducer(state: SettingsState, action: SettingsAction): Settings
 
     case 'SET_SETTINGS': {
       // When the backend hasn't stored shortcuts yet (empty array), use defaults
-      const shortcuts = action.settings.keyboardShortcuts.length > 0
+      const shortcuts = (action.settings.keyboardShortcuts ?? []).length > 0
         ? action.settings.keyboardShortcuts
         : getDefaultKeyboardShortcuts()
       return { ...state, settings: { ...action.settings, keyboardShortcuts: shortcuts }, isLoading: false, error: null }
