@@ -4,6 +4,19 @@ from typing import Literal
 from ninja import Field, Schema
 from pydantic import model_serializer
 
+# Valid folder names — mirrors FolderType model choices.
+ValidFolder = Literal[
+    "inbox",
+    "drafts",
+    "sent",
+    "spam",
+    "trash",
+    "archive",
+    "starred",
+    "snoozed",
+    "scheduled",
+]
+
 
 class EmailAddressOut(Schema):
     name: str
@@ -122,7 +135,7 @@ class EmailCreateIn(Schema):
 class EmailUpdateIn(Schema):
     isRead: bool | None = None
     isStarred: bool | None = None
-    folder: str | None = None
+    folder: ValidFolder | None = None
     labels: list[str] | None = None
 
 
@@ -143,7 +156,7 @@ BulkOperation = Literal[
 class BulkOpIn(Schema):
     ids: list[str]
     operation: BulkOperation
-    folder: str | None = None
+    folder: ValidFolder | None = None
     labelIds: list[str] | None = None
 
 

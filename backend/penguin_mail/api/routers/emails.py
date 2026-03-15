@@ -30,7 +30,10 @@ def _base_qs(user):
 def _strip_html(html: str, max_length: int = 200) -> str:
     import re
 
-    text = re.sub(r"<[^>]+>", "", html)
+    # Strip CDATA sections before tag removal — <[^>]+> stops at the first >
+    # inside CDATA, leaving residual content such as "content]]>" in the output.
+    text = re.sub(r"<!\[CDATA\[.*?\]\]>", "", html, flags=re.DOTALL)
+    text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:max_length]
 
@@ -181,6 +184,16 @@ def create_draft(request, payload: EmailCreateIn):
     return 201, EmailOut.from_model(email)
 
 
+def _apply_label_op(op, emails, label_ids, user):
+    """Apply addLabel / removeLabel to a queryset, raising 400 if labelIds is absent."""
+    if not label_ids:
+        raise HttpError(400, f"labelIds is required for {op} operation")
+    labels = Label.objects.filter(uuid__in=label_ids, user=user)
+    method = "add" if op == "addLabel" else "remove"
+    for email in emails:
+        getattr(email.labels, method)(*labels)
+
+
 @router.post("/bulk", response=SuccessOut)
 def bulk_operation(request, payload: BulkOpIn):
     user = request.auth
@@ -205,14 +218,8 @@ def bulk_operation(request, payload: BulkOpIn):
         if not payload.folder:
             raise HttpError(400, "folder is required for move operation")
         emails.update(folder=payload.folder)
-    elif op == "addLabel" and payload.labelIds:
-        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
-        for email in emails:
-            email.labels.add(*labels)
-    elif op == "removeLabel" and payload.labelIds:
-        labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
-        for email in emails:
-            email.labels.remove(*labels)
+    elif op in ("addLabel", "removeLabel"):
+        _apply_label_op(op, emails, payload.labelIds, user)
 
     return SuccessOut()
 

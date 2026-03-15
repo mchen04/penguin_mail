@@ -67,6 +67,8 @@ def get_by_email(request, email: str):
 @router.post("/", response={201: ContactOut})
 def create_contact(request, payload: ContactCreateIn):
     user = request.auth
+    if Contact.objects.filter(user=user, email=payload.email).exists():
+        raise HttpError(409, "A contact with this email address already exists.")
     contact = Contact.objects.create(
         user=user,
         email=payload.email,
