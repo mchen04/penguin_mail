@@ -1,0 +1,4 @@
+[run]
+omit =
+    penguin_mail/asgi.py
+    penguin_mail/wsgi.py

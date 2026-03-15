@@ -1,23 +1,61 @@
-# Dependencies
+# ─── Dependencies ─────────────────────────────────────────────────────────────
 node_modules/
+venv/
 
-# Build output
+# ─── Build output ─────────────────────────────────────────────────────────────
 dist/
 dist-ssr/
 
-# Environment files
+# ─── Environment / secrets ────────────────────────────────────────────────────
 .env
 .env.local
+*.local
 
-# Python
+# ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
+*.pyo
 *.sqlite3
-venv/
+*.egg-info/
 
-# OS files
+# ─── Test & coverage artifacts ────────────────────────────────────────────────
+.coverage
+htmlcov/
+coverage/
+coverage.xml
+.pytest_cache/
+*.lcov
+
+# ─── Linter / formatter caches ───────────────────────────────────────────────
+.ruff_cache/
+.mypy_cache/
+
+# ─── Uploaded media (test-generated attachments) ──────────────────────────────
+backend/media/
+
+# ─── Playwright ───────────────────────────────────────────────────────────────
+playwright-report/
+test-results/
+blob-report/
+
+# ─── OS files ─────────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 
-# Editor
+# ─── Editor / IDE ─────────────────────────────────────────────────────────────
 .idea/
+.vscode/*
+!.vscode/extensions.json
 *.sw?
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── Misc ─────────────────────────────────────────────────────────────────────
+Report/
+assignment/
+.claude/
+*.log
+npm-debug.log*
+.vercel

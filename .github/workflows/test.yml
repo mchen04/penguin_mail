@@ -1,0 +1,112 @@
+name: Test Suite
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff vulture
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: vulture penguin_mail/ --min-confidence 80
+
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SECRET_KEY: ci-insecure-key-for-testing-only
+      DEBUG: "true"
+      ALLOWED_HOSTS: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest tests/ -v --cov=penguin_mail --cov-report=term-missing --cov-fail-under=85
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npx vitest run --coverage
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-insecure-key-for-testing-only
+      DEBUG: "true"
+      ALLOWED_HOSTS: localhost
+      PLAYWRIGHT_USER_EMAIL: admin@penguinmail.com
+      PLAYWRIGHT_USER_PASSWORD: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Migrate and seed test user
+        working-directory: backend
+        run: |
+          python manage.py migrate --verbosity 0
+          python manage.py shell -c "
+          from penguin_mail.models import User, Account
+          u = User.objects.create_superuser(username='admin', email='admin@penguinmail.com', password='admin')
+          Account.objects.create(user=u, email='admin@penguinmail.com', name='Admin', color='blue', is_default=True)
+          "
+      - name: Start Django backend
+        working-directory: backend
+        run: python manage.py runserver 8000 &
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E tests
+        working-directory: frontend
+        run: npx playwright test --project=chromium

@@ -1,0 +1,48 @@
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (unused imports, etc.)
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "S",    # bandit (security)
+    "T20",  # no print statements
+    "SIM",  # simplify
+    "RUF",  # ruff-specific rules
+    "C90",  # McCabe complexity
+]
+
+ignore = [
+    "RUF012", # allow mutable class variables (Django models)
+    "B904",   # Django pattern: raise HttpError inside except DoesNotExist
+    "B008",   # Django Ninja pattern: File(...) in function defaults
+    "RUF005", # allow tuple concatenation for Django admin fieldsets
+]
+
+[lint.mccabe]
+max-complexity = 15
+
+[lint.per-file-ignores]
+# Tests: allow assert, hardcoded passwords
+"tests/*" = ["S101", "S105", "S106"]
+"conftest.py" = ["S101", "S105", "S106"]
+"factories.py" = ["S105", "S106"]
+# Settings: allow hardcoded strings that look like passwords
+"penguin_mail/settings.py" = ["S105"]
+# Ninja schemas: camelCase field names, single-letter vars in comprehensions, hardcoded "Bearer"
+"penguin_mail/api/schemas/*" = ["N815", "E501", "E741", "S105"]
+# Ninja routers: camelCase query params, implicit Optional, single-letter vars
+"penguin_mail/api/routers/*" = ["N803", "RUF013", "E501", "E741"]
+# Init files: re-exports
+"penguin_mail/api/__init__.py" = ["F401"]
+# Migrations: auto-generated
+"penguin_mail/migrations/*" = ["E501", "E741"]
+# Models: long lines for FK definitions
+"penguin_mail/models.py" = ["E501"]
+# Admin: single-letter vars in comprehensions
+"penguin_mail/admin.py" = ["E741"]

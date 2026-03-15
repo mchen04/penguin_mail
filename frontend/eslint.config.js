@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Code complexity
+      'complexity': ['warn', { max: 15 }],
+      'max-depth': ['warn', { max: 4 }],
+    },
   },
 ])
