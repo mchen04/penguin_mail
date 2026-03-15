@@ -10,7 +10,7 @@ test.describe('Search', () => {
     // Seed 3 known emails so searches have predictable content to match against
     seededEmails = await seedInboxEmails(request, TEST_USER.email, TEST_USER.password, 3)
     await loginAs(page, TEST_USER.email, TEST_USER.password)
-    await expect(page.getByText('Inbox')).toBeVisible()
+    await expect(page.getByText('Inbox').first()).toBeVisible()
   })
 
   test.afterEach(async ({ request }) => {

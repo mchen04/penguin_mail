@@ -10,15 +10,12 @@ test.describe('Settings', () => {
     const settingsBtn = page.getByRole('button', { name: /settings/i }).first()
     await expect(settingsBtn).toBeVisible({ timeout: 5000 })
     await settingsBtn.click()
-    await expect(
-      page.getByRole('dialog')
-        .or(page.getByRole('heading', { name: /settings/i }))
-    ).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
   })
 
   test('settings dialog contains at least one section heading', async ({ page }) => {
     await page.getByRole('button', { name: /settings/i }).first().click()
-    const dialog = page.getByRole('dialog').or(page.getByRole('heading', { name: /settings/i }))
+    const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
     // Settings should have visible content (tabs, headings, or form fields)
     const headings = page.getByRole('heading')
@@ -39,9 +36,7 @@ test.describe('Settings', () => {
 
   test('settings contains theme or display options', async ({ page }) => {
     await page.getByRole('button', { name: /settings/i }).first().click()
-    await expect(
-      page.getByRole('dialog').or(page.getByRole('heading', { name: /settings/i }))
-    ).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
     // Verify there are interactive controls (inputs, selects, or buttons beyond close)
     const controls = page
       .getByRole('combobox')

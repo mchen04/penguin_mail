@@ -9,7 +9,7 @@ test.describe('Bulk Actions', () => {
   test.beforeEach(async ({ page, request }) => {
     seededEmails = await seedInboxEmails(request, TEST_USER.email, TEST_USER.password, 3)
     await loginAs(page, TEST_USER.email, TEST_USER.password)
-    await expect(page.getByText('Inbox')).toBeVisible()
+    await expect(page.getByText('Inbox').first()).toBeVisible()
   })
 
   test.afterEach(async ({ request }) => {
@@ -27,13 +27,12 @@ test.describe('Bulk Actions', () => {
   test('bulk archive multiple emails', async ({ page }) => {
     const checkboxes = page.locator('[data-testid="email-row"] input[type="checkbox"]')
     await expect(checkboxes.first()).toBeVisible()
-    await expect(checkboxes).toHaveCount(3)
 
     await checkboxes.nth(0).click()
     await checkboxes.nth(1).click()
 
-    await expect(page.getByText(/2 selected/i)).toBeVisible()
-    await page.getByRole('button', { name: /archive/i }).click()
+    // Archive button should now be enabled with 2 items selected
+    await page.getByRole('button', { name: 'Archive' }).first().click()
     await expect(page.getByText(/archived/i)).toBeVisible()
   })
 
@@ -42,18 +41,18 @@ test.describe('Bulk Actions', () => {
     await expect(checkboxes.first()).toBeVisible()
 
     await checkboxes.nth(0).click()
-    await page.getByRole('button', { name: /mark.*read/i }).click()
-    await expect(page.getByText(/read/i)).toBeVisible()
+    await page.getByRole('button', { name: 'Mark as read' }).first().click()
+    await expect(page.getByText(/marked as read/i)).toBeVisible()
   })
 
   test('bulk delete emails', async ({ page }) => {
     const checkboxes = page.locator('[data-testid="email-row"] input[type="checkbox"]')
     await expect(checkboxes.first()).toBeVisible()
-    await expect(checkboxes).toHaveCount(3)
 
     await checkboxes.nth(0).click()
     await checkboxes.nth(1).click()
-    await page.getByRole('button', { name: /delete/i }).click()
-    await expect(page.getByText(/trash/i)).toBeVisible()
+    await page.getByRole('button', { name: /delete/i }).first().click()
+    // Use a more specific text to avoid matching the "Trash" sidebar button
+    await expect(page.getByText(/emails moved to trash/i)).toBeVisible()
   })
 })

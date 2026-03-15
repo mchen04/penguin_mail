@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { loginAs, TEST_USER } from './fixtures'
 
 test.describe('Error Handling', () => {
   test('shows error state when API is down', async ({ page }) => {
@@ -33,10 +34,11 @@ test.describe('Error Handling', () => {
   })
 
   test('handles network timeout', async ({ page }) => {
-    await page.goto('/')
-    await expect(page.getByText('Inbox')).toBeVisible()
+    // Login first so we can see the inbox
+    await loginAs(page, TEST_USER.email, TEST_USER.password)
+    await expect(page.getByText('Inbox').first()).toBeVisible()
 
-    // Simulate slow responses
+    // Simulate slow responses for subsequent calls
     await page.route('**/api/**', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 10000))
       route.abort('timedout')
@@ -52,6 +54,6 @@ test.describe('Error Handling', () => {
     }
 
     // App should still be functional — Inbox heading still visible
-    await expect(page.getByText('Inbox')).toBeVisible()
+    await expect(page.getByText('Inbox').first()).toBeVisible()
   })
 })

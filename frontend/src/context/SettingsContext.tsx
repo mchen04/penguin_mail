@@ -26,7 +26,7 @@ import type {
   KeyboardShortcut,
   FilterRule,
 } from '@/types/settings'
-import { createDefaultSettings } from '@/types/settings'
+import { createDefaultSettings, getDefaultKeyboardShortcuts } from '@/types/settings'
 import { useRepositories } from './RepositoryContext'
 
 // --------------------------------------------------------------------------
@@ -75,8 +75,13 @@ function settingsReducer(state: SettingsState, action: SettingsAction): Settings
     case 'SET_LOADING':
       return { ...state, isLoading: action.loading }
 
-    case 'SET_SETTINGS':
-      return { ...state, settings: action.settings, isLoading: false, error: null }
+    case 'SET_SETTINGS': {
+      // When the backend hasn't stored shortcuts yet (empty array), use defaults
+      const shortcuts = action.settings.keyboardShortcuts.length > 0
+        ? action.settings.keyboardShortcuts
+        : getDefaultKeyboardShortcuts()
+      return { ...state, settings: { ...action.settings, keyboardShortcuts: shortcuts }, isLoading: false, error: null }
+    }
 
     case 'SET_ERROR':
       return { ...state, error: action.error, isLoading: false }

@@ -138,8 +138,9 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
       {isExpanded && (
         <div className={styles.dropdown}>
           <div className={styles.filterGroup}>
-            <label className={styles.label}>From</label>
+            <label className={styles.label} htmlFor="search-filter-from">From</label>
             <input
+              id="search-filter-from"
               type="text"
               className={styles.filterInput}
               placeholder="sender@example.com"
@@ -149,8 +150,9 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
           </div>
 
           <div className={styles.filterGroup}>
-            <label className={styles.label}>To</label>
+            <label className={styles.label} htmlFor="search-filter-to">To</label>
             <input
+              id="search-filter-to"
               type="text"
               className={styles.filterInput}
               placeholder="recipient@example.com"
@@ -160,8 +162,9 @@ export function AdvancedSearch({ onSearch, initialFilters }: AdvancedSearchProps
           </div>
 
           <div className={styles.filterGroup}>
-            <label className={styles.label}>Subject</label>
+            <label className={styles.label} htmlFor="search-filter-subject">Subject</label>
             <input
+              id="search-filter-subject"
               type="text"
               className={styles.filterInput}
               placeholder="Contains words"

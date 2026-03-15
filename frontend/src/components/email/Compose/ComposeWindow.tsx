@@ -32,6 +32,13 @@ export function ComposeWindow() {
 
   const [fromAccountId, setFromAccountId] = useState(accounts[0]?.id ?? '')
   const [to, setTo] = useState<string[]>([])
+
+  // If accounts load after ComposeWindow mounts, update fromAccountId from default ''
+  useEffect(() => {
+    if (fromAccountId === '' && accounts.length > 0) {
+      setFromAccountId(accounts[0].id)
+    }
+  }, [accounts, fromAccountId])
   const [cc, setCc] = useState<string[]>([])
   const [bcc, setBcc] = useState<string[]>([])
   const [showCc, setShowCc] = useState(false)
