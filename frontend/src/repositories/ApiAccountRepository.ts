@@ -60,6 +60,11 @@ export class ApiAccountRepository implements IAccountRepository {
         color: input.color ?? 'blue',
         displayName: input.displayName ?? '',
         signature: input.signature ?? '',
+        
+        smtp_url: input.smtp_url,
+        smtp_password: input.smtp_password,
+        imap_url: input.imap_password,
+        imap_password: input.imap_password,
       })
       return { success: true, data: toAccount(data) }
     } catch (e) {

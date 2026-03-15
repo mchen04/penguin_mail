@@ -38,6 +38,11 @@ def create_account(request, payload: AccountCreateIn):
         display_name=payload.displayName,
         signature=payload.signature,
         is_default=is_default,
+
+        smtp_url=payload.smtp_url,
+        smtp_password=payload.smtp_password,
+        imap_url=payload.imap_url,
+        imap_password=payload.imap_url,
     )
     return 201, AccountOut.from_model(account)
 
