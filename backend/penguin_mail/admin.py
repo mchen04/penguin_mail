@@ -15,8 +15,8 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('email', 'name', 'user', 'color', 'is_default')
-    list_filter = ('color', 'is_default')
+    list_display = ('email', 'name', 'user', 'provider', 'color', 'is_default')
+    list_filter = ('provider', 'color', 'is_default')
     search_fields = ('email', 'name', 'user__username')
 
 

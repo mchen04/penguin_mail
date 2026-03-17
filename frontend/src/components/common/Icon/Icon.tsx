@@ -57,6 +57,7 @@ export type IconName =
   | 'ban'
   | 'clock'
   | 'compose'
+  | 'refresh'
 
 interface IconProps {
   name: IconName
@@ -373,6 +374,12 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </>
+  ),
+  refresh: (
+    <>
+      <polyline points="23 4 23 10 17 10" />
+      <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
     </>
   ),
 }

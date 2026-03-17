@@ -45,10 +45,31 @@ class Account(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    smtp_url = models.TextField()
-    smtp_password = models.TextField()
-    imap_url = models.TextField()
-    imap_password = models.TextField()
+    provider = models.CharField(max_length=20, default='custom')
+    smtp_host = models.CharField(max_length=255, default='')
+    smtp_port = models.PositiveIntegerField(default=587)
+    smtp_security = models.CharField(max_length=10, default='starttls')
+    smtp_password = models.TextField(default='')  # Fernet encrypted
+    imap_host = models.CharField(max_length=255, default='')
+    imap_port = models.PositiveIntegerField(default=993)
+    imap_security = models.CharField(max_length=10, default='ssl')
+    imap_password = models.TextField(default='')  # Fernet encrypted
+
+    def set_smtp_password(self, plaintext: str):
+        from penguin_mail.crypto import encrypt_field
+        self.smtp_password = encrypt_field(plaintext)
+
+    def get_smtp_password(self) -> str:
+        from penguin_mail.crypto import decrypt_field
+        return decrypt_field(self.smtp_password)
+
+    def set_imap_password(self, plaintext: str):
+        from penguin_mail.crypto import encrypt_field
+        self.imap_password = encrypt_field(plaintext)
+
+    def get_imap_password(self) -> str:
+        from penguin_mail.crypto import decrypt_field
+        return decrypt_field(self.imap_password)
 
     class Meta:
         constraints = [
