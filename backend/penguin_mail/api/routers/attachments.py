@@ -1,9 +1,12 @@
+from typing import Any
+
 from django.http import FileResponse
 from ninja import File, Router, UploadedFile
 from ninja.errors import HttpError
 
 from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.schemas.attachment import AttachmentOut
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import Attachment
 
 router = Router(auth=JWTAuth())
@@ -38,7 +41,7 @@ ALLOWED_MIME_TYPES = {
 
 
 @router.post("/upload", response={201: AttachmentOut})
-def upload_attachment(request, file: UploadedFile = File(...)):
+def upload_attachment(request: AuthenticatedRequest, file: UploadedFile = File(...)) -> tuple[int, AttachmentOut]:
     mime_type = file.content_type or "application/octet-stream"
 
     if mime_type not in ALLOWED_MIME_TYPES:
@@ -58,7 +61,7 @@ def upload_attachment(request, file: UploadedFile = File(...)):
     return 201, AttachmentOut.from_model(attachment)
 
 
-def _check_attachment_ownership(attachment, user):
+def _check_attachment_ownership(attachment: Attachment, user: Any) -> None:
     """Raise 404 if ``user`` does not own ``attachment``."""
     if attachment.email:
         if attachment.email.account.user != user:
@@ -70,7 +73,7 @@ def _check_attachment_ownership(attachment, user):
 
 
 @router.get("/{attachment_id}", response=AttachmentOut)
-def get_attachment(request, attachment_id: str):
+def get_attachment(request: AuthenticatedRequest, attachment_id: str) -> AttachmentOut:
     try:
         attachment = Attachment.objects.get(uuid=attachment_id)
     except Attachment.DoesNotExist:
@@ -81,7 +84,7 @@ def get_attachment(request, attachment_id: str):
 
 
 @router.get("/{attachment_id}/download")
-def download_attachment(request, attachment_id: str):
+def download_attachment(request: AuthenticatedRequest, attachment_id: str) -> FileResponse:
     try:
         attachment = Attachment.objects.get(uuid=attachment_id)
     except Attachment.DoesNotExist:

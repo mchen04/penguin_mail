@@ -7,13 +7,14 @@ from penguin_mail.api.pagination import paginate_queryset
 from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.schemas.contact import ContactCreateIn, ContactOut, ContactUpdateIn
 from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import Contact, ContactGroup
 
 router = Router(auth=JWTAuth())
 
 
 @router.get("/", response=dict)
-def list_contacts(request, page: int = 1, pageSize: int = 50):
+def list_contacts(request: AuthenticatedRequest, page: int = 1, pageSize: int = 50) -> dict:
     qs = Contact.objects.filter(user=request.auth).prefetch_related("groups").order_by("name")
     result = paginate_queryset(qs, page, pageSize)
     return {
@@ -23,7 +24,7 @@ def list_contacts(request, page: int = 1, pageSize: int = 50):
 
 
 @router.get("/search", response=dict)
-def search_contacts(request, q: str = "", page: int = 1, pageSize: int = 50):
+def search_contacts(request: AuthenticatedRequest, q: str = "", page: int = 1, pageSize: int = 50) -> dict:
     qs = Contact.objects.filter(user=request.auth).prefetch_related("groups")
     if q:
         qs = qs.filter(Q(name__icontains=q) | Q(email__icontains=q) | Q(company__icontains=q))
@@ -36,20 +37,20 @@ def search_contacts(request, q: str = "", page: int = 1, pageSize: int = 50):
 
 
 @router.get("/favorites", response=list[ContactOut])
-def get_favorites(request):
+def get_favorites(request: AuthenticatedRequest) -> list[ContactOut]:
     contacts = Contact.objects.filter(user=request.auth, is_favorite=True).prefetch_related("groups").order_by("name")
     return [ContactOut.from_model(c) for c in contacts]
 
 
 @router.get("/by-group/{group_id}", response=list[ContactOut])
-def get_by_group(request, group_id: str):
+def get_by_group(request: AuthenticatedRequest, group_id: str) -> list[ContactOut]:
     group = get_object_or_404(ContactGroup, user=request.auth, uuid=group_id)
     contacts = group.contacts.prefetch_related("groups").order_by("name")
     return [ContactOut.from_model(c) for c in contacts]
 
 
 @router.get("/{contact_id}", response=ContactOut)
-def get_contact(request, contact_id: str):
+def get_contact(request: AuthenticatedRequest, contact_id: str) -> ContactOut:
     contact = Contact.objects.prefetch_related("groups").filter(uuid=contact_id, user=request.auth).first()
     if not contact:
         raise HttpError(404, "Not found")
@@ -57,7 +58,7 @@ def get_contact(request, contact_id: str):
 
 
 @router.get("/by-email/{email}", response=ContactOut)
-def get_by_email(request, email: str):
+def get_by_email(request: AuthenticatedRequest, email: str) -> ContactOut:
     contact = Contact.objects.prefetch_related("groups").filter(email=email, user=request.auth).first()
     if not contact:
         raise HttpError(404, "Not found")
@@ -65,7 +66,7 @@ def get_by_email(request, email: str):
 
 
 @router.post("/", response={201: ContactOut})
-def create_contact(request, payload: ContactCreateIn):
+def create_contact(request: AuthenticatedRequest, payload: ContactCreateIn) -> tuple[int, ContactOut]:
     user = request.auth
     if Contact.objects.filter(user=user, email=payload.email).exists():
         raise HttpError(409, "A contact with this email address already exists.")
@@ -87,7 +88,7 @@ def create_contact(request, payload: ContactCreateIn):
 
 
 @router.patch("/{contact_id}", response=ContactOut)
-def update_contact(request, contact_id: str, payload: ContactUpdateIn):
+def update_contact(request: AuthenticatedRequest, contact_id: str, payload: ContactUpdateIn) -> ContactOut:
     user = request.auth
     contact = get_object_or_404(Contact, user=user, uuid=contact_id)
 
@@ -121,14 +122,14 @@ def update_contact(request, contact_id: str, payload: ContactUpdateIn):
 
 
 @router.delete("/{contact_id}", response=SuccessOut)
-def delete_contact(request, contact_id: str):
+def delete_contact(request: AuthenticatedRequest, contact_id: str) -> SuccessOut:
     contact = get_object_or_404(Contact, user=request.auth, uuid=contact_id)
     contact.delete()
     return SuccessOut()
 
 
 @router.post("/{contact_id}/toggle-favorite", response=ContactOut)
-def toggle_favorite(request, contact_id: str):
+def toggle_favorite(request: AuthenticatedRequest, contact_id: str) -> ContactOut:
     contact = get_object_or_404(Contact, user=request.auth, uuid=contact_id)
     contact.is_favorite = not contact.is_favorite
     contact.save(update_fields=["is_favorite"])
@@ -137,7 +138,7 @@ def toggle_favorite(request, contact_id: str):
 
 
 @router.post("/{contact_id}/add-to-group/{group_id}", response=SuccessOut)
-def add_to_group(request, contact_id: str, group_id: str):
+def add_to_group(request: AuthenticatedRequest, contact_id: str, group_id: str) -> SuccessOut:
     user = request.auth
     contact = get_object_or_404(Contact, user=user, uuid=contact_id)
     group = get_object_or_404(ContactGroup, user=user, uuid=group_id)
@@ -146,7 +147,7 @@ def add_to_group(request, contact_id: str, group_id: str):
 
 
 @router.post("/{contact_id}/remove-from-group/{group_id}", response=SuccessOut)
-def remove_from_group(request, contact_id: str, group_id: str):
+def remove_from_group(request: AuthenticatedRequest, contact_id: str, group_id: str) -> SuccessOut:
     user = request.auth
     contact = get_object_or_404(Contact, user=user, uuid=contact_id)
     group = get_object_or_404(ContactGroup, user=user, uuid=group_id)

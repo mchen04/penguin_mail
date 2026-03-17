@@ -4,13 +4,14 @@ from ninja.errors import HttpError
 
 from penguin_mail.api.auth import JWTAuth, create_access_token, create_refresh_token, decode_token
 from penguin_mail.api.schemas.auth import LoginIn, RefreshIn, RefreshOut, SuccessOut, TokenOut
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import User
 
 router = Router()
 
 
 @router.post("/login", response=TokenOut)
-def login(request, payload: LoginIn):
+def login(request: AuthenticatedRequest, payload: LoginIn) -> TokenOut:
     # Look up user by email to get the username
     try:
         user_obj = User.objects.get(email=payload.email)
@@ -31,7 +32,7 @@ def login(request, payload: LoginIn):
 
 
 @router.post("/refresh", response=RefreshOut)
-def refresh(request, payload: RefreshIn):
+def refresh(request: AuthenticatedRequest, payload: RefreshIn) -> RefreshOut:
     data = decode_token(payload.refresh_token)
     if data is None or data.get("type") != "refresh":
         raise HttpError(401, "Invalid refresh token")
@@ -46,5 +47,5 @@ def refresh(request, payload: RefreshIn):
 
 
 @router.post("/logout", auth=JWTAuth(), response=SuccessOut)
-def logout(request):
+def logout(request: AuthenticatedRequest) -> SuccessOut:
     return SuccessOut(success=True)

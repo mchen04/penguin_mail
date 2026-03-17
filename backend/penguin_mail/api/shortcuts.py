@@ -1,9 +1,11 @@
 """Reusable shortcuts for API views."""
 
+from typing import Any
+
 from ninja.errors import HttpError
 
 
-def get_object_or_404(model, user=None, **kwargs):
+def get_object_or_404(model: Any, user: Any = None, **kwargs: Any) -> Any:
     """
     Look up an object by kwargs, optionally scoped to a user.
     Raises HttpError(404) if not found.

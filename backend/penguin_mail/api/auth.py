@@ -2,6 +2,7 @@ import datetime
 
 import jwt
 from django.conf import settings
+from django.http import HttpRequest
 from ninja.security import HttpBearer
 
 from penguin_mail.models import User
@@ -43,7 +44,7 @@ def decode_token(token: str) -> dict | None:
 
 
 class JWTAuth(HttpBearer):
-    def authenticate(self, request, token: str):
+    def authenticate(self, request: HttpRequest, token: str) -> User | None:
         payload = decode_token(token)
         if payload is None or payload.get("type") != "access":
             return None

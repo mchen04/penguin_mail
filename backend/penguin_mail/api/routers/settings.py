@@ -12,6 +12,7 @@ from penguin_mail.api.schemas.settings import (
     SignatureCreateIn,
     SignatureUpdateIn,
 )
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import BlockedAddress, FilterRule, KeyboardShortcut, Signature, UserSettings
 
 router = Router(auth=JWTAuth())
@@ -23,12 +24,12 @@ router = Router(auth=JWTAuth())
 
 
 @router.get("/", response=SettingsOut)
-def get_settings(request):
+def get_settings(request: AuthenticatedRequest) -> SettingsOut:
     return SettingsOut.from_user(request.auth)
 
 
 @router.patch("/", response=SettingsOut)
-def update_settings(request, payload: SettingsUpdateIn):
+def update_settings(request: AuthenticatedRequest, payload: SettingsUpdateIn) -> SettingsOut:
     user = request.auth
     us, _ = UserSettings.objects.get_or_create(user=user)
 
@@ -48,7 +49,7 @@ def update_settings(request, payload: SettingsUpdateIn):
 
 
 @router.post("/reset", response=SettingsOut)
-def reset_settings(request):
+def reset_settings(request: AuthenticatedRequest) -> SettingsOut:
     user = request.auth
     us, _ = UserSettings.objects.get_or_create(user=user)
     us.appearance = {}
@@ -66,7 +67,7 @@ def reset_settings(request):
 
 
 @router.post("/signatures", response={201: SettingsOut})
-def create_signature(request, payload: SignatureCreateIn):
+def create_signature(request: AuthenticatedRequest, payload: SignatureCreateIn) -> tuple[int, SettingsOut]:
     user = request.auth
     if payload.isDefault:
         Signature.objects.filter(user=user).update(is_default=False)
@@ -80,7 +81,7 @@ def create_signature(request, payload: SignatureCreateIn):
 
 
 @router.patch("/signatures/{sig_id}", response=SettingsOut)
-def update_signature(request, sig_id: int, payload: SignatureUpdateIn):
+def update_signature(request: AuthenticatedRequest, sig_id: int, payload: SignatureUpdateIn) -> SettingsOut:
     user = request.auth
     try:
         sig = Signature.objects.get(pk=sig_id, user=user)
@@ -102,7 +103,7 @@ def update_signature(request, sig_id: int, payload: SignatureUpdateIn):
 
 
 @router.delete("/signatures/{sig_id}", response=SuccessOut)
-def delete_signature(request, sig_id: int):
+def delete_signature(request: AuthenticatedRequest, sig_id: int) -> SuccessOut:
     try:
         sig = Signature.objects.get(pk=sig_id, user=request.auth)
     except Signature.DoesNotExist:
@@ -117,7 +118,7 @@ def delete_signature(request, sig_id: int):
 
 
 @router.post("/filters", response={201: SettingsOut})
-def create_filter(request, payload: FilterCreateIn):
+def create_filter(request: AuthenticatedRequest, payload: FilterCreateIn) -> tuple[int, SettingsOut]:
     user = request.auth
     FilterRule.objects.create(
         user=user,
@@ -131,7 +132,7 @@ def create_filter(request, payload: FilterCreateIn):
 
 
 @router.patch("/filters/{filter_id}", response=SettingsOut)
-def update_filter(request, filter_id: int, payload: FilterUpdateIn):
+def update_filter(request: AuthenticatedRequest, filter_id: int, payload: FilterUpdateIn) -> SettingsOut:
     user = request.auth
     try:
         f = FilterRule.objects.get(pk=filter_id, user=user)
@@ -154,7 +155,7 @@ def update_filter(request, filter_id: int, payload: FilterUpdateIn):
 
 
 @router.delete("/filters/{filter_id}", response=SuccessOut)
-def delete_filter(request, filter_id: int):
+def delete_filter(request: AuthenticatedRequest, filter_id: int) -> SuccessOut:
     try:
         f = FilterRule.objects.get(pk=filter_id, user=request.auth)
     except FilterRule.DoesNotExist:
@@ -169,14 +170,14 @@ def delete_filter(request, filter_id: int):
 
 
 @router.post("/blocked-addresses", response={201: SettingsOut})
-def block_address(request, payload: BlockAddressIn):
+def block_address(request: AuthenticatedRequest, payload: BlockAddressIn) -> tuple[int, SettingsOut]:
     user = request.auth
     BlockedAddress.objects.get_or_create(user=user, email=payload.email.lower())
     return 201, SettingsOut.from_user(user)
 
 
 @router.delete("/blocked-addresses/{email}", response=SuccessOut)
-def unblock_address(request, email: str):
+def unblock_address(request: AuthenticatedRequest, email: str) -> SuccessOut:
     try:
         ba = BlockedAddress.objects.get(email=email.lower(), user=request.auth)
     except BlockedAddress.DoesNotExist:
@@ -192,8 +193,12 @@ def unblock_address(request, email: str):
 
 @router.patch("/keyboard-shortcuts/{shortcut_id}", response=SettingsOut)
 def update_shortcut(
-    request, shortcut_id: int, enabled: bool | None = None, key: str | None = None, modifiers: list[str] | None = None
-):
+    request: AuthenticatedRequest,
+    shortcut_id: int,
+    enabled: bool | None = None,
+    key: str | None = None,
+    modifiers: list[str] | None = None,
+) -> SettingsOut:
     user = request.auth
     try:
         ks = KeyboardShortcut.objects.get(pk=shortcut_id, user=user)

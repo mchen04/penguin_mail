@@ -1,6 +1,7 @@
 import uuid as uuid_mod
+from typing import Any
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from ninja import Router
 from ninja.errors import HttpError
 
@@ -14,12 +15,13 @@ from penguin_mail.api.schemas.email import (
     EmailUpdateIn,
     LabelOpIn,
 )
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import Account, Email, Label, Recipient
 
 router = Router(auth=JWTAuth())
 
 
-def _base_qs(user):
+def _base_qs(user: Any) -> QuerySet[Email]:
     return (
         Email.objects.filter(account__user=user)
         .select_related("account", "reply_to", "forwarded_from")
@@ -38,7 +40,7 @@ def _strip_html(html: str, max_length: int = 200) -> str:
     return text[:max_length]
 
 
-def _create_recipients(email, addresses, kind):
+def _create_recipients(email: Email, addresses: list[Any], kind: str) -> None:
     for i, addr in enumerate(addresses):
         Recipient.objects.create(
             email=email,
@@ -51,7 +53,7 @@ def _create_recipients(email, addresses, kind):
 
 @router.get("/", response=dict)
 def list_emails(
-    request,
+    request: AuthenticatedRequest,
     folder: str | None = None,
     accountId: str | None = None,
     isRead: bool | None = None,
@@ -62,7 +64,7 @@ def list_emails(
     labelIds: str | None = None,
     page: int = 1,
     pageSize: int = 50,
-):
+) -> dict:
     qs = _base_qs(request.auth)
 
     if folder:
@@ -97,7 +99,7 @@ def list_emails(
 
 
 @router.post("/", response={201: EmailOut})
-def create_email(request, payload: EmailCreateIn):
+def create_email(request: AuthenticatedRequest, payload: EmailCreateIn) -> tuple[int, EmailOut]:
     user = request.auth
     try:
         account = Account.objects.get(uuid=payload.accountId, user=user)
@@ -155,7 +157,7 @@ def create_email(request, payload: EmailCreateIn):
 
 # Literal paths MUST be defined before /{email_id} to avoid parameter capture
 @router.post("/draft", response={201: EmailOut})
-def create_draft(request, payload: EmailCreateIn):
+def create_draft(request: AuthenticatedRequest, payload: EmailCreateIn) -> tuple[int, EmailOut]:
     user = request.auth
     try:
         account = Account.objects.get(uuid=payload.accountId, user=user)
@@ -184,7 +186,7 @@ def create_draft(request, payload: EmailCreateIn):
     return 201, EmailOut.from_model(email)
 
 
-def _apply_label_op(op, emails, label_ids, user):
+def _apply_label_op(op: str, emails: QuerySet[Email], label_ids: list[str] | None, user: Any) -> None:
     """Apply addLabel / removeLabel to a queryset, raising 400 if labelIds is absent."""
     if not label_ids:
         raise HttpError(400, f"labelIds is required for {op} operation")
@@ -195,7 +197,7 @@ def _apply_label_op(op, emails, label_ids, user):
 
 
 @router.post("/bulk", response=SuccessOut)
-def bulk_operation(request, payload: BulkOpIn):
+def bulk_operation(request: AuthenticatedRequest, payload: BulkOpIn) -> SuccessOut:
     user = request.auth
     emails = Email.objects.filter(uuid__in=payload.ids, account__user=user)
 
@@ -226,7 +228,7 @@ def bulk_operation(request, payload: BulkOpIn):
 
 # Parameterized routes after literal ones
 @router.get("/{email_id}", response=EmailOut)
-def get_email(request, email_id: str):
+def get_email(request: AuthenticatedRequest, email_id: str) -> EmailOut:
     try:
         email = _base_qs(request.auth).get(uuid=email_id)
     except Email.DoesNotExist:
@@ -235,7 +237,7 @@ def get_email(request, email_id: str):
 
 
 @router.patch("/{email_id}", response=EmailOut)
-def update_email(request, email_id: str, payload: EmailUpdateIn):
+def update_email(request: AuthenticatedRequest, email_id: str, payload: EmailUpdateIn) -> EmailOut:
     user = request.auth
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
@@ -259,7 +261,7 @@ def update_email(request, email_id: str, payload: EmailUpdateIn):
 
 
 @router.delete("/{email_id}", response=SuccessOut)
-def delete_email(request, email_id: str):
+def delete_email(request: AuthenticatedRequest, email_id: str) -> SuccessOut:
     user = request.auth
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
@@ -272,7 +274,7 @@ def delete_email(request, email_id: str):
 
 
 @router.delete("/{email_id}/permanent", response=SuccessOut)
-def delete_email_permanent(request, email_id: str):
+def delete_email_permanent(request: AuthenticatedRequest, email_id: str) -> SuccessOut:
     user = request.auth
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
@@ -284,7 +286,7 @@ def delete_email_permanent(request, email_id: str):
 
 
 @router.post("/{email_id}/labels", response=SuccessOut)
-def add_labels(request, email_id: str, payload: LabelOpIn):
+def add_labels(request: AuthenticatedRequest, email_id: str, payload: LabelOpIn) -> SuccessOut:
     user = request.auth
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)
@@ -297,7 +299,7 @@ def add_labels(request, email_id: str, payload: LabelOpIn):
 
 
 @router.delete("/{email_id}/labels", response=SuccessOut)
-def remove_labels(request, email_id: str, payload: LabelOpIn):
+def remove_labels(request: AuthenticatedRequest, email_id: str, payload: LabelOpIn) -> SuccessOut:
     user = request.auth
     try:
         email = Email.objects.get(uuid=email_id, account__user=user)

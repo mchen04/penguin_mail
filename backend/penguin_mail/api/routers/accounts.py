@@ -4,25 +4,26 @@ from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.schemas.account import AccountCreateIn, AccountOut, AccountUpdateIn
 from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import Account
 
 router = Router(auth=JWTAuth())
 
 
 @router.get("/", response=list[AccountOut])
-def list_accounts(request):
+def list_accounts(request: AuthenticatedRequest) -> list[AccountOut]:
     accounts = Account.objects.filter(user=request.auth).order_by("-is_default", "created_at")
     return [AccountOut.from_model(a) for a in accounts]
 
 
 @router.get("/{account_id}", response=AccountOut)
-def get_account(request, account_id: str):
+def get_account(request: AuthenticatedRequest, account_id: str) -> AccountOut:
     account = get_object_or_404(Account, user=request.auth, uuid=account_id)
     return AccountOut.from_model(account)
 
 
 @router.post("/", response={201: AccountOut})
-def create_account(request, payload: AccountCreateIn):
+def create_account(request: AuthenticatedRequest, payload: AccountCreateIn) -> tuple[int, AccountOut]:
     user = request.auth
     # If this is the first account, make it default
     is_default = not Account.objects.filter(user=user).exists()
@@ -40,7 +41,7 @@ def create_account(request, payload: AccountCreateIn):
 
 
 @router.patch("/{account_id}", response=AccountOut)
-def update_account(request, account_id: str, payload: AccountUpdateIn):
+def update_account(request: AuthenticatedRequest, account_id: str, payload: AccountUpdateIn) -> AccountOut:
     user = request.auth
     account = get_object_or_404(Account, user=user, uuid=account_id)
 
@@ -65,7 +66,7 @@ def update_account(request, account_id: str, payload: AccountUpdateIn):
 
 
 @router.delete("/{account_id}", response=SuccessOut)
-def delete_account(request, account_id: str):
+def delete_account(request: AuthenticatedRequest, account_id: str) -> SuccessOut:
     account = get_object_or_404(Account, user=request.auth, uuid=account_id)
 
     account.delete()
@@ -73,7 +74,7 @@ def delete_account(request, account_id: str):
 
 
 @router.post("/{account_id}/set-default", response=SuccessOut)
-def set_default(request, account_id: str):
+def set_default(request: AuthenticatedRequest, account_id: str) -> SuccessOut:
     user = request.auth
     account = get_object_or_404(Account, user=user, uuid=account_id)
 

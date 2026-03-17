@@ -4,26 +4,27 @@ from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.schemas.contact import ContactGroupCreateIn, ContactGroupOut, ContactGroupUpdateIn
 from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import ContactGroup
 
 router = Router(auth=JWTAuth())
 
 
 @router.get("/", response=list[ContactGroupOut])
-def list_groups(request):
+def list_groups(request: AuthenticatedRequest) -> list[ContactGroupOut]:
     groups = ContactGroup.objects.filter(user=request.auth).prefetch_related("contacts").order_by("name")
     return [ContactGroupOut.from_model(g) for g in groups]
 
 
 @router.get("/{group_id}", response=ContactGroupOut)
-def get_group(request, group_id: str):
+def get_group(request: AuthenticatedRequest, group_id: str) -> ContactGroupOut:
     group = get_object_or_404(ContactGroup, user=request.auth, uuid=group_id)
     group = ContactGroup.objects.prefetch_related("contacts").get(pk=group.pk)
     return ContactGroupOut.from_model(group)
 
 
 @router.post("/", response={201: ContactGroupOut})
-def create_group(request, payload: ContactGroupCreateIn):
+def create_group(request: AuthenticatedRequest, payload: ContactGroupCreateIn) -> tuple[int, ContactGroupOut]:
     group = ContactGroup.objects.create(
         user=request.auth,
         name=payload.name,
@@ -34,7 +35,7 @@ def create_group(request, payload: ContactGroupCreateIn):
 
 
 @router.patch("/{group_id}", response=ContactGroupOut)
-def update_group(request, group_id: str, payload: ContactGroupUpdateIn):
+def update_group(request: AuthenticatedRequest, group_id: str, payload: ContactGroupUpdateIn) -> ContactGroupOut:
     group = get_object_or_404(ContactGroup, user=request.auth, uuid=group_id)
 
     if payload.name is not None:
@@ -48,7 +49,7 @@ def update_group(request, group_id: str, payload: ContactGroupUpdateIn):
 
 
 @router.delete("/{group_id}", response=SuccessOut)
-def delete_group(request, group_id: str):
+def delete_group(request: AuthenticatedRequest, group_id: str) -> SuccessOut:
     group = get_object_or_404(ContactGroup, user=request.auth, uuid=group_id)
     group.delete()
     return SuccessOut()

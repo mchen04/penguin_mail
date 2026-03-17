@@ -1,9 +1,10 @@
 import math
+from typing import Any
 
 MAX_PAGE_SIZE = 200
 
 
-def paginate_queryset(qs, page: int = 1, page_size: int = 50) -> dict:
+def paginate_queryset(qs: Any, page: int = 1, page_size: int = 50) -> dict:
     page = max(1, page)
     page_size = max(1, min(page_size, MAX_PAGE_SIZE))
     total = qs.count()

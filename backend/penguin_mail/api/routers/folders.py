@@ -5,19 +5,20 @@ from penguin_mail.api.auth import JWTAuth
 from penguin_mail.api.schemas.auth import SuccessOut
 from penguin_mail.api.schemas.folder import FolderCreateIn, FolderOut, FolderUpdateIn
 from penguin_mail.api.shortcuts import get_object_or_404
+from penguin_mail.api.types import AuthenticatedRequest
 from penguin_mail.models import CustomFolder
 
 router = Router(auth=JWTAuth())
 
 
 @router.get("/", response=list[FolderOut])
-def list_folders(request):
+def list_folders(request: AuthenticatedRequest) -> list[FolderOut]:
     folders = CustomFolder.objects.filter(user=request.auth).select_related("parent").order_by("order", "name")
     return [FolderOut.from_model(f) for f in folders]
 
 
 @router.get("/{folder_id}", response=FolderOut)
-def get_folder(request, folder_id: str):
+def get_folder(request: AuthenticatedRequest, folder_id: str) -> FolderOut:
     folder = CustomFolder.objects.select_related("parent").filter(user=request.auth, uuid=folder_id).first()
     if not folder:
         raise HttpError(404, "Not found")
@@ -25,7 +26,7 @@ def get_folder(request, folder_id: str):
 
 
 @router.post("/", response={201: FolderOut})
-def create_folder(request, payload: FolderCreateIn):
+def create_folder(request: AuthenticatedRequest, payload: FolderCreateIn) -> tuple[int, FolderOut]:
     user = request.auth
     parent = None
     if payload.parentId:
@@ -46,7 +47,7 @@ def create_folder(request, payload: FolderCreateIn):
 
 
 @router.patch("/{folder_id}", response=FolderOut)
-def update_folder(request, folder_id: str, payload: FolderUpdateIn):
+def update_folder(request: AuthenticatedRequest, folder_id: str, payload: FolderUpdateIn) -> FolderOut:
     folder = get_object_or_404(CustomFolder, user=request.auth, uuid=folder_id)
 
     if payload.name is not None:
@@ -60,14 +61,14 @@ def update_folder(request, folder_id: str, payload: FolderUpdateIn):
 
 
 @router.delete("/{folder_id}", response=SuccessOut)
-def delete_folder(request, folder_id: str):
+def delete_folder(request: AuthenticatedRequest, folder_id: str) -> SuccessOut:
     folder = get_object_or_404(CustomFolder, user=request.auth, uuid=folder_id)
     folder.delete()
     return SuccessOut()
 
 
 @router.post("/{folder_id}/reorder", response=SuccessOut)
-def reorder_folder(request, folder_id: str, newOrder: int = 0):
+def reorder_folder(request: AuthenticatedRequest, folder_id: str, newOrder: int = 0) -> SuccessOut:
     user = request.auth
     folder = get_object_or_404(CustomFolder, user=user, uuid=folder_id)
 
