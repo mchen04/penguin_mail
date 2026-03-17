@@ -136,6 +136,68 @@ describe('emailReducer - property tests', () => {
     )
   })
 
+  it('TOGGLE_STAR applied twice returns email to its original isStarred value', () => {
+    fc.assert(
+      fc.property(
+        fc.uniqueArray(fc.string({ minLength: 1, maxLength: 20 }), {
+          minLength: 1,
+          maxLength: 8,
+        }),
+        fc.boolean(),
+        (ids, initialStarred) => {
+          fc.pre(ids.length >= 1)
+          const targetId = ids[0]
+          const emails = ids.map((id) =>
+            makeEmail({ id, isStarred: id === targetId ? initialStarred : false }),
+          )
+          const state = buildState({ emails })
+
+          const afterFirst = emailReducer(state, { type: 'TOGGLE_STAR', id: targetId })
+          const afterSecond = emailReducer(afterFirst, { type: 'TOGGLE_STAR', id: targetId })
+
+          const email = afterSecond.emails.find((e) => e.id === targetId)
+          expect(email?.isStarred).toBe(initialStarred)
+        },
+      ),
+      { numRuns: 100 },
+    )
+  })
+
+  it('SET_SEARCH sets searchQuery to the given value', () => {
+    fc.assert(
+      fc.property(fc.string({ minLength: 0, maxLength: 100 }), (query) => {
+        const state = buildState()
+        const nextState = emailReducer(state, { type: 'SET_SEARCH', query })
+        expect(nextState.searchQuery).toBe(query)
+      }),
+      { numRuns: 200 },
+    )
+  })
+
+  it('SET_SELECTION with all email IDs then CLEAR_SELECTION leaves selectedIds empty', () => {
+    fc.assert(
+      fc.property(
+        fc.uniqueArray(fc.string({ minLength: 1, maxLength: 20 }), {
+          minLength: 1,
+          maxLength: 8,
+        }),
+        (ids) => {
+          const emails = ids.map((id) => makeEmail({ id }))
+          const state = buildState({ emails })
+
+          const afterSelect = emailReducer(state, {
+            type: 'SET_SELECTION',
+            ids: new Set(ids),
+          })
+          const afterClear = emailReducer(afterSelect, { type: 'CLEAR_SELECTION' })
+
+          expect(afterClear.selectedIds.size).toBe(0)
+        },
+      ),
+      { numRuns: 100 },
+    )
+  })
+
   it('selectedIds after SET_SELECTION never contains IDs not in emails', () => {
     fc.assert(
       fc.property(
