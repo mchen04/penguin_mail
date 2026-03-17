@@ -11,6 +11,7 @@ import { ComposeHeader } from './ComposeHeader'
 import { RecipientField } from './RecipientField'
 import { RichTextToolbar } from './RichTextToolbar'
 import { ScheduleSendPicker } from './ScheduleSendPicker'
+import DOMPurify from 'dompurify'
 import { PLACEHOLDERS, ICON_SIZE, AUTO_SAVE, RANDOM_ID } from '@/constants'
 import { cn, formatBytes, formatRecipient, parseRecipients } from '@/utils'
 import type { Attachment } from '@/types/email'
@@ -381,7 +382,7 @@ export function ComposeWindow() {
     setSubject(template.subject)
     setBody(template.body)
     if (editorRef.current) {
-      editorRef.current.innerHTML = template.body
+      editorRef.current.innerHTML = DOMPurify.sanitize(template.body)
     }
     setShowTemplatePicker(false)
   }

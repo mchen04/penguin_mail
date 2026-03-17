@@ -13,7 +13,7 @@ export function EmailBody({ html }: EmailBodyProps) {
     <article className={styles.body} aria-label="Email content">
       <div
         className={styles.content}
-        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }} // nosemgrep: react-dangerouslysetinnerhtml -- sanitizedHtml is produced by DOMPurify.sanitize()
       />
     </article>
   )
