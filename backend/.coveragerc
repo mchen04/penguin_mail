@@ -2,3 +2,6 @@
 omit =
     penguin_mail/asgi.py
     penguin_mail/wsgi.py
+
+[report]
+fail_under = 90
