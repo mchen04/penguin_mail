@@ -37,3 +37,18 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-push]
+
+  - repo: https://github.com/returntocorp/semgrep
+    rev: v1.90.0
+    hooks:
+      - id: semgrep
+        args:
+          - --config=p/python
+          - --config=p/django
+          - --config=p/typescript
+          - --config=p/react
+          - --config=p/secrets
+          - --error
+        files: ^(backend|frontend)/
+        exclude: ^(backend/penguin_mail/migrations|frontend/node_modules)/
+        stages: [manual]

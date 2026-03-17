@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: python -m pytest tests/ -v --cov=penguin_mail --cov-report=term-missing --cov-fail-under=90
+      - run: python -m pytest tests/ -v --cov=penguin_mail --cov-report=term-missing --cov-fail-under=99
 
   frontend-lint:
     runs-on: ubuntu-latest
@@ -73,6 +73,19 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npx vitest run --coverage
+
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/python
+            p/django
+            p/typescript
+            p/react
+            p/secrets
 
   e2e:
     runs-on: ubuntu-latest

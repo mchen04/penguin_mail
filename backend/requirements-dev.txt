@@ -8,3 +8,4 @@ pip-audit>=2.7
 hypothesis[django]>=6.100
 mypy>=1.13
 django-stubs[compatible-mypy]>=5.1
+semgrep>=1.90
