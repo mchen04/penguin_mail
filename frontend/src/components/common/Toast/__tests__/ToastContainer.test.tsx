@@ -59,4 +59,16 @@ describe('ToastContainer', () => {
     const { container } = render(<ToastContainer />)
     expect(container.firstChild).toBeNull()
   })
+
+  it('renders action button when toast has action (branch 1 arm 1)', async () => {
+    const actionClick = vi.fn()
+    mockUseToast.mockReturnValue({
+      toasts: [
+        { id: '3', message: 'Undo action', type: 'info', action: { label: 'Undo', onClick: actionClick } },
+      ],
+      removeToast: mockRemoveToast,
+    })
+    render(<ToastContainer />)
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+  })
 })

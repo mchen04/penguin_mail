@@ -69,6 +69,33 @@ describe('storage service', () => {
     expect(ids.size).toBe(100)
   })
 
+  it('set throws and logs error when localStorage.setItem throws', async () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await expect(storage.set('errKey', 'value')).rejects.toThrow('Failed to save to storage')
+
+    setItemSpy.mockRestore()
+    consoleSpy.mockRestore()
+  })
+
+  it('clear logs error when localStorage throws', async () => {
+    const lengthSpy = vi.spyOn(Storage.prototype, 'key').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    // Override length to trigger the loop
+    Object.defineProperty(localStorage, 'length', { value: 1, configurable: true })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await expect(storage.clear()).resolves.toBeUndefined()
+
+    lengthSpy.mockRestore()
+    consoleSpy.mockRestore()
+    Object.defineProperty(localStorage, 'length', { value: 0, configurable: true })
+  })
+
   it('serializes and deserializes Date objects correctly', async () => {
     const dateObj = { created: new Date('2026-03-13T10:00:00.000Z') }
     await storage.set('dateKey', dateObj)

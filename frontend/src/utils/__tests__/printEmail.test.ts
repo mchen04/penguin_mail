@@ -99,4 +99,36 @@ describe('printEmail', () => {
     expect(writtenHtml).not.toContain('Cc:')
     expect(writtenHtml).not.toContain('Bcc:')
   })
+
+  it('does nothing when window.open returns null', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null)
+    expect(() => printEmail(makeEmail())).not.toThrow()
+    expect(mockWrite).not.toHaveBeenCalled()
+  })
+
+  it('formats recipients without a name using email only', () => {
+    const email = makeEmail({
+      to: [{ name: '', email: 'noname@example.com' }],
+    })
+    printEmail(email)
+
+    const writtenHtml = mockWrite.mock.calls[0][0] as string
+    expect(writtenHtml).toContain('noname@example.com')
+  })
+
+  it('includes attachment list when attachments are present', () => {
+    const email = makeEmail({
+      attachments: [{ id: 'a1', name: 'file.pdf', size: 1024, type: 'application/pdf', url: '/file.pdf' }],
+    })
+    printEmail(email)
+
+    const writtenHtml = mockWrite.mock.calls[0][0] as string
+    expect(writtenHtml).toContain('Attachments:')
+    expect(writtenHtml).toContain('file.pdf')
+  })
+
+  it('calls document.close after writing HTML', () => {
+    printEmail(makeEmail())
+    expect(mockClose).toHaveBeenCalled()
+  })
 })

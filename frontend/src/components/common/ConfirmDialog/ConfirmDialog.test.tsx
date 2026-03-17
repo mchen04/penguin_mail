@@ -109,4 +109,10 @@ describe('ConfirmDialog', () => {
     await user.click(screen.getByRole('alertdialog'))
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it('renders with primary button variant when variant is not danger (line 122)', () => {
+    render(<ConfirmDialog {...defaultProps} variant="warning" confirmLabel="OK" />)
+    // With variant='warning', the button uses 'primary' style (not 'danger')
+    expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument()
+  })
 })

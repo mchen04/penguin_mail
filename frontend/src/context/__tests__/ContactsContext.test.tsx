@@ -118,3 +118,57 @@ describe('ContactsContext', () => {
     }).toThrow('useContacts must be used within a ContactsProvider')
   })
 })
+
+describe('ContactsContext - failure paths (branches 14, 15)', () => {
+  it('addContact does not update state when repository returns failure', async () => {
+    const { wrapper, repos } = createWrapper()
+    repos.contacts.create = vi.fn().mockResolvedValue({ success: false, error: 'Conflict' })
+    const { result } = renderHook(() => useContacts(), { wrapper })
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    const before = result.current.contacts.length
+
+    await act(async () => {
+      await result.current.addContact({ name: 'Fail User', email: 'fail@example.com' })
+    })
+
+    // State should not have grown
+    expect(result.current.contacts.length).toBe(before)
+  })
+
+  it('addGroup does not update state when repository returns failure', async () => {
+    const { wrapper, repos } = createWrapper()
+    repos.contactGroups.create = vi.fn().mockResolvedValue({ success: false, error: 'Conflict' })
+    const { result } = renderHook(() => useContacts(), { wrapper })
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    const before = result.current.groups.length
+
+    await act(async () => {
+      await result.current.addGroup('FailGroup', '#000000')
+    })
+
+    expect(result.current.groups.length).toBe(before)
+  })
+
+  it('handles null contactsResult.data by defaulting to []', async () => {
+    const repos = createMockRepositories()
+    repos.contacts.getAll = vi.fn().mockResolvedValue({ data: null, total: 0, page: 1, pageSize: 50, totalPages: 0 })
+    repos.contactGroups.getAll = vi.fn().mockResolvedValue(null)
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <RepositoryProvider repositories={repos}>
+        <ContactsProvider>{children}</ContactsProvider>
+      </RepositoryProvider>
+    )
+
+    const { result } = renderHook(() => useContacts(), { wrapper })
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.contacts).toEqual([])
+    expect(result.current.groups).toEqual([])
+  })
+})

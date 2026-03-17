@@ -252,6 +252,70 @@ describe('ApiContactRepository', () => {
     });
   });
 
+  describe('update with all optional fields', () => {
+    it('includes all optional fields in patch body when all are provided', async () => {
+      mockApiClient.patch.mockResolvedValue({
+        ...mockContactAPI,
+        email: 'newalice@test.com',
+        avatar: 'data:image/png;base64,abc',
+        phone: '555-9999',
+        company: 'NewCorp',
+        notes: 'VIP client',
+        isFavorite: true,
+        groups: ['g1'],
+      });
+
+      const result = await repo.update('c1', {
+        email: 'newalice@test.com',
+        avatar: 'data:image/png;base64,abc',
+        phone: '555-9999',
+        company: 'NewCorp',
+        notes: 'VIP client',
+        isFavorite: true,
+        groups: ['g1'],
+      });
+
+      expect(mockApiClient.patch).toHaveBeenCalledWith('/contacts/c1', expect.objectContaining({
+        email: 'newalice@test.com',
+        phone: '555-9999',
+        isFavorite: true,
+      }));
+      expect(result.success).toBe(true);
+    });
+
+    it('omits name from patch body when name is not in the update', async () => {
+      mockApiClient.patch.mockResolvedValue({ ...mockContactAPI, email: 'other@test.com' });
+
+      const result = await repo.update('c1', { email: 'other@test.com' });
+
+      const callArgs = mockApiClient.patch.mock.calls[0][1] as Record<string, unknown>;
+      expect(callArgs).not.toHaveProperty('name');
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('toContact with null avatar/phone/company/notes', () => {
+    it('maps null avatar, phone, company, notes to undefined', async () => {
+      mockApiClient.patch.mockResolvedValue({
+        ...mockContactAPI,
+        avatar: null,
+        phone: null,
+        company: null,
+        notes: null,
+      });
+
+      const result = await repo.update('c1', { name: 'Alice' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.avatar).toBeUndefined();
+        expect(result.data.phone).toBeUndefined();
+        expect(result.data.company).toBeUndefined();
+        expect(result.data.notes).toBeUndefined();
+      }
+    });
+  });
+
   describe('delete error path', () => {
     it('returns error on failure', async () => {
       mockApiClient.delete.mockRejectedValue(new Error('Server error'));

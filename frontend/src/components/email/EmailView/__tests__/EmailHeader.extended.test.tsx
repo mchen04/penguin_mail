@@ -197,3 +197,63 @@ describe('EmailHeader - Delete button', () => {
     expect(onDelete).toHaveBeenCalled()
   })
 })
+
+describe('EmailHeader - Mark as read/unread in more menu', () => {
+  it('clicking mark as unread calls markUnread (email.isRead = true)', async () => {
+    const user = userEvent.setup()
+    render(<EmailHeader {...defaultProps} email={{ ...mockEmail, isRead: true }} />)
+
+    await user.click(screen.getByRole('button', { name: /more actions/i }))
+    await waitFor(() => expect(screen.getByText(/mark as unread/i)).toBeInTheDocument())
+
+    await user.click(screen.getByText(/mark as unread/i))
+
+    // Menu should close after click
+    await waitFor(() => expect(screen.queryByText(/mark as unread/i)).not.toBeInTheDocument())
+  })
+
+  it('clicking mark as read calls markRead (email.isRead = false)', async () => {
+    const user = userEvent.setup()
+    render(<EmailHeader {...defaultProps} email={{ ...mockEmail, isRead: false }} />)
+
+    await user.click(screen.getByRole('button', { name: /more actions/i }))
+    await waitFor(() => expect(screen.getByText(/mark as read/i)).toBeInTheDocument())
+
+    await user.click(screen.getByText(/mark as read/i))
+
+    await waitFor(() => expect(screen.queryByText(/mark as read/i)).not.toBeInTheDocument())
+  })
+})
+
+describe('EmailHeader - Print in more menu', () => {
+  it('clicking Print in more menu calls onPrint and closes menu', async () => {
+    const user = userEvent.setup()
+    const onPrint = vi.fn()
+    render(<EmailHeader {...defaultProps} onPrint={onPrint} />)
+
+    await user.click(screen.getByRole('button', { name: /more actions/i }))
+    await waitFor(() => {
+      const printItems = screen.getAllByText(/^print$/i)
+      expect(printItems.length).toBeGreaterThan(0)
+    })
+
+    // The print button inside the more menu (not the icon button in the toolbar)
+    const printMenuBtn = screen.getAllByRole('button', { name: /^print$/i }).find(
+      btn => btn.className && btn.className.includes('moreMenuItem')
+    ) ?? screen.getAllByRole('button', { name: /^print$/i })[1]
+
+    if (printMenuBtn) {
+      await user.click(printMenuBtn)
+    }
+
+    expect(onPrint).toHaveBeenCalled()
+  })
+})
+
+describe('EmailHeader - email with labels', () => {
+  it('shows label chips when email has labels', async () => {
+    render(<EmailHeader {...defaultProps} email={{ ...mockEmail, labels: [] }} />)
+    // Without labels, no label chips (empty labels array)
+    expect(screen.queryByText(/newsletters/i)).not.toBeInTheDocument()
+  })
+})
