@@ -3,6 +3,7 @@
  */
 
 import type { SystemFolderType } from './email'
+import type { EmailProvider } from '@/constants/providers'
 
 export type AccountColor =
   | 'blue'
@@ -19,6 +20,7 @@ export interface Account {
   email: string
   name: string
   color: AccountColor
+  provider: string
   displayName?: string
   signature?: string
   defaultSignatureId?: string
@@ -26,6 +28,7 @@ export interface Account {
   isDefault: boolean
   createdAt: Date
   updatedAt: Date
+  lastSyncAt?: Date | null
 }
 
 export interface AccountCreateInput {
@@ -35,10 +38,16 @@ export interface AccountCreateInput {
   displayName?: string
   signature?: string
 
-  smtp_url: string
-  smtp_password: string
-  imap_url: string
-  imap_password: string
+  provider: EmailProvider
+  password: string
+
+  // Only for custom provider
+  smtp_host?: string
+  smtp_port?: number
+  smtp_security?: string
+  imap_host?: string
+  imap_port?: number
+  imap_security?: string
 }
 
 export interface AccountUpdateInput {

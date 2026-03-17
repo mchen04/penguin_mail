@@ -69,6 +69,28 @@
   white-space: nowrap;
 }
 
+/* Delete button — shown on hover */
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.header:hover .deleteButton {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  color: var(--color-error, #dc2626);
+  background: var(--color-surface-hover);
+}
+
 /* Folder list (expandable content) */
 .folders {
   display: none;

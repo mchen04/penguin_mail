@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useApp } from '@/context/AppContext'
+import { useAccounts } from '@/context/AccountContext'
+import { useRepositories } from '@/context/RepositoryContext'
 import { useEmail, type SearchFilters } from '@/context/EmailContext'
 import { Button } from '@/components/common/Button/Button'
 import { IconButton } from '@/components/common/IconButton/IconButton'
@@ -46,10 +48,13 @@ export function Toolbar({
   onSnooze,
 }: ToolbarProps) {
   const { setSidebarCollapsed, openCompose, openSettings } = useApp()
-  const { searchFilters, setSearchFilters } = useEmail()
+  const { accounts: accts, selectedAccountId } = useAccounts()
+  const { accounts: accountRepository } = useRepositories()
+  const { searchFilters, setSearchFilters, reloadEmails } = useEmail()
 
   const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false)
   const [showEmptySpamConfirm, setShowEmptySpamConfirm] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
 
   const handleSearch = useCallback((filters: SearchFilters) => {
     setSearchFilters(filters)
@@ -69,6 +74,25 @@ export function Toolbar({
     onEmptySpam?.()
     setShowEmptySpamConfirm(false)
   }
+
+  const handleSync = useCallback(async () => {
+    if (isSyncing) return
+    setIsSyncing(true)
+    try {
+      // Sync selected account, or all accounts
+      const toSync = selectedAccountId
+        ? [selectedAccountId]
+        : accts.map(a => a.id)
+      for (const id of toSync) {
+        await accountRepository.sync(id)
+      }
+      await reloadEmails()
+    } catch {
+      // Silently fail
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [isSyncing, selectedAccountId, accts, accountRepository, reloadEmails])
 
   return (
     <div className={styles.toolbar}>
@@ -144,6 +168,16 @@ export function Toolbar({
             </Button>
           </>
         )}
+
+        <span className={styles.divider} />
+
+        {/* Sync */}
+        <IconButton
+          icon="refresh"
+          label="Sync emails"
+          onClick={handleSync}
+          disabled={isSyncing}
+        />
 
         <span className={styles.divider} />
 

@@ -1,6 +1,8 @@
+import logging
 import uuid as uuid_mod
 
 from django.db.models import Q
+from django.utils.timezone import now
 from ninja import Router
 from ninja.errors import HttpError
 
@@ -17,6 +19,10 @@ from penguin_mail.api.schemas.email import (
 from penguin_mail.api.schemas.auth import SuccessOut
 
 router = Router(auth=JWTAuth())
+
+logger = logging.getLogger(__name__)
+
+SYNC_STALENESS_SECONDS = 300  # 5 minutes
 
 
 def _base_qs(user):
@@ -60,6 +66,23 @@ def list_emails(
     page: int = 1,
     pageSize: int = 50,
 ):
+    from penguin_mail.services.sync import sync_account_inbox
+    accounts_to_check = (
+        Account.objects.filter(uuid=accountId, user=request.auth)
+        if accountId
+        else Account.objects.filter(user=request.auth)
+    )
+    for account in accounts_to_check:
+        needs_sync = (
+            account.last_sync_at is None or
+            (now() - account.last_sync_at).total_seconds() > SYNC_STALENESS_SECONDS
+        )
+        if needs_sync:
+            try:
+                sync_account_inbox(account)
+            except Exception:
+                logger.exception("Auto-sync failed for account %s", account.uuid)
+
     qs = _base_qs(request.auth)
 
     if folder:
@@ -144,6 +167,22 @@ def create_email(request, payload: EmailCreateIn):
     _create_recipients(email, payload.to, "TO")
     _create_recipients(email, payload.cc, "CC")
     _create_recipients(email, payload.bcc, "BCC")
+
+    # Send via SMTP (skip for scheduled sends)
+    if not payload.scheduledSendAt:
+        from penguin_mail.services.smtp import send_email as smtp_send
+        try:
+            smtp_send(
+                account=account,
+                recipients_to=[r.email for r in payload.to],
+                recipients_cc=[r.email for r in payload.cc],
+                recipients_bcc=[r.email for r in payload.bcc],
+                subject=payload.subject,
+                body_html=payload.body,
+            )
+        except Exception as e:
+            email.delete()
+            raise HttpError(502, f"Failed to send email: {e}")
 
     # Reload with prefetched data
     email = _base_qs(user).get(pk=email.pk)

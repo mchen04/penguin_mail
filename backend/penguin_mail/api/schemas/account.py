@@ -9,6 +9,7 @@ class AccountOut(Schema):
     email: str
     name: str
     color: str
+    provider: str
     displayName: str
     signature: str
     defaultSignatureId: str
@@ -16,6 +17,7 @@ class AccountOut(Schema):
     isDefault: bool
     createdAt: datetime
     updatedAt: datetime
+    lastSyncAt: Optional[datetime] = None
 
     @staticmethod
     def from_model(account) -> "AccountOut":
@@ -24,6 +26,7 @@ class AccountOut(Schema):
             email=account.email,
             name=account.name,
             color=account.color,
+            provider=account.provider,
             displayName=account.display_name,
             signature=account.signature,
             defaultSignatureId=account.default_signature_id,
@@ -31,6 +34,7 @@ class AccountOut(Schema):
             isDefault=account.is_default,
             createdAt=account.created_at,
             updatedAt=account.updated_at,
+            lastSyncAt=account.last_sync_at,
         )
 
 
@@ -41,11 +45,17 @@ class AccountCreateIn(Schema):
     displayName: str = ""
     signature: str = ""
 
-    # SMTP and IMAP credentials
-    smtp_url: str
-    smtp_password: str
-    imap_url: str
-    imap_password: str
+    # Provider-based setup
+    provider: str = "custom"
+    password: str = ""
+
+    # Custom server fields (only required when provider is 'custom')
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_security: Optional[str] = None
+    imap_host: Optional[str] = None
+    imap_port: Optional[int] = None
+    imap_security: Optional[str] = None
 
 
 class AccountUpdateIn(Schema):
@@ -56,3 +66,22 @@ class AccountUpdateIn(Schema):
     defaultSignatureId: Optional[str] = None
     avatar: Optional[str] = None
     isDefault: Optional[bool] = None
+
+
+class TestConnectionIn(Schema):
+    email: str
+    provider: str = "custom"
+    password: str = ""
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_security: Optional[str] = None
+    imap_host: Optional[str] = None
+    imap_port: Optional[int] = None
+    imap_security: Optional[str] = None
+
+
+class TestConnectionOut(Schema):
+    smtp: bool
+    imap: bool
+    smtp_error: str = ""
+    imap_error: str = ""

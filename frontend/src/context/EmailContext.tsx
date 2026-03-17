@@ -416,6 +416,7 @@ interface EmailContextValue extends Omit<EmailState, 'isLoading'> {
   cancelScheduledEmail: (id: string) => void
   getScheduledEmails: () => Email[]
   getSnoozedEmails: () => Email[]
+  reloadEmails: () => Promise<void>
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null)
@@ -432,6 +433,17 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       isMountedRef.current = false
     }
   }, [])
+
+  const reloadEmails = useCallback(async () => {
+    try {
+      const allEmails = await emailRepository.search({}, { page: 1, pageSize: REPOSITORY.LOAD_ALL_PAGE_SIZE })
+      if (isMountedRef.current) {
+        dispatch({ type: 'SET_EMAILS', emails: allEmails.data })
+      }
+    } catch {
+      // ignore
+    }
+  }, [emailRepository])
 
   // Load emails from repository on mount
   useEffect(() => {
@@ -765,6 +777,10 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       forwardedFromId: email.forwardedFromId,
     })
 
+    if (!result.success) {
+      throw new Error(result.error ?? 'Failed to send email')
+    }
+
     const created: Email = {
       id: result.data?.id ?? `email-${Date.now()}`,
       accountId: email.accountId,
@@ -1015,6 +1031,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       cancelScheduledEmail,
       getScheduledEmails,
       getSnoozedEmails,
+      reloadEmails,
     }),
     [
       state,
@@ -1054,6 +1071,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       cancelScheduledEmail,
       getScheduledEmails,
       getSnoozedEmails,
+      reloadEmails,
     ]
   )
 

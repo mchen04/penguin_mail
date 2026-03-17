@@ -1,7 +1,8 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useAccounts } from '@/context/AccountContext'
 import { useEmail } from '@/context/EmailContext'
 import { FolderItem } from './FolderItem'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ACCOUNT_COLOR_VAR, type Account } from '@/types/account'
 import type { SystemFolderType } from '@/types/email'
 import { STANDARD_FOLDERS, ALL_ACCOUNTS_ID, LABELS } from '@/constants'
@@ -19,9 +20,11 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     selectedAccountId,
     selectedFolder,
     selectFolder,
+    deleteAccount,
   } = useAccounts()
 
   const { getUnreadCount, getTotalUnreadCount } = useEmail()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const sectionId = isAllAccounts ? ALL_ACCOUNTS_ID : account?.id
   const isExpanded = sectionId ? expandedAccountIds.has(sectionId) : false
@@ -81,6 +84,20 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
         <span className={styles.accountName}>
           {isAllAccounts ? LABELS.ALL_ACCOUNTS : account?.email}
         </span>
+
+        {/* Delete button — only for individual accounts */}
+        {!isAllAccounts && account && (
+          <button
+            className={styles.deleteButton}
+            onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true) }}
+            title="Remove account"
+            aria-label={`Remove ${account.email}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Folder list */}
@@ -106,6 +123,18 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
           ))
         )}
       </div>
+
+      {!isAllAccounts && account && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={() => { deleteAccount(account.id); setShowDeleteConfirm(false) }}
+          title="Remove Account"
+          message={`Remove ${account.email}? This will delete all emails associated with this account.`}
+          confirmLabel="Remove"
+          variant="danger"
+        />
+      )}
     </div>
   )
 })
