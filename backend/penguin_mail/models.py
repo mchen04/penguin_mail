@@ -119,6 +119,8 @@ class Email(models.Model):
     snooze_until = models.DateTimeField(null=True, blank=True)
     snoozed_from_folder = models.CharField(max_length=20, choices=FolderType.choices, null=True, blank=True)
     labels = models.ManyToManyField('Label', blank=True, related_name='emails')
+    imap_uid = models.PositiveIntegerField(null=True, blank=True, db_index=True)
+    imap_folder = models.CharField(max_length=255, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

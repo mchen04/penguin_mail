@@ -23,7 +23,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     deleteAccount,
   } = useAccounts()
 
-  const { getUnreadCount, getTotalUnreadCount } = useEmail()
+  const { getUnreadCount, getTotalUnreadCount, getSnoozedEmails, getScheduledEmails } = useEmail()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const sectionId = isAllAccounts ? ALL_ACCOUNTS_ID : account?.id
@@ -43,13 +43,11 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
   const isSelected = (folder: SystemFolderType) =>
     selectedAccountId === accountId && selectedFolder === folder
 
-  // Get unread count for inbox, 0 for other folders (to show badge only for unread)
   const getCount = (folder: SystemFolderType): number => {
-    if (folder !== 'inbox') return 0
-    if (isAllAccounts) {
-      return getTotalUnreadCount()
-    }
-    return getUnreadCount('inbox', account?.id)
+    if (folder === 'inbox') return isAllAccounts ? getTotalUnreadCount() : getUnreadCount('inbox', account?.id)
+    if (folder === 'snoozed') return getSnoozedEmails(isAllAccounts ? undefined : account?.id).length
+    if (folder === 'scheduled') return getScheduledEmails(isAllAccounts ? undefined : account?.id).length
+    return 0
   }
 
   return (

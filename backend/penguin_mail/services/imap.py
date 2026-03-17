@@ -21,16 +21,34 @@ def _decode_header_value(value: str) -> str:
 
 
 def _get_body(msg: email_lib.message.Message) -> tuple[str, str]:
-    """Extract HTML and plain text body from a message. Returns (html, plain)."""
+    """Extract HTML and plain text body from a message. Returns (html, plain).
+    Inline CID images are embedded as base64 data URIs so they render without
+    a separate attachment-serving endpoint."""
+    import base64
+
     html_body = ''
     plain_body = ''
+    # Map Content-ID → data URI for inline images
+    cid_map: dict[str, str] = {}
 
     if msg.is_multipart():
         for part in msg.walk():
             content_type = part.get_content_type()
             disposition = str(part.get('Content-Disposition', ''))
+            content_id = part.get('Content-ID', '')
+
+            # Collect inline images (not marked as attachment, have Content-ID)
+            if content_id and content_type.startswith('image/') and 'attachment' not in disposition:
+                payload = part.get_payload(decode=True)
+                if payload:
+                    cid = content_id.strip('<>').strip()
+                    b64 = base64.b64encode(payload).decode('ascii')
+                    cid_map[cid] = f'data:{content_type};base64,{b64}'
+                continue
+
             if 'attachment' in disposition:
                 continue
+
             if content_type == 'text/html':
                 payload = part.get_payload(decode=True)
                 if payload:
@@ -51,6 +69,14 @@ def _get_body(msg: email_lib.message.Message) -> tuple[str, str]:
                 html_body = text
             else:
                 plain_body = text
+
+    # Replace cid: references in HTML with embedded data URIs
+    if html_body and cid_map:
+        import re
+        def replace_cid(m):
+            cid = m.group(1).strip()
+            return f'src="{cid_map.get(cid, "cid:" + cid)}"'
+        html_body = re.sub(r'src=["\']cid:([^"\']+)["\']', replace_cid, html_body)
 
     return html_body, plain_body
 
@@ -81,41 +107,59 @@ def _parse_recipients(msg: email_lib.message.Message, header: str) -> list[dict]
     return recipients
 
 
+def _open_connection(account):
+    """Open and return an authenticated IMAP4_SSL connection."""
+    password = account.get_imap_password()
+    context = ssl.create_default_context()
+    conn = imaplib.IMAP4_SSL(account.imap_host, account.imap_port, ssl_context=context)
+    conn.login(account.email, password)
+    return conn
+
+
 def fetch_emails(
     account,
     folder: str = 'INBOX',
     since: Optional[datetime] = None,
     limit: int = 50,
 ) -> list[dict]:
-    """Fetch emails from IMAP. Returns list of parsed email dicts."""
-    password = account.get_imap_password()
-    context = ssl.create_default_context()
-
-    conn = imaplib.IMAP4_SSL(account.imap_host, account.imap_port, ssl_context=context)
+    """Fetch emails from IMAP using UIDs. Returns list of parsed email dicts."""
+    conn = _open_connection(account)
     try:
-        conn.login(account.email, password)
         conn.select(folder, readonly=True)
 
         if since:
             date_str = since.strftime('%d-%b-%Y')
-            _, msg_nums = conn.search(None, f'(SINCE {date_str})')
+            _, uid_data = conn.uid('search', None, f'(SINCE {date_str})')
         else:
-            _, msg_nums = conn.search(None, 'ALL')
+            _, uid_data = conn.uid('search', None, 'ALL')
 
-        ids = msg_nums[0].split()
-        if not ids:
+        uids = uid_data[0].split()
+        if not uids:
             return []
 
         # Take the most recent N
-        ids = ids[-limit:]
+        uids = uids[-limit:]
 
         emails = []
-        for msg_id in ids:
-            _, msg_data = conn.fetch(msg_id, '(RFC822)')
+        for uid_bytes in uids:
+            _, msg_data = conn.uid('fetch', uid_bytes, '(RFC822 FLAGS)')
             if not msg_data or not msg_data[0]:
                 continue
-            raw = msg_data[0][1]
+
+            # msg_data may be [(b'... FLAGS (\\Seen)', raw_bytes), b')'] or similar
+            raw = None
+            flags_str = ''
+            for part in msg_data:
+                if isinstance(part, tuple):
+                    flags_str = part[0].decode('utf-8', errors='replace') if isinstance(part[0], bytes) else str(part[0])
+                    raw = part[1]
+                    break
+
+            if not raw:
+                continue
+
             msg = email_lib.message_from_bytes(raw)
+            is_read = r'\Seen' in flags_str
 
             html_body, plain_body = _get_body(msg)
             body = html_body or f'<p>{plain_body}</p>'
@@ -130,19 +174,148 @@ def fetch_emails(
             message_id = msg.get('Message-ID', '')
 
             emails.append({
+                'imap_uid': int(uid_bytes),
                 'message_id': message_id,
                 'subject': _decode_header_value(msg.get('Subject', '')),
                 'body': body,
                 'sender_name': sender_name,
                 'sender_email': sender_email,
                 'date': date,
-                'is_read': False,
+                'is_read': is_read,
                 'has_attachment': _has_attachments(msg),
                 'recipients_to': _parse_recipients(msg, 'To'),
                 'recipients_cc': _parse_recipients(msg, 'Cc'),
             })
 
         return emails
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+
+def get_imap_folder_map(account) -> dict:
+    """
+    Return a dict mapping logical folder names to IMAP folder paths.
+    Keys: 'trash', 'sent', 'drafts', 'spam', 'archive'
+    Uses IMAP special-use attributes (RFC 6154) or common name patterns.
+    """
+    conn = _open_connection(account)
+    try:
+        _, folders = conn.list('""', '*')
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+    result = {}
+    special_use_map = {
+        r'\\trash': 'trash',
+        r'\\sent': 'sent',
+        r'\\drafts': 'drafts',
+        r'\\junk': 'spam',
+        r'\\spam': 'spam',
+        r'\\archive': 'archive',
+        r'\\all': 'archive',
+    }
+    name_patterns = {
+        'trash': 'trash',
+        'deleted': 'trash',
+        'sent': 'sent',
+        'sent items': 'sent',
+        'sent mail': 'sent',
+        'drafts': 'drafts',
+        'draft': 'drafts',
+        'junk': 'spam',
+        'spam': 'spam',
+        'bulk mail': 'spam',
+        'archive': 'archive',
+        'all mail': 'archive',
+    }
+
+    for folder_line in folders:
+        if not folder_line:
+            continue
+        decoded = folder_line.decode('utf-8', errors='replace') if isinstance(folder_line, bytes) else folder_line
+        # Format: (\Attribute ...) "/" "folder name"
+        parts = decoded.split('"')
+        if len(parts) < 3:
+            continue
+        attributes = parts[0].lower()
+        folder_path = parts[-1].strip().strip('"')
+
+        for attr, key in special_use_map.items():
+            if attr in attributes and key not in result:
+                result[key] = folder_path
+                break
+
+    # Fallback: match by name if special-use didn't find everything
+    if len(result) < 5:
+        for folder_line in folders:
+            if not folder_line:
+                continue
+            decoded = folder_line.decode('utf-8', errors='replace') if isinstance(folder_line, bytes) else folder_line
+            parts = decoded.split('"')
+            if len(parts) < 3:
+                continue
+            folder_path = parts[-1].strip().strip('"')
+            name_lower = folder_path.lower().rstrip('/').split('/')[-1]
+            for pattern, key in name_patterns.items():
+                if pattern == name_lower and key not in result:
+                    result[key] = folder_path
+                    break
+
+    return result
+
+
+def imap_mark_read(account, uid: int, folder: str) -> None:
+    conn = _open_connection(account)
+    try:
+        conn.select(folder)
+        conn.uid('store', str(uid), '+FLAGS', r'(\Seen)')
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+
+def imap_mark_unread(account, uid: int, folder: str) -> None:
+    conn = _open_connection(account)
+    try:
+        conn.select(folder)
+        conn.uid('store', str(uid), '-FLAGS', r'(\Seen)')
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+
+def imap_move(account, uid: int, src_folder: str, dst_folder: str) -> None:
+    """Move a message by UID: COPY to dst, mark \\Deleted in src, EXPUNGE."""
+    conn = _open_connection(account)
+    try:
+        conn.select(src_folder)
+        conn.uid('copy', str(uid), dst_folder)
+        conn.uid('store', str(uid), '+FLAGS', r'(\Deleted)')
+        conn.expunge()
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+
+def imap_delete(account, uid: int, folder: str) -> None:
+    """Permanently delete a message by UID (mark \\Deleted + EXPUNGE)."""
+    conn = _open_connection(account)
+    try:
+        conn.select(folder)
+        conn.uid('store', str(uid), '+FLAGS', r'(\Deleted)')
+        conn.expunge()
     finally:
         try:
             conn.logout()

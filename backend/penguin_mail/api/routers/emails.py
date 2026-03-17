@@ -1,4 +1,5 @@
 import logging
+import threading
 import uuid as uuid_mod
 
 from django.db.models import Q
@@ -36,7 +37,13 @@ def _base_qs(user):
 
 def _strip_html(html: str, max_length: int = 200) -> str:
     import re
-    text = re.sub(r"<[^>]+>", "", html)
+    from html import unescape
+    text = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+    text = re.sub(r"<(style|script)[^>]*>.*?</(style|script)>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = unescape(text)
+    # Remove zero-width / invisible Unicode characters common in email spam traps
+    text = re.sub(r'[\u034f\u200b-\u200f\u2028\u2029\u00ad\uFEFF]', '', text)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:max_length]
 
@@ -66,7 +73,7 @@ def list_emails(
     page: int = 1,
     pageSize: int = 50,
 ):
-    from penguin_mail.services.sync import sync_account_inbox
+    from penguin_mail.services.sync import sync_all_folders
     accounts_to_check = (
         Account.objects.filter(uuid=accountId, user=request.auth)
         if accountId
@@ -78,10 +85,8 @@ def list_emails(
             (now() - account.last_sync_at).total_seconds() > SYNC_STALENESS_SECONDS
         )
         if needs_sync:
-            try:
-                sync_account_inbox(account)
-            except Exception:
-                logger.exception("Auto-sync failed for account %s", account.uuid)
+            t = threading.Thread(target=sync_all_folders, args=(account,), daemon=True)
+            t.start()
 
     qs = _base_qs(request.auth)
 
@@ -220,28 +225,83 @@ def create_draft(request, payload: EmailCreateIn):
     return 201, EmailOut.from_model(email)
 
 
+def _fire_imap_op(op: str, email_obj, folder_map: dict) -> None:
+    """Fire an IMAP write operation for a single email in a background thread."""
+    from penguin_mail.services.imap import (
+        imap_mark_read, imap_mark_unread, imap_move, imap_delete,
+    )
+    if not email_obj.imap_uid:
+        return
+    account = email_obj.account
+    uid = email_obj.imap_uid
+    src = email_obj.imap_folder or 'INBOX'
+    try:
+        if op == 'markRead':
+            imap_mark_read(account, uid, src)
+        elif op == 'markUnread':
+            imap_mark_unread(account, uid, src)
+        elif op == 'archive':
+            dst = folder_map.get('archive', 'Archive')
+            imap_move(account, uid, src, dst)
+        elif op == 'delete':
+            dst = folder_map.get('trash', 'Trash')
+            imap_move(account, uid, src, dst)
+        elif op == 'deletePermanent':
+            imap_delete(account, uid, src)
+        elif op == 'moveSpam':
+            dst = folder_map.get('spam', 'Junk')
+            imap_move(account, uid, src, dst)
+    except Exception:
+        logger.exception("IMAP op %s failed for email %s", op, email_obj.uuid)
+
+
 @router.post("/bulk", response=SuccessOut)
 def bulk_operation(request, payload: BulkOpIn):
+    from penguin_mail.services.imap import get_imap_folder_map
     user = request.auth
     emails = Email.objects.filter(uuid__in=payload.ids, account__user=user)
 
     op = payload.operation
+    imap_op = None
+
     if op == "markRead":
         emails.update(is_read=True)
+        imap_op = 'markRead'
     elif op == "markUnread":
         emails.update(is_read=False)
+        imap_op = 'markUnread'
     elif op == "star":
         emails.update(is_starred=True)
     elif op == "unstar":
         emails.update(is_starred=False)
     elif op == "archive":
         emails.update(folder="archive")
+        imap_op = 'archive'
     elif op == "delete":
         emails.update(folder="trash")
+        imap_op = 'delete'
     elif op == "deletePermanent":
+        email_list = list(emails)
         emails.delete()
+        imap_op = 'deletePermanent'
+        # For permanent delete we already consumed the queryset; fire IMAP ops below
+        _accounts_seen = {}
+        for email_obj in email_list:
+            if email_obj.imap_uid:
+                acct_id = email_obj.account_id
+                if acct_id not in _accounts_seen:
+                    try:
+                        _accounts_seen[acct_id] = get_imap_folder_map(email_obj.account)
+                    except Exception:
+                        _accounts_seen[acct_id] = {}
+                fmap = _accounts_seen[acct_id]
+                t = threading.Thread(target=_fire_imap_op, args=('deletePermanent', email_obj, fmap), daemon=True)
+                t.start()
+        return SuccessOut()
     elif op == "move" and payload.folder:
         emails.update(folder=payload.folder)
+        if payload.folder == 'spam':
+            imap_op = 'moveSpam'
     elif op == "addLabel" and payload.labelIds:
         labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
         for email in emails:
@@ -250,6 +310,20 @@ def bulk_operation(request, payload: BulkOpIn):
         labels = Label.objects.filter(uuid__in=payload.labelIds, user=user)
         for email in emails:
             email.labels.remove(*labels)
+
+    if imap_op:
+        _accounts_seen = {}
+        for email_obj in emails:
+            if email_obj.imap_uid:
+                acct_id = email_obj.account_id
+                if acct_id not in _accounts_seen:
+                    try:
+                        _accounts_seen[acct_id] = get_imap_folder_map(email_obj.account)
+                    except Exception:
+                        _accounts_seen[acct_id] = {}
+                fmap = _accounts_seen[acct_id]
+                t = threading.Thread(target=_fire_imap_op, args=(imap_op, email_obj, fmap), daemon=True)
+                t.start()
 
     return SuccessOut()
 
@@ -278,6 +352,10 @@ def update_email(request, email_id: str, payload: EmailUpdateIn):
         email.is_starred = payload.isStarred
     if payload.folder is not None:
         email.folder = payload.folder
+    if payload.snoozeUntil is not None:
+        email.snooze_until = payload.snoozeUntil
+    if payload.snoozedFromFolder is not None:
+        email.snoozed_from_folder = payload.snoozedFromFolder
     email.save()
 
     if payload.labels is not None:

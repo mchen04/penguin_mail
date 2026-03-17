@@ -414,8 +414,8 @@ interface EmailContextValue extends Omit<EmailState, 'isLoading'> {
   // Scheduled send
   scheduleEmail: (email: ComposeEmailInput, scheduledAt: Date) => Promise<void>
   cancelScheduledEmail: (id: string) => void
-  getScheduledEmails: () => Email[]
-  getSnoozedEmails: () => Email[]
+  getScheduledEmails: (accountId?: string) => Email[]
+  getSnoozedEmails: (accountId?: string) => Email[]
   reloadEmails: () => Promise<void>
 }
 
@@ -469,6 +469,12 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [emailRepository])
+
+  // Poll for new emails every 60 seconds (picks up background IMAP syncs)
+  useEffect(() => {
+    const interval = setInterval(() => reloadEmails(), 60_000)
+    return () => clearInterval(interval)
+  }, [reloadEmails])
 
   // Sync operations through repository - the repository handles persistence
   // State updates trigger re-renders, repository methods persist changes
@@ -855,12 +861,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const snoozeEmails = useCallback(
     (ids: string[], snoozeUntil: Date) => {
       dispatch({ type: 'SNOOZE_EMAILS', ids, snoozeUntil })
-      // Persist the snooze via repository
       for (const id of ids) {
         const email = state.emails.find((e) => e.id === id)
         if (email) {
           emailRepository.update(id, {
             folder: 'snoozed' as FolderType,
+            snoozeUntil,
+            snoozedFromFolder: email.folder,
           })
         }
       }
@@ -876,6 +883,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       if (email) {
         emailRepository.update(id, {
           folder: email.snoozedFromFolder ?? 'inbox',
+          snoozeUntil: null,
+          snoozedFromFolder: null,
         })
       }
     },
@@ -940,13 +949,21 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   )
 
   // Get scheduled emails
-  const getScheduledEmails = useCallback(() => {
-    return state.emails.filter((e) => e.folder === 'scheduled' && e.scheduledSendAt)
+  const getScheduledEmails = useCallback((accountId?: string) => {
+    return state.emails.filter((e) => {
+      const folderMatch = e.folder === 'scheduled' && e.scheduledSendAt
+      const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || e.accountId === accountId
+      return folderMatch && accountMatch
+    })
   }, [state.emails])
 
   // Get snoozed emails
-  const getSnoozedEmails = useCallback(() => {
-    return state.emails.filter((e) => e.folder === 'snoozed' && e.snoozeUntil)
+  const getSnoozedEmails = useCallback((accountId?: string) => {
+    return state.emails.filter((e) => {
+      const folderMatch = e.folder === 'snoozed' && e.snoozeUntil
+      const accountMatch = !accountId || accountId === ALL_ACCOUNTS_ID || e.accountId === accountId
+      return folderMatch && accountMatch
+    })
   }, [state.emails])
 
   // Check for snoozed emails that need to be unsnoozed

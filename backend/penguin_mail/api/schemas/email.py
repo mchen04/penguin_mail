@@ -124,6 +124,8 @@ class EmailUpdateIn(Schema):
     isStarred: Optional[bool] = None
     folder: Optional[str] = None
     labels: Optional[list[str]] = None
+    snoozeUntil: Optional[datetime] = None
+    snoozedFromFolder: Optional[str] = None
 
 
 class BulkOpIn(Schema):
