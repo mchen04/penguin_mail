@@ -8,7 +8,7 @@ from . import models
 class UserAdmin(BaseUserAdmin):
     list_display = ("username", "email", "first_name", "last_name", "is_staff")
     readonly_fields = ("uuid",)
-    fieldsets = BaseUserAdmin.fieldsets + (("API", {"fields": ("uuid",)}),)
+    fieldsets = BaseUserAdmin.fieldsets + (("API", {"fields": ("uuid",)}),)  # type: ignore[operator]
 
 
 @admin.register(models.Account)

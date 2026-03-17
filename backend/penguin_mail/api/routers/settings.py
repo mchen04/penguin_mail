@@ -191,7 +191,9 @@ def unblock_address(request, email: str):
 
 
 @router.patch("/keyboard-shortcuts/{shortcut_id}", response=SettingsOut)
-def update_shortcut(request, shortcut_id: int, enabled: bool = None, key: str = None, modifiers: list[str] = None):
+def update_shortcut(
+    request, shortcut_id: int, enabled: bool | None = None, key: str | None = None, modifiers: list[str] | None = None
+):
     user = request.auth
     try:
         ks = KeyboardShortcut.objects.get(pk=shortcut_id, user=user)

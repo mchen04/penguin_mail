@@ -44,14 +44,14 @@ def upload_attachment(request, file: UploadedFile = File(...)):
     if mime_type not in ALLOWED_MIME_TYPES:
         raise HttpError(415, f"Unsupported file type: {mime_type}")
 
-    if file.size > MAX_UPLOAD_BYTES:
+    if (file.size or 0) > MAX_UPLOAD_BYTES:
         raise HttpError(400, f"File too large. Maximum allowed size is {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.")
 
     attachment = Attachment.objects.create(
         email=None,  # Staged — not yet linked to an email
         uploaded_by=request.auth,
-        name=file.name,
-        size=file.size,
+        name=file.name or "",
+        size=file.size or 0,
         mime_type=mime_type,
         file=file,
     )

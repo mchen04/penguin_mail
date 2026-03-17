@@ -16,15 +16,19 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      SECRET_KEY: ci-insecure-key-for-testing-only
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff==0.8.6 vulture
+      - run: pip install ruff==0.8.6 vulture mypy "django-stubs[compatible-mypy]" -r requirements.txt
       - run: ruff check .
       - run: ruff format --check .
       - run: vulture penguin_mail/ --min-confidence 80
+      - name: Type check
+        run: mypy penguin_mail/
 
   backend-test:
     runs-on: ubuntu-latest
@@ -41,7 +45,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: python -m pytest tests/ -v --cov=penguin_mail --cov-report=term-missing --cov-fail-under=85
+      - run: python -m pytest tests/ -v --cov=penguin_mail --cov-report=term-missing --cov-fail-under=90
 
   frontend-lint:
     runs-on: ubuntu-latest

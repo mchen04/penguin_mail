@@ -20,7 +20,7 @@ def create_access_token(user: User) -> tuple[str, int]:
         "iat": now,
         "exp": expires,
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    token: str = jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)  # type: ignore[assignment]
     return token, int(ACCESS_TOKEN_LIFETIME.total_seconds())
 
 
@@ -32,7 +32,7 @@ def create_refresh_token(user: User) -> str:
         "iat": now,
         "exp": now + REFRESH_TOKEN_LIFETIME,
     }
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)  # type: ignore[return-value]
 
 
 def decode_token(token: str) -> dict | None:

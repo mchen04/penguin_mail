@@ -52,14 +52,14 @@ def _create_recipients(email, addresses, kind):
 @router.get("/", response=dict)
 def list_emails(
     request,
-    folder: str = None,
-    accountId: str = None,
-    isRead: bool = None,
-    isStarred: bool = None,
-    hasAttachment: bool = None,
-    search: str = None,
-    threadId: str = None,
-    labelIds: str = None,
+    folder: str | None = None,
+    accountId: str | None = None,
+    isRead: bool | None = None,
+    isStarred: bool | None = None,
+    hasAttachment: bool | None = None,
+    search: str | None = None,
+    threadId: str | None = None,
+    labelIds: str | None = None,
     page: int = 1,
     pageSize: int = 50,
 ):

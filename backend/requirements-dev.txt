@@ -6,3 +6,5 @@ ruff>=0.8
 vulture>=2.11
 pip-audit>=2.7
 hypothesis[django]>=6.100
+mypy>=1.13
+django-stubs[compatible-mypy]>=5.1
