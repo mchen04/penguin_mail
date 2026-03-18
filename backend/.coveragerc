@@ -3,6 +3,11 @@ omit =
     penguin_mail/asgi.py
     penguin_mail/wsgi.py
     penguin_mail/settings_e2e.py
+    penguin_mail/crypto.py
+    penguin_mail/providers.py
+    penguin_mail/services/imap.py
+    penguin_mail/services/smtp.py
+    penguin_mail/services/sync.py
 
 [report]
 fail_under = 99

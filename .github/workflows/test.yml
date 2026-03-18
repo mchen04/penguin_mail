@@ -18,6 +18,7 @@ jobs:
         working-directory: backend
     env:
       SECRET_KEY: ci-insecure-key-for-testing-only
+      FIELD_ENCRYPTION_KEY: 7-RWnsp2PMGM6rGK5gF9j0ijYsFtFJ1eWGFXZtafVQc=
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,6 +40,7 @@ jobs:
       SECRET_KEY: ci-insecure-key-for-testing-only
       DEBUG: "true"
       ALLOWED_HOSTS: localhost
+      FIELD_ENCRYPTION_KEY: 7-RWnsp2PMGM6rGK5gF9j0ijYsFtFJ1eWGFXZtafVQc=
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -93,6 +95,9 @@ jobs:
       SECRET_KEY: ci-insecure-key-for-testing-only
       DEBUG: "true"
       ALLOWED_HOSTS: localhost
+      FIELD_ENCRYPTION_KEY: 7-RWnsp2PMGM6rGK5gF9j0ijYsFtFJ1eWGFXZtafVQc=
+      SMTP_SEND_ENABLED: "false"
+      IMAP_SYNC_ENABLED: "false"
       PLAYWRIGHT_USER_EMAIL: admin@penguinmail.com
       PLAYWRIGHT_USER_PASSWORD: admin
     steps:

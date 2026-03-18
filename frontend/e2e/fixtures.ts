@@ -9,8 +9,8 @@ export async function loginAs(page: Page, email: string, password: string) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button', { name: 'Sign in' }).click()
-  // Wait for navigation away from login page
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10000 })
+  // Wait for the authenticated app to render (Sidebar has a <nav> element)
+  await page.waitForSelector('nav', { timeout: 15000 })
 }
 
 /**

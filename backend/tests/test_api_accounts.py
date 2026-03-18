@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from unittest.mock import patch
 
 from penguin_mail.models import Account
 
@@ -132,3 +133,225 @@ class TestSetDefault:
         second.refresh_from_db()
         assert second.is_default is True
         assert account.is_default is False
+
+
+class TestResolveServerSettings:
+    """Cover _resolve_server_settings for custom provider and unknown provider paths."""
+
+    def test_custom_provider(self, authed_client, user):
+        resp = authed_client.post(
+            "/api/v1/accounts/",
+            data=json.dumps(
+                {
+                    "email": "custom@myserver.com",
+                    "name": "Custom",
+                    "provider": "custom",
+                    "password": "tok",
+                    "smtp_host": "smtp.myserver.com",
+                    "imap_host": "imap.myserver.com",
+                }
+            ),
+        )
+        assert resp.status_code == 201
+        acct = Account.objects.get(email="custom@myserver.com")
+        assert acct.smtp_host == "smtp.myserver.com"
+        assert acct.imap_host == "imap.myserver.com"
+        assert acct.smtp_port == 587  # default
+        assert acct.imap_port == 993  # default
+
+    def test_custom_provider_with_all_fields(self, authed_client, user):
+        resp = authed_client.post(
+            "/api/v1/accounts/",
+            data=json.dumps(
+                {
+                    "email": "full@myserver.com",
+                    "name": "Full Custom",
+                    "provider": "custom",
+                    "password": "tok",
+                    "smtp_host": "smtp.myserver.com",
+                    "smtp_port": 465,
+                    "smtp_security": "ssl",
+                    "imap_host": "imap.myserver.com",
+                    "imap_port": 143,
+                    "imap_security": "starttls",
+                }
+            ),
+        )
+        assert resp.status_code == 201
+        acct = Account.objects.get(email="full@myserver.com")
+        assert acct.smtp_port == 465
+        assert acct.smtp_security == "ssl"
+        assert acct.imap_port == 143
+        assert acct.imap_security == "starttls"
+
+    def test_custom_provider_missing_hosts(self, authed_client, user):
+        resp = authed_client.post(
+            "/api/v1/accounts/",
+            data=json.dumps(
+                {
+                    "email": "bad@custom.com",
+                    "name": "Bad",
+                    "provider": "custom",
+                    "password": "tok",
+                }
+            ),
+        )
+        assert resp.status_code == 422
+
+    def test_unknown_provider(self, authed_client, user):
+        resp = authed_client.post(
+            "/api/v1/accounts/",
+            data=json.dumps(
+                {
+                    "email": "a@b.com",
+                    "name": "Unknown",
+                    "provider": "nonexistent_provider",
+                    "password": "tok",
+                }
+            ),
+        )
+        assert resp.status_code == 422
+
+
+class TestCreateAccountSyncFailure:
+    """Cover lines 98-99: initial sync failure logging."""
+
+    def test_initial_sync_failure_still_creates_account(self, authed_client, user):
+        with patch(
+            "penguin_mail.services.sync.sync_account_inbox",
+            side_effect=Exception("IMAP down"),
+        ):
+            resp = authed_client.post(
+                "/api/v1/accounts/",
+                data=json.dumps(
+                    {
+                        "email": "sync-fail@example.com",
+                        "name": "SyncFail",
+                        "provider": "gmail",
+                        "password": "tok",
+                    }
+                ),
+            )
+        assert resp.status_code == 201
+        assert Account.objects.filter(email="sync-fail@example.com").exists()
+
+
+class TestTestConnection:
+    """Cover lines 150-183: test_connection endpoint."""
+
+    def test_both_ok(self, authed_client, user):
+        with (
+            patch("penguin_mail.services.smtp.test_smtp_connection"),
+            patch("penguin_mail.services.imap.test_imap_connection"),
+        ):
+            resp = authed_client.post(
+                "/api/v1/accounts/test-connection",
+                data=json.dumps(
+                    {
+                        "email": "test@gmail.com",
+                        "provider": "gmail",
+                        "password": "tok",
+                    }
+                ),
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["smtp"] is True
+        assert data["imap"] is True
+        assert data["smtp_error"] == ""
+        assert data["imap_error"] == ""
+
+    def test_smtp_failure(self, authed_client, user):
+        with (
+            patch(
+                "penguin_mail.services.smtp.test_smtp_connection",
+                side_effect=Exception("SMTP auth failed"),
+            ),
+            patch("penguin_mail.services.imap.test_imap_connection"),
+        ):
+            resp = authed_client.post(
+                "/api/v1/accounts/test-connection",
+                data=json.dumps(
+                    {
+                        "email": "test@gmail.com",
+                        "provider": "gmail",
+                        "password": "bad",
+                    }
+                ),
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["smtp"] is False
+        assert "SMTP auth failed" in data["smtp_error"]
+        assert data["imap"] is True
+
+    def test_imap_failure(self, authed_client, user):
+        with (
+            patch("penguin_mail.services.smtp.test_smtp_connection"),
+            patch(
+                "penguin_mail.services.imap.test_imap_connection",
+                side_effect=Exception("IMAP refused"),
+            ),
+        ):
+            resp = authed_client.post(
+                "/api/v1/accounts/test-connection",
+                data=json.dumps(
+                    {
+                        "email": "test@gmail.com",
+                        "provider": "gmail",
+                        "password": "bad",
+                    }
+                ),
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["smtp"] is True
+        assert data["imap"] is False
+        assert "IMAP refused" in data["imap_error"]
+
+    def test_both_fail(self, authed_client, user):
+        with (
+            patch(
+                "penguin_mail.services.smtp.test_smtp_connection",
+                side_effect=Exception("SMTP err"),
+            ),
+            patch(
+                "penguin_mail.services.imap.test_imap_connection",
+                side_effect=Exception("IMAP err"),
+            ),
+        ):
+            resp = authed_client.post(
+                "/api/v1/accounts/test-connection",
+                data=json.dumps(
+                    {
+                        "email": "test@gmail.com",
+                        "provider": "gmail",
+                        "password": "bad",
+                    }
+                ),
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["smtp"] is False
+        assert data["imap"] is False
+
+
+class TestSyncAccount:
+    """Cover lines 188-197: sync_account endpoint."""
+
+    def test_sync_success(self, authed_client, account):
+        resp = authed_client.post(f"/api/v1/accounts/{account.uuid}/sync")
+        assert resp.status_code == 200
+        assert resp.json()["success"] is True
+
+    def test_sync_failure_returns_502(self, authed_client, account):
+        with patch(
+            "penguin_mail.services.sync.sync_account_inbox",
+            side_effect=Exception("Connection refused"),
+        ):
+            resp = authed_client.post(f"/api/v1/accounts/{account.uuid}/sync")
+        assert resp.status_code == 502
+
+    def test_sync_not_found(self, authed_client):
+        resp = authed_client.post(f"/api/v1/accounts/{uuid.uuid4()}/sync")
+        assert resp.status_code == 404

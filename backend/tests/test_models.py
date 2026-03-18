@@ -61,6 +61,20 @@ class TestAccountModel:
                 name="Duplicate",
             )
 
+    def test_get_smtp_password(self, db):
+        account = AccountFactory()
+        account.set_smtp_password("my_smtp_secret")
+        account.save()
+        account.refresh_from_db()
+        assert account.get_smtp_password() == "my_smtp_secret"
+
+    def test_get_imap_password(self, db):
+        account = AccountFactory()
+        account.set_imap_password("my_imap_secret")
+        account.save()
+        account.refresh_from_db()
+        assert account.get_imap_password() == "my_imap_secret"
+
 
 class TestEmailModel:
     def test_create(self, db):

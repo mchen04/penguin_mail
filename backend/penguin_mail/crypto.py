@@ -1,5 +1,5 @@
-from django.conf import settings
 from cryptography.fernet import Fernet
+from django.conf import settings
 
 
 def _get_fernet() -> Fernet:
@@ -7,7 +7,8 @@ def _get_fernet() -> Fernet:
     if not key:
         raise ValueError(
             "FIELD_ENCRYPTION_KEY is not set. "
-            "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
+            "Generate one with: python -c "
+            "'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
         )
     return Fernet(key.encode() if isinstance(key, str) else key)
 

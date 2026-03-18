@@ -85,6 +85,8 @@ export function createMockRepositories(): IRepositories {
       update: vi.fn().mockImplementation(() => ok({ id: 'mock-account' })),
       delete: vi.fn().mockImplementation(okVoid),
       setDefault: vi.fn().mockImplementation(okVoid),
+      testConnection: vi.fn().mockImplementation(() => ok({ smtp: true, imap: true, smtp_error: '', imap_error: '' })),
+      sync: vi.fn().mockImplementation(okVoid),
     },
     contacts: {
       getAll: vi.fn().mockResolvedValue(emptyPaginated),

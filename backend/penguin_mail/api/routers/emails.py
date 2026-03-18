@@ -1,8 +1,10 @@
 import logging
 import threading
 import uuid as uuid_mod
+from collections.abc import Iterable
 from typing import Any
 
+from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 from ninja import Router
@@ -123,20 +125,21 @@ def list_emails(
     page: int = 1,
     pageSize: int = 50,
 ) -> dict:
-    from penguin_mail.services.sync import sync_all_folders
+    if getattr(settings, "IMAP_SYNC_ENABLED", True):
+        from penguin_mail.services.sync import sync_all_folders
 
-    accounts_to_check = (
-        Account.objects.filter(uuid=accountId, user=request.auth)
-        if accountId
-        else Account.objects.filter(user=request.auth)
-    )
-    for account in accounts_to_check:
-        needs_sync = (
-            account.last_sync_at is None or (now() - account.last_sync_at).total_seconds() > SYNC_STALENESS_SECONDS
+        accounts_to_check = (
+            Account.objects.filter(uuid=accountId, user=request.auth)
+            if accountId
+            else Account.objects.filter(user=request.auth)
         )
-        if needs_sync:
-            t = threading.Thread(target=sync_all_folders, args=(account,), daemon=True)
-            t.start()
+        for account in accounts_to_check:
+            needs_sync = (
+                account.last_sync_at is None or (now() - account.last_sync_at).total_seconds() > SYNC_STALENESS_SECONDS
+            )
+            if needs_sync:
+                t = threading.Thread(target=sync_all_folders, args=(account,), daemon=True)
+                t.start()
 
     qs = _base_qs(request.auth)
 
@@ -223,22 +226,25 @@ def create_email(request: AuthenticatedRequest, payload: EmailCreateIn) -> tuple
     _create_recipients(email, payload.cc, "CC")
     _create_recipients(email, payload.bcc, "BCC")
 
-    # Send via SMTP (skip for scheduled sends)
+    # Send via SMTP (skip for scheduled sends and when SMTP is disabled)
     if not payload.scheduledSendAt:
-        from penguin_mail.services.smtp import send_email as smtp_send
+        from django.conf import settings
 
-        try:
-            smtp_send(
-                account=account,
-                recipients_to=[r.email for r in payload.to],
-                recipients_cc=[r.email for r in payload.cc],
-                recipients_bcc=[r.email for r in payload.bcc],
-                subject=payload.subject,
-                body_html=payload.body,
-            )
-        except Exception as e:
-            email.delete()
-            raise HttpError(502, f"Failed to send email: {e}")
+        if getattr(settings, "SMTP_SEND_ENABLED", True):
+            from penguin_mail.services.smtp import send_email as smtp_send
+
+            try:
+                smtp_send(
+                    account=account,
+                    recipients_to=[r.email for r in payload.to],
+                    recipients_cc=[r.email for r in payload.cc],
+                    recipients_bcc=[r.email for r in payload.bcc],
+                    subject=payload.subject,
+                    body_html=payload.body,
+                )
+            except Exception as e:
+                email.delete()
+                raise HttpError(502, f"Failed to send email: {e}")
 
     # Reload with prefetched data
     email = _base_qs(user).get(pk=email.pk)
@@ -276,7 +282,7 @@ def create_draft(request: AuthenticatedRequest, payload: EmailCreateIn) -> tuple
     return 201, EmailOut.from_model(email)
 
 
-def _fire_imap_ops_for_queryset(imap_op: str, emails: QuerySet[Email]) -> None:
+def _fire_imap_ops_for_queryset(imap_op: str, emails: Iterable[Email]) -> None:
     """Fire IMAP operations in background threads for a queryset of emails."""
     from penguin_mail.services.imap import get_imap_folder_map
 

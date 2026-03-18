@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -715,3 +716,203 @@ class TestBulkEdgeCases:
             ),
         )
         assert other_label not in e.labels.all()
+
+
+class TestFireImapOp:
+    """Cover _fire_imap_op function (lines 71-99) — all branches."""
+
+    def test_mark_read(self, db, account):
+        e = EmailFactory(account=account, imap_uid=100, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_mark_read") as mock_mr:
+            _fire_imap_op("markRead", e, {})
+        mock_mr.assert_called_once_with(account, 100, "INBOX")
+
+    def test_mark_unread(self, db, account):
+        e = EmailFactory(account=account, imap_uid=101, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_mark_unread") as mock_mu:
+            _fire_imap_op("markUnread", e, {})
+        mock_mu.assert_called_once_with(account, 101, "INBOX")
+
+    def test_archive(self, db, account):
+        e = EmailFactory(account=account, imap_uid=102, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_move") as mock_mv:
+            _fire_imap_op("archive", e, {"archive": "[Gmail]/All Mail"})
+        mock_mv.assert_called_once_with(account, 102, "INBOX", "[Gmail]/All Mail")
+
+    def test_archive_default_folder(self, db, account):
+        e = EmailFactory(account=account, imap_uid=102, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_move") as mock_mv:
+            _fire_imap_op("archive", e, {})
+        mock_mv.assert_called_once_with(account, 102, "INBOX", "Archive")
+
+    def test_delete(self, db, account):
+        e = EmailFactory(account=account, imap_uid=103, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_move") as mock_mv:
+            _fire_imap_op("delete", e, {"trash": "[Gmail]/Trash"})
+        mock_mv.assert_called_once_with(account, 103, "INBOX", "[Gmail]/Trash")
+
+    def test_delete_permanent(self, db, account):
+        e = EmailFactory(account=account, imap_uid=104, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_delete") as mock_del:
+            _fire_imap_op("deletePermanent", e, {})
+        mock_del.assert_called_once_with(account, 104, "INBOX")
+
+    def test_move_spam(self, db, account):
+        e = EmailFactory(account=account, imap_uid=105, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_move") as mock_mv:
+            _fire_imap_op("moveSpam", e, {"spam": "Junk"})
+        mock_mv.assert_called_once_with(account, 105, "INBOX", "Junk")
+
+    def test_no_imap_uid_returns_early(self, db, account):
+        e = EmailFactory(account=account, imap_uid=None)
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_mark_read") as mock_mr:
+            _fire_imap_op("markRead", e, {})
+        mock_mr.assert_not_called()
+
+    def test_imap_exception_is_logged(self, db, account):
+        e = EmailFactory(account=account, imap_uid=106, imap_folder="INBOX")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch(
+            "penguin_mail.services.imap.imap_mark_read",
+            side_effect=Exception("IMAP error"),
+        ):
+            # Should not raise
+            _fire_imap_op("markRead", e, {})
+
+    def test_default_src_folder(self, db, account):
+        """When imap_folder is empty, src defaults to INBOX."""
+        e = EmailFactory(account=account, imap_uid=107, imap_folder="")
+        from penguin_mail.api.routers.emails import _fire_imap_op
+
+        with patch("penguin_mail.services.imap.imap_mark_read") as mock_mr:
+            _fire_imap_op("markRead", e, {})
+        mock_mr.assert_called_once_with(account, 107, "INBOX")
+
+
+class TestSmtpSendError:
+    """Cover lines 239-241: SMTP send error deletes email and raises 502."""
+
+    def test_smtp_error_deletes_email_and_returns_502(self, authed_client, account):
+        with patch(
+            "penguin_mail.services.smtp.send_email",
+            side_effect=Exception("Connection refused"),
+        ):
+            resp = authed_client.post(
+                "/api/v1/emails/",
+                data=json.dumps(
+                    {
+                        "accountId": str(account.uuid),
+                        "to": [{"email": "bob@example.com", "name": "Bob"}],
+                        "subject": "Fail",
+                        "body": "<p>fail</p>",
+                    }
+                ),
+            )
+        assert resp.status_code == 502
+        # Email should have been deleted
+        assert not Email.objects.filter(subject="Fail").exists()
+
+
+class TestFireImapOpsForQueryset:
+    """Cover lines 286-294: _fire_imap_ops_for_queryset."""
+
+    def test_fires_ops_for_emails_with_imap_uid(self, db, account):
+        e1 = EmailFactory(account=account, imap_uid=200, imap_folder="INBOX")
+        e2 = EmailFactory(account=account, imap_uid=201, imap_folder="INBOX")
+        EmailFactory(account=account, imap_uid=None)  # no uid, should be skipped
+
+        from penguin_mail.api.routers.emails import _fire_imap_ops_for_queryset
+
+        with (
+            patch("penguin_mail.services.imap.get_imap_folder_map", return_value={}),
+            patch("penguin_mail.services.imap.imap_mark_read"),
+            patch("penguin_mail.api.routers.emails.threading") as mock_threading,
+        ):
+            mock_thread = MagicMock()
+            mock_threading.Thread.return_value = mock_thread
+            qs = Email.objects.filter(pk__in=[e1.pk, e2.pk])
+            _fire_imap_ops_for_queryset("markRead", qs)
+        assert mock_threading.Thread.call_count == 2
+        assert mock_thread.start.call_count == 2
+
+    def test_folder_map_exception_falls_back_to_empty(self, db, account):
+        e = EmailFactory(account=account, imap_uid=300, imap_folder="INBOX")
+
+        from penguin_mail.api.routers.emails import _fire_imap_ops_for_queryset
+
+        with (
+            patch(
+                "penguin_mail.services.imap.get_imap_folder_map",
+                side_effect=Exception("IMAP error"),
+            ),
+            patch("penguin_mail.api.routers.emails.threading") as mock_threading,
+        ):
+            mock_thread = MagicMock()
+            mock_threading.Thread.return_value = mock_thread
+            qs = Email.objects.filter(pk=e.pk)
+            _fire_imap_ops_for_queryset("markRead", qs)
+        assert mock_threading.Thread.call_count == 1
+
+
+class TestBulkMoveToSpam:
+    """Cover line 332: move to spam sets imap_op = 'moveSpam'."""
+
+    def test_move_to_spam_triggers_imap_op(self, authed_client, account):
+        e = EmailFactory(account=account, folder="inbox", imap_uid=400, imap_folder="INBOX")
+        with (
+            patch("penguin_mail.services.imap.get_imap_folder_map", return_value={}),
+            patch("penguin_mail.api.routers.emails.threading") as mock_threading,
+        ):
+            mock_thread = MagicMock()
+            mock_threading.Thread.return_value = mock_thread
+            resp = authed_client.post(
+                "/api/v1/emails/bulk",
+                data=json.dumps(
+                    {
+                        "ids": [str(e.uuid)],
+                        "operation": "move",
+                        "folder": "spam",
+                    }
+                ),
+            )
+        assert resp.status_code == 200
+        e.refresh_from_db()
+        assert e.folder == "spam"
+
+
+class TestSnoozeFields:
+    """Cover lines 367/369: snoozeUntil and snoozedFromFolder in update_email."""
+
+    def test_set_snooze_fields(self, authed_client, email):
+        resp = authed_client.patch(
+            f"/api/v1/emails/{email.uuid}",
+            data=json.dumps(
+                {
+                    "snoozeUntil": "2099-06-01T09:00:00Z",
+                    "snoozedFromFolder": "inbox",
+                    "folder": "snoozed",
+                }
+            ),
+        )
+        assert resp.status_code == 200
+        email.refresh_from_db()
+        assert email.snooze_until is not None
+        assert email.snoozed_from_folder == "inbox"
+        assert email.folder == "snoozed"

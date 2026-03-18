@@ -58,12 +58,6 @@ def list_accounts(request: AuthenticatedRequest) -> list[AccountOut]:
     return [AccountOut.from_model(a) for a in accounts]
 
 
-@router.get("/{account_id}", response=AccountOut)
-def get_account(request: AuthenticatedRequest, account_id: str) -> AccountOut:
-    account = get_object_or_404(Account, user=request.auth, uuid=account_id)
-    return AccountOut.from_model(account)
-
-
 @router.post("/", response={201: AccountOut})
 def create_account(request: AuthenticatedRequest, payload: AccountCreateIn) -> tuple[int, AccountOut]:
     user = request.auth
@@ -99,6 +93,52 @@ def create_account(request: AuthenticatedRequest, payload: AccountCreateIn) -> t
         logger.exception("Initial sync failed for account %s", account.email)
 
     return 201, AccountOut.from_model(account)
+
+
+# Literal paths MUST be defined before /{account_id} to avoid parameter capture
+@router.post("/test-connection", response=TestConnectionOut)
+def test_connection(request: AuthenticatedRequest, payload: TestConnectionIn) -> TestConnectionOut:
+    from penguin_mail.services.imap import test_imap_connection
+    from penguin_mail.services.smtp import test_smtp_connection
+
+    settings = _resolve_server_settings(payload)
+
+    smtp_ok = True
+    smtp_error = ""
+    imap_ok = True
+    imap_error = ""
+
+    try:
+        test_smtp_connection(
+            host=settings["smtp_host"],
+            port=settings["smtp_port"],
+            security=settings["smtp_security"],
+            email=payload.email,
+            password=payload.password,
+        )
+    except Exception as e:
+        smtp_ok = False
+        smtp_error = str(e)
+
+    try:
+        test_imap_connection(
+            host=settings["imap_host"],
+            port=settings["imap_port"],
+            email_addr=payload.email,
+            password=payload.password,
+        )
+    except Exception as e:
+        imap_ok = False
+        imap_error = str(e)
+
+    return TestConnectionOut(smtp=smtp_ok, imap=imap_ok, smtp_error=smtp_error, imap_error=imap_error)
+
+
+# Parameterized routes after literal ones
+@router.get("/{account_id}", response=AccountOut)
+def get_account(request: AuthenticatedRequest, account_id: str) -> AccountOut:
+    account = get_object_or_404(Account, user=request.auth, uuid=account_id)
+    return AccountOut.from_model(account)
 
 
 @router.patch("/{account_id}", response=AccountOut)
@@ -143,44 +183,6 @@ def set_default(request: AuthenticatedRequest, account_id: str) -> SuccessOut:
     account.is_default = True
     account.save(update_fields=["is_default"])
     return SuccessOut()
-
-
-@router.post("/test-connection", response=TestConnectionOut)
-def test_connection(request: AuthenticatedRequest, payload: TestConnectionIn) -> TestConnectionOut:
-    from penguin_mail.services.imap import test_imap_connection
-    from penguin_mail.services.smtp import test_smtp_connection
-
-    settings = _resolve_server_settings(payload)
-
-    smtp_ok = True
-    smtp_error = ""
-    imap_ok = True
-    imap_error = ""
-
-    try:
-        test_smtp_connection(
-            host=settings["smtp_host"],
-            port=settings["smtp_port"],
-            security=settings["smtp_security"],
-            email=payload.email,
-            password=payload.password,
-        )
-    except Exception as e:
-        smtp_ok = False
-        smtp_error = str(e)
-
-    try:
-        test_imap_connection(
-            host=settings["imap_host"],
-            port=settings["imap_port"],
-            email_addr=payload.email,
-            password=payload.password,
-        )
-    except Exception as e:
-        imap_ok = False
-        imap_error = str(e)
-
-    return TestConnectionOut(smtp=smtp_ok, imap=imap_ok, smtp_error=smtp_error, imap_error=imap_error)
 
 
 @router.post("/{account_id}/sync", response=SuccessOut)

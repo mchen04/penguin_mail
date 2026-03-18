@@ -148,3 +148,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Field-level encryption key (Fernet) for credentials
 FIELD_ENCRYPTION_KEY = config("FIELD_ENCRYPTION_KEY", default="")
+
+# Allow large email bodies (e.g. inline images in quoted replies)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
+
+# Whether to actually send emails via SMTP (disable in E2E/test environments)
+SMTP_SEND_ENABLED = config("SMTP_SEND_ENABLED", default=True, cast=bool)
+
+# Whether to run IMAP background sync (disable in E2E/test environments)
+IMAP_SYNC_ENABLED = config("IMAP_SYNC_ENABLED", default=True, cast=bool)
