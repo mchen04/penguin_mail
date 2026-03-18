@@ -58,12 +58,13 @@ describe('AddAccountDialog', () => {
     expect(addBtn).toBeDisabled()
   })
 
-  it('Add Account button is enabled when email and name are filled', async () => {
+  it('Add Account button is enabled when email, name, and password are filled', async () => {
     const user = userEvent.setup()
     renderDialog()
 
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByLabelText(/account name/i), 'New Account')
+    await user.type(screen.getByLabelText(/app password/i), 'test-app-password')
 
     const addBtn = screen.getByRole('button', { name: /add account/i })
     expect(addBtn).not.toBeDisabled()
@@ -76,6 +77,7 @@ describe('AddAccountDialog', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByLabelText(/account name/i), 'New Account')
+    await user.type(screen.getByLabelText(/app password/i), 'test-app-password')
 
     await user.click(screen.getByRole('button', { name: /add account/i }))
 
@@ -84,6 +86,8 @@ describe('AddAccountDialog', () => {
         email: 'new@example.com',
         name: 'New Account',
         color: 'blue', // default color
+        provider: 'gmail', // default provider
+        password: 'test-app-password',
       })
     })
   })
@@ -96,6 +100,7 @@ describe('AddAccountDialog', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByLabelText(/account name/i), 'New Account')
+    await user.type(screen.getByLabelText(/app password/i), 'test-app-password')
 
     await user.click(screen.getByRole('button', { name: /add account/i }))
 
@@ -120,6 +125,7 @@ describe('AddAccountDialog', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'bad@example.com')
     await user.type(screen.getByLabelText(/account name/i), 'Bad Account')
+    await user.type(screen.getByLabelText(/app password/i), 'test-app-password')
 
     await user.click(screen.getByRole('button', { name: /add account/i }))
 
@@ -150,6 +156,7 @@ describe('AddAccountDialog', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByLabelText(/account name/i), 'New Account')
+    await user.type(screen.getByLabelText(/app password/i), 'test-app-password')
 
     // Click the Green color button
     await user.click(screen.getByTitle('Green'))

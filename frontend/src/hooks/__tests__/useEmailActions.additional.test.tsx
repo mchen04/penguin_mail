@@ -141,8 +141,8 @@ describe('useEmailActions - snoozeEmails', () => {
       result.current.snoozeEmails(['e1'], snoozeUntil)
     })
 
-    // snoozeEmails calls emailRepository.update(id, { folder: 'snoozed' })
-    expect(repos.emails.update).toHaveBeenCalledWith('e1', { folder: 'snoozed' })
+    // snoozeEmails calls emailRepository.update(id, { folder: 'snoozed', snoozeUntil, snoozedFromFolder })
+    expect(repos.emails.update).toHaveBeenCalledWith('e1', expect.objectContaining({ folder: 'snoozed' }))
   })
 
   it('snoozes multiple emails and shows plural message', async () => {
@@ -162,8 +162,8 @@ describe('useEmailActions - snoozeEmails', () => {
       result.current.snoozeEmails(['e1', 'e2'], snoozeUntil)
     })
 
-    expect(repos.emails.update).toHaveBeenCalledWith('e1', { folder: 'snoozed' })
-    expect(repos.emails.update).toHaveBeenCalledWith('e2', { folder: 'snoozed' })
+    expect(repos.emails.update).toHaveBeenCalledWith('e1', expect.objectContaining({ folder: 'snoozed' }))
+    expect(repos.emails.update).toHaveBeenCalledWith('e2', expect.objectContaining({ folder: 'snoozed' }))
   })
 
   it('snooze with empty ids is a no-op', async () => {

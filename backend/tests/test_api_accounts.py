@@ -52,7 +52,7 @@ class TestCreateAccount:
     def test_first_account_is_default(self, authed_client, user):
         resp = authed_client.post(
             "/api/v1/accounts/",
-            data=json.dumps({"email": "new@example.com", "name": "New"}),
+            data=json.dumps({"email": "new@example.com", "name": "New", "provider": "gmail", "password": "tok"}),
         )
         assert resp.status_code == 201
         assert resp.json()["isDefault"] is True
@@ -60,7 +60,7 @@ class TestCreateAccount:
     def test_second_account_not_default(self, authed_client, account):
         resp = authed_client.post(
             "/api/v1/accounts/",
-            data=json.dumps({"email": "second@example.com", "name": "Second"}),
+            data=json.dumps({"email": "second@example.com", "name": "Second", "provider": "gmail", "password": "tok"}),
         )
         assert resp.status_code == 201
         assert resp.json()["isDefault"] is False
@@ -68,7 +68,9 @@ class TestCreateAccount:
     def test_custom_color(self, authed_client, user):
         resp = authed_client.post(
             "/api/v1/accounts/",
-            data=json.dumps({"email": "a@b.com", "name": "A", "color": "green"}),
+            data=json.dumps(
+                {"email": "a@b.com", "name": "A", "color": "green", "provider": "gmail", "password": "tok"}
+            ),
         )
         assert resp.json()["color"] == "green"
 

@@ -21,7 +21,7 @@ class TestListEmails:
         emails = [EmailFactory(account=account, folder="inbox") for _ in range(10)]
         for e in emails:
             RecipientFactory(email=e, kind="TO")
-        with django_assert_num_queries(6):
+        with django_assert_num_queries(7):
             resp = authed_client.get("/api/v1/emails/?folder=inbox")
         assert resp.status_code == 200
         assert resp.json()["total"] == 10

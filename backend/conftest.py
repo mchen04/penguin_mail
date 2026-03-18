@@ -1,8 +1,21 @@
+from unittest.mock import patch
+
 import pytest
 from django.test import Client
 
 from penguin_mail.api.auth import create_access_token
 from penguin_mail.models import Account, User
+
+
+@pytest.fixture(autouse=True)
+def _mock_sync_services():
+    """Prevent real IMAP sync and SMTP send from running during tests."""
+    with (
+        patch("penguin_mail.services.sync.sync_account_inbox"),
+        patch("penguin_mail.services.sync.sync_all_folders"),
+        patch("penguin_mail.services.smtp.send_email"),
+    ):
+        yield
 
 
 @pytest.fixture(autouse=True)

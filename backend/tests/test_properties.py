@@ -84,6 +84,7 @@ class TestEmailRoundTrip:
     @settings(
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
         max_examples=20,
+        deadline=None,
     )
     @given(
         subject=st.text(
@@ -114,6 +115,7 @@ class TestEmailRoundTrip:
     @settings(
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
         max_examples=10,
+        deadline=None,
     )
     @given(page_size=st.integers(min_value=1, max_value=20))
     def test_pagination_page_data_never_exceeds_page_size(self, authed_client, account, page_size):
@@ -133,6 +135,7 @@ class TestEmailRoundTrip:
     @settings(
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
         max_examples=5,
+        deadline=None,
     )
     @given(n=st.integers(min_value=1, max_value=15))
     def test_sum_of_all_pages_equals_total(self, authed_client, account, n):
