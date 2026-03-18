@@ -23,7 +23,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     deleteAccount,
   } = useAccounts()
 
-  const { getUnreadCount, getTotalUnreadCount, getSnoozedEmails, getScheduledEmails } = useEmail()
+  const { getUnreadCount, getTotalUnreadCount, getSnoozedEmails, getScheduledEmails, getFolderCount } = useEmail()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const sectionId = isAllAccounts ? ALL_ACCOUNTS_ID : account?.id
@@ -47,6 +47,7 @@ export const AccountSection = memo(function AccountSection({ account, isAllAccou
     if (folder === 'inbox') return isAllAccounts ? getTotalUnreadCount() : getUnreadCount('inbox', account?.id)
     if (folder === 'snoozed') return getSnoozedEmails(isAllAccounts ? undefined : account?.id).length
     if (folder === 'scheduled') return getScheduledEmails(isAllAccounts ? undefined : account?.id).length
+    if (folder === 'drafts') return getFolderCount('drafts', isAllAccounts ? null : account?.id)
     return 0
   }
 
