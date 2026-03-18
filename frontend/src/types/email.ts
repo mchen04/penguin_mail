@@ -83,6 +83,8 @@ export interface EmailUpdateInput {
   isStarred?: boolean
   folder?: FolderType
   labels?: string[]
+  snoozeUntil?: Date | null
+  snoozedFromFolder?: FolderType | null
 }
 
 export interface EmailSearchQuery {

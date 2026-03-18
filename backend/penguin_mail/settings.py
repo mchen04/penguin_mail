@@ -145,3 +145,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CORS settings
 # TODO: Restrict to specific origins in production
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Field-level encryption key (Fernet) for credentials
+FIELD_ENCRYPTION_KEY = config("FIELD_ENCRYPTION_KEY", default="")

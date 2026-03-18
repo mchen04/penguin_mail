@@ -120,6 +120,18 @@ export interface IAccountRepository {
   update(id: string, input: AccountUpdateInput): Promise<RepositoryResponse<Account>>
   delete(id: string): Promise<RepositoryResponse<void>>
   setDefault(id: string): Promise<RepositoryResponse<void>>
+  testConnection(input: {
+    email: string
+    provider: string
+    password: string
+    smtp_host?: string
+    smtp_port?: number
+    smtp_security?: string
+    imap_host?: string
+    imap_port?: number
+    imap_security?: string
+  }): Promise<RepositoryResponse<{ smtp: boolean; imap: boolean; smtp_error: string; imap_error: string }>>
+  sync(id: string): Promise<RepositoryResponse<void>>
 }
 
 /**

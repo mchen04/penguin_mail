@@ -4,3 +4,4 @@ django-cors-headers>=4.6
 python-decouple>=3.8
 argon2-cffi>=23.1
 PyJWT>=2.8
+cryptography>=42.0

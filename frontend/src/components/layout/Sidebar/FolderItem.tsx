@@ -74,7 +74,7 @@ const FOLDER_ICONS: Record<SystemFolderType, ReactNode> = {
 }
 
 export const FolderItem = memo(function FolderItem({ folder, count, isSelected, onClick }: FolderItemProps) {
-  const showCount = count > 0 && (folder === 'inbox' || folder === 'drafts')
+  const showCount = count > 0 && (folder === 'inbox' || folder === 'drafts' || folder === 'snoozed' || folder === 'scheduled')
 
   return (
     <button className={styles.folder} data-selected={isSelected} onClick={onClick}>

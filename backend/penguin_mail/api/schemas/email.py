@@ -137,6 +137,8 @@ class EmailUpdateIn(Schema):
     isStarred: bool | None = None
     folder: ValidFolder | None = None
     labels: list[str] | None = None
+    snoozeUntil: datetime | None = None
+    snoozedFromFolder: str | None = None
 
 
 BulkOperation = Literal[

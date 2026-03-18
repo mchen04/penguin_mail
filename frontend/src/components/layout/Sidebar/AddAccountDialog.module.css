@@ -12,8 +12,10 @@
 .dialog {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  max-width: 440px;
+  max-width: 520px;
   width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
   animation: scaleIn var(--transition-fast);
   box-shadow: var(--shadow-xl);
 }
@@ -61,21 +63,47 @@
   color: var(--color-error, #dc2626);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+  white-space: pre-line;
+}
+
+.success {
+  padding: var(--space-2) var(--space-3);
+  background: #f0fdf4;
+  color: #16a34a;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  flex: 1;
 }
 
-.field label {
+.fieldSmall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100px;
+}
+
+.fieldRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.field label,
+.fieldSmall label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
 }
 
-.field input {
+.field input,
+.field select,
+.fieldSmall input,
+.fieldSmall select {
   padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text);
@@ -86,12 +114,79 @@
   transition: border-color 0.15s ease;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus,
+.fieldSmall input:focus,
+.fieldSmall select:focus {
   border-color: var(--color-primary);
 }
 
 .field input::placeholder {
   color: var(--color-text-tertiary);
+}
+
+.select {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+}
+
+.passwordField {
+  position: relative;
+  display: flex;
+}
+
+.passwordField input {
+  flex: 1;
+  padding-right: 60px;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.passwordToggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+.fieldHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.fieldHint a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.fieldHint a:hover {
+  text-decoration: underline;
+}
+
+.sectionLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--space-1);
 }
 
 .colorPicker {
@@ -119,10 +214,16 @@
 
 .footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-6);
   border-top: 1px solid var(--color-border);
+}
+
+.footerRight {
+  display: flex;
+  gap: var(--space-3);
 }
 
 @keyframes fadeIn {

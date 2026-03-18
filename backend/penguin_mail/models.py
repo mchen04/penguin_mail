@@ -49,11 +49,39 @@ class Account(models.Model):
     default_signature_id = models.CharField(max_length=36, blank=True, default="")
     avatar = models.URLField(blank=True, default="")
     is_default = models.BooleanField(default=False)
-    provider = models.CharField(max_length=10, choices=AccountProvider.choices, default=AccountProvider.GMAIL)
-    oauth_token = models.TextField(blank=True, default="")
     last_sync_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    provider = models.CharField(max_length=20, default="custom")
+    smtp_host = models.CharField(max_length=255, default="")
+    smtp_port = models.PositiveIntegerField(default=587)
+    smtp_security = models.CharField(max_length=10, default="starttls")
+    smtp_password = models.TextField(default="")  # Fernet encrypted
+    imap_host = models.CharField(max_length=255, default="")
+    imap_port = models.PositiveIntegerField(default=993)
+    imap_security = models.CharField(max_length=10, default="ssl")
+    imap_password = models.TextField(default="")  # Fernet encrypted
+
+    def set_smtp_password(self, plaintext: str):
+        from penguin_mail.crypto import encrypt_field
+
+        self.smtp_password = encrypt_field(plaintext)
+
+    def get_smtp_password(self) -> str:
+        from penguin_mail.crypto import decrypt_field
+
+        return decrypt_field(self.smtp_password)
+
+    def set_imap_password(self, plaintext: str):
+        from penguin_mail.crypto import encrypt_field
+
+        self.imap_password = encrypt_field(plaintext)
+
+    def get_imap_password(self) -> str:
+        from penguin_mail.crypto import decrypt_field
+
+        return decrypt_field(self.imap_password)
 
     class Meta:
         constraints = [
@@ -81,6 +109,7 @@ class FolderType(models.TextChoices):
     SCHEDULED = "scheduled"
 
 
+# Database table for emails
 class Email(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="emails")
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
@@ -103,6 +132,8 @@ class Email(models.Model):
     snooze_until = models.DateTimeField(null=True, blank=True)
     snoozed_from_folder = models.CharField(max_length=20, choices=FolderType.choices, null=True, blank=True)
     labels = models.ManyToManyField("Label", blank=True, related_name="emails")  # type: ignore[var-annotated]
+    imap_uid = models.PositiveIntegerField(null=True, blank=True, db_index=True)
+    imap_folder = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

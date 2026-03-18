@@ -7,6 +7,7 @@ interface AccountAPI {
   email: string
   name: string
   color: string
+  provider: string
   displayName: string
   signature: string
   defaultSignatureId: string
@@ -14,6 +15,7 @@ interface AccountAPI {
   isDefault: boolean
   createdAt: string
   updatedAt: string
+  lastSyncAt?: string | null
 }
 
 function toAccount(a: AccountAPI): Account {
@@ -22,6 +24,7 @@ function toAccount(a: AccountAPI): Account {
     email: a.email,
     name: a.name,
     color: a.color as Account['color'],
+    provider: a.provider,
     displayName: a.displayName || undefined,
     signature: a.signature || undefined,
     defaultSignatureId: a.defaultSignatureId || undefined,
@@ -29,6 +32,7 @@ function toAccount(a: AccountAPI): Account {
     isDefault: a.isDefault,
     createdAt: new Date(a.createdAt),
     updatedAt: new Date(a.updatedAt),
+    lastSyncAt: a.lastSyncAt ? new Date(a.lastSyncAt) : null,
   }
 }
 
@@ -54,13 +58,26 @@ export class ApiAccountRepository implements IAccountRepository {
 
   async create(input: AccountCreateInput): Promise<RepositoryResponse<Account>> {
     try {
-      const data = await apiClient.post<AccountAPI>('/accounts/', {
+      const body: Record<string, unknown> = {
         email: input.email,
         name: input.name,
         color: input.color ?? 'blue',
         displayName: input.displayName ?? '',
         signature: input.signature ?? '',
-      })
+        provider: input.provider,
+        password: input.password,
+      }
+
+      if (input.provider === 'custom') {
+        body.smtp_host = input.smtp_host
+        body.smtp_port = input.smtp_port
+        body.smtp_security = input.smtp_security
+        body.imap_host = input.imap_host
+        body.imap_port = input.imap_port
+        body.imap_security = input.imap_security
+      }
+
+      const data = await apiClient.post<AccountAPI>('/accounts/', body)
       return { success: true, data: toAccount(data) }
     } catch (e) {
       return { success: false, error: (e as Error).message }
@@ -97,6 +114,37 @@ export class ApiAccountRepository implements IAccountRepository {
   async setDefault(id: string): Promise<RepositoryResponse<void>> {
     try {
       await apiClient.post(`/accounts/${id}/set-default`)
+      return { success: true, data: undefined }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  }
+
+  async testConnection(input: {
+    email: string
+    provider: string
+    password: string
+    smtp_host?: string
+    smtp_port?: number
+    smtp_security?: string
+    imap_host?: string
+    imap_port?: number
+    imap_security?: string
+  }): Promise<RepositoryResponse<{ smtp: boolean; imap: boolean; smtp_error: string; imap_error: string }>> {
+    try {
+      const data = await apiClient.post<{ smtp: boolean; imap: boolean; smtp_error: string; imap_error: string }>(
+        '/accounts/test-connection',
+        input,
+      )
+      return { success: true, data }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  }
+
+  async sync(id: string): Promise<RepositoryResponse<void>> {
+    try {
+      await apiClient.post(`/accounts/${id}/sync`)
       return { success: true, data: undefined }
     } catch (e) {
       return { success: false, error: (e as Error).message }

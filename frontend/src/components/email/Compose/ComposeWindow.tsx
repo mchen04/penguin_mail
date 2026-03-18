@@ -310,6 +310,8 @@ export function ComposeWindow() {
       })
       resetForm()
       closeCompose()
+    } catch (e) {
+      toast.error((e as Error).message || 'Failed to send email')
     } finally {
       setIsSending(false)
     }

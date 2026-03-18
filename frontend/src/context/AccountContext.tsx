@@ -21,6 +21,7 @@ type AccountAction =
   | { type: 'SET_SELECTED_ACCOUNT'; payload: string | null }
   | { type: 'SET_SELECTED_FOLDER'; payload: SystemFolderType }
   | { type: 'SELECT_FOLDER'; payload: { accountId: string | null; folder: SystemFolderType } }
+  | { type: 'REMOVE_ACCOUNT'; payload: string }
 
 interface AccountContextValue extends AccountState {
   toggleAccountExpanded: (accountId: string) => void
@@ -28,6 +29,7 @@ interface AccountContextValue extends AccountState {
   selectFolder: (accountId: string | null, folder: SystemFolderType) => void
   getAccountById: (id: string) => Account | undefined
   addAccount: (input: AccountCreateInput) => Promise<void>
+  deleteAccount: (id: string) => Promise<void>
 }
 
 // --------------------------------------------------------------------------
@@ -70,6 +72,8 @@ function accountReducer(state: AccountState, action: AccountAction): AccountStat
         selectedAccountId: action.payload.accountId,
         selectedFolder: action.payload.folder,
       }
+    case 'REMOVE_ACCOUNT':
+      return { ...state, accounts: state.accounts.filter((a) => a.id !== action.payload) }
     default:
       return state
   }
@@ -132,6 +136,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }
   }, [accountRepository])
 
+  const deleteAccount = useCallback(async (id: string) => {
+    const result = await accountRepository.delete(id)
+    if (result.success) {
+      dispatch({ type: 'REMOVE_ACCOUNT', payload: id })
+    } else {
+      throw new Error(result.error ?? 'Failed to delete account')
+    }
+  }, [accountRepository])
+
   // Memoized context value
   const value = useMemo<AccountContextValue>(
     () => ({
@@ -141,8 +154,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       selectFolder,
       getAccountById,
       addAccount,
+      deleteAccount,
     }),
-    [state, toggleAccountExpanded, selectAccount, selectFolder, getAccountById, addAccount]
+    [state, toggleAccountExpanded, selectAccount, selectFolder, getAccountById, addAccount, deleteAccount]
   )
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
