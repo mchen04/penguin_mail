@@ -28,9 +28,15 @@ def sync_account_folder(account, imap_folder: str, local_folder: str, limit: int
     for data in emails:
         imap_uid = data.get('imap_uid')
 
-        # Deduplicate by IMAP UID first (most reliable)
-        if imap_uid and Email.objects.filter(account=account, imap_uid=imap_uid, imap_folder=imap_folder).exists():
-            continue
+        # Deduplicate by IMAP UID first (most reliable).
+        # Re-process body if it still contains unresolved cid: references.
+        if imap_uid:
+            existing = Email.objects.filter(account=account, imap_uid=imap_uid, imap_folder=imap_folder).first()
+            if existing:
+                if 'cid:' in existing.body:
+                    existing.body = data.get('body', existing.body)
+                    existing.save(update_fields=['body'])
+                continue
 
         message_id = data.get('message_id', '')
         if message_id and Email.objects.filter(account=account, body__contains=message_id).exists():

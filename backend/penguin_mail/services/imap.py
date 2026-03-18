@@ -37,8 +37,9 @@ def _get_body(msg: email_lib.message.Message) -> tuple[str, str]:
             disposition = str(part.get('Content-Disposition', ''))
             content_id = part.get('Content-ID', '')
 
-            # Collect inline images (not marked as attachment, have Content-ID)
-            if content_id and content_type.startswith('image/') and 'attachment' not in disposition:
+            # Collect inline images: any image part with a Content-ID, regardless of
+            # Content-Disposition (some clients mark cid-referenced images as 'attachment')
+            if content_id and content_type.startswith('image/'):
                 payload = part.get_payload(decode=True)
                 if payload:
                     cid = content_id.strip('<>').strip()
