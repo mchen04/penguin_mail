@@ -39,7 +39,7 @@ The frontend communicates with the backend via a REST API with JWT authenticatio
 | Auth | JWT (PyJWT) with access/refresh tokens |
 | Database | SQLite (development), any Django-supported DB for production |
 | Password Hashing | Argon2 (primary) |
-| Testing | Vitest, Testing Library, Playwright |
+| Testing | pytest, Vitest, Testing Library, Playwright |
 
 ## Quick Start
 
@@ -97,6 +97,7 @@ The backend requires a `backend/.env` file (not committed to git). See `.env.exa
 | `SECRET_KEY` | Yes | Django cryptographic key for sessions, CSRF, tokens. Must be unique and secret. |
 | `DEBUG` | No | `True` for local dev, `False` for production. Defaults to `False`. |
 | `ALLOWED_HOSTS` | No | Comma-separated hostnames the server responds to. Defaults to empty. |
+| `FIELD_ENCRYPTION_KEY` | No | Fernet key for encrypting sensitive fields (e.g. SMTP/IMAP passwords). |
 
 The API will be available at `http://localhost:8000/api/v1/` with interactive docs at `http://localhost:8000/api/v1/docs`.
 
@@ -124,10 +125,6 @@ cd backend && source venv/bin/activate && python manage.py runserver
 
 # Terminal 2 — Frontend
 cd frontend && npm run dev
-
-# Terminal 2 (for servers)
-cd frontend && npm run dev -- --host 0.0.0.0
-
 ```
 
 ## Project Structure
@@ -205,29 +202,43 @@ All endpoints are under `/api/v1/`. Authentication uses Bearer JWT tokens.
 
 See [docs/API_CONTRACT.md](docs/API_CONTRACT.md) for full details.
 
-## Scripts
+## Development
 
-### Frontend
+### Makefile Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | TypeScript check + production build |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
-| `npm test` | Run Vitest in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run test:coverage` | Run tests with coverage report |
-
-### Backend
+The Makefile wraps common tasks across both frontend and backend:
 
 | Command | Description |
 |---------|-------------|
-| `python manage.py runserver` | Start Django dev server |
-| `python manage.py migrate` | Apply database migrations |
-| `python manage.py createsuperuser` | Create admin user |
-| `python manage.py makemigrations` | Generate new migrations |
-| `python manage.py shell` | Django interactive shell |
+| `make test` | Run backend + frontend tests |
+| `make test-e2e` | Run Playwright E2E tests |
+| `make test-cov` | Run all tests with coverage |
+| `make lint` | Lint both (ruff + ESLint + tsc) |
+| `make lint-fix` | Auto-fix backend lint issues |
+| `make check` | Full CI check (lint + test) |
+| `make dead-code` | Detect dead code (vulture + knip) |
+| `make audit` | Security audit (pip-audit + npm audit) |
+| `make setup-hooks` | Install pre-commit + pre-push hooks |
+
+### Testing
+
+| Layer | Tools | Coverage |
+|-------|-------|----------|
+| Backend | pytest, Hypothesis (property-based), N+1 query detection | 99% enforced |
+| Frontend | Vitest, Testing Library, fast-check, vitest-axe (a11y) | 90% lines |
+| E2E | Playwright (Chromium + Firefox) | — |
+| SAST | Semgrep (Python, Django, TypeScript, React, secrets) | — |
+
+### CI Pipeline
+
+GitHub Actions runs on every push and PR (skipping docs-only changes):
+
+1. **backend-lint** — ruff, vulture, mypy
+2. **backend-test** — pytest with 99% coverage gate
+3. **frontend-lint** — tsc, ESLint
+4. **frontend-test** — vitest with coverage thresholds
+5. **semgrep** — static analysis / security scanning
+6. **e2e** — Playwright on Chromium
 
 ## Documentation
 
